@@ -9,5 +9,5 @@ def random_forest_cl(max_depth, max_features, n_estimators, random_state, n_jobs
 	print(y_test)
 	
 	#evaluate accuracy of RandomForestClassifier
-	f"Training set accuracy: {GBR.score(X_train, y_train)}; Test set accuracy: {GBR.score(X_test, y_test)}
+	f"Training set accuracy: {RFC.score(X_train, y_train)}; Test set accuracy: {RFC.score(X_test, y_test)}
 
