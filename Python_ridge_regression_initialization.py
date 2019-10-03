@@ -7,7 +7,7 @@ alpha =
 random_state = 
 
 
-def ridge_regression:
+def ridge_regression(alpha, random_state):
 
 	Ridge = Ridge(alpha = alpha, random_state = random_state)
 	Ridge.fit(X_train, y_train)
