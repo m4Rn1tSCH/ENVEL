@@ -1,9 +1,10 @@
-#input for the bill_list to scan
-bill_list = []
+##INPUT: STRING + EMPTY PYTHON LIST
+##OUTPUT: LIST FOR BILL RECOGNITION
 
-print("Enter your bill or receipt manually")
-b = input()
-b_formatted = ''.format(', b, ')
-bill_list = bill_list.append(b_formatted)
+#input for the bill_list to scan
+bill_list = list()
+b = input("Enter your bill or receipt manually :")
+bill_list.append(b)
 print (b , "has been added to the list")
+
 
