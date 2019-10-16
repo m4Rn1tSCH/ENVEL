@@ -6,5 +6,3 @@ bill_list = list()
 b = input("Enter your bill or receipt manually :")
 bill_list.append(b)
 print (b , "has been added to the list")
-
-
