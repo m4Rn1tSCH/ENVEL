@@ -47,8 +47,10 @@ data['category'] = data['category'].replace(to_replace={'Shops': '1',
 data['category'].fillna(value = 0)
 #change to categorical data
 data['category'] = pd.Categorical(data['category'])
-#change to float number for potential preprocessing
-data['category'].astype('float64')
+#change to float number AND drop all kinds of NaNs for potential preprocessing
+data['category'].astype('float64').fillna(value = 0)
+#subcat is float64 and replace all 0 in this column to allow regression
+data['subcat'].fillna(value = 0)
 #READY UP DATA TO BE READY FOR FEATURES AND PASS IT TO TENSOR FLOW
 data_features = data.drop(labels = ['date', 'trans_cat', 'shopname', 'LE_shopname'], axis = 1)
 #convert it to an array to make it a feature
@@ -93,31 +95,34 @@ def draw_sample(data, sample_size, sample_weights, random_state):
 
 #splitting of the data
 #look up structure of train test split; since x= and y=  doesnt work sometimes
-X_train, X_test, y_train, y_test = train_test_split(model_features,model_label, test_size = 0.3)
+X_train, X_test, y_train, y_test = train_test_split(model_features, model_label, test_size = 0.3)
 #%%
-#data
-#preprocess
-#draw a sample
-#result is a none type object
-#convert to data frame
-#nodate_df as feat
-#regular df as label
-#adjust random state to obtain identical samples that align within the data frame
-#random_state = 42
-#df_no_date_sample = draw_sample(df_no_date, sample_size = 32, sample_weights = None, random_state = 42)
-#sample_df_nodate = pd.DataFrame(data = df_no_date_sample)
-##
-#data_sample = draw_sample(data, sample_size = 32, sample_weights = None, random_state = 42)
-#sample_df = pd.DataFrame(data = data_sample)
-##train test split possible with this set
-#%%
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(x = df_no_date_sample, y = data_sample, test_size = 0.4)
-#%%
-#classification & regresion below
-#Gradient Boosting Regressor
+#CLASSIFICATION & REGRESION BELOW
+#GRADIENT BOOSTING REGRESSOR
 #depth shouldnt allow overfitting; keep smaller than number of features available
+#CANNOT TAKE DATA WITH NAN, INFINITY OR FLOAT 32
 from sklearn.ensemble import GradientBoostingRegressor
 #alpha: regularization parameter; the higher, the stricter the parameters are forced toward zero
 GBR = GradientBoostingRegressor(alpha = 0.05,learning_rate = 0.05, n_estimators = 150,max_depth = 5 ,random_state = 0)
 GBR.fit(X_train, y_train)
+y_test = GBR.predict(X_test)
+#%%
+#RANDOM FOREST CLASSIFIER
+from sklearn.ensemble import RandomForestClassifier
+RFC = RandomForestClassifier(max_depth = 5, max_features = 'auto', n_estimators = 25, random_state = None, n_jobs = -1)
+RFC.fit(X_train, y_train)
+y_test = RFC.predict(X_test)
+#%%
+#RANDOM FOREST REGRESSOR
+from sklearn.ensemble import RandomForestRegressor
+RFR = RandomForestRegressor(max_depth = 5, max_features = 'auto', n_estimators = 25, random_state = None, n_jobs = -1)
+RFR.fit(X_train, y_train)
+y_test = RFR.predict(X_test)
+#%%
+#Ridge Regression
+#Ridge Regression
+from sklearn.linear_model import Ridge
+Ridge = Ridge(alpha = 1.0, random_state = None)
+Ridge.fit(X_train, y_train)
+y_test = Ridge.predict(X_test)
+f"Training set accuracy: {Ridge.score(X_train, y_train)}; Test set accuracy: {Ridge.score(X_test, y_test)}"
