@@ -7,6 +7,7 @@ Created on Thu Oct 24 12:01:09 2019
 
 #load the transaction data and all packages
 import pandas as pd
+import numpy as np
 import os
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -32,33 +33,35 @@ df_no_date = data.drop(labels = ['date'], axis = 1)
 #use the LabelEncoder to make shopname numerical
 LE = LabelEncoder()
 data['LE_shopname'] = LE.fit_transform(data['shopname'])
+data['LE_category'] = LE.fit_transform(data['category'])
 #category does not support conversion of strings; is being converted to numbers and then to integers values
-#do not create a new column but change the old one
-data['category'] = data['category'].replace(to_replace={'Shops': '1',
-                                                        'Food and Drink': '2',
-                                                        'Travel': '3',
-                                                        'Service': '4',
-                                                        'Transfer': '5',
-                                                        'Community': '6',
-                                                        'Bank Fees': '7',
-                                                        'Recreation': '8'},
-                                                        value = None)
-#fill in category not available values with 0
-data['category'].fillna(value = 0)
 #change to categorical data
-data['category'] = pd.Categorical(data['category'])
+#data['category'] = pd.Categorical(data['category'])
 #change to float number AND drop all kinds of NaNs for potential preprocessing
-data['category'].astype('float64').fillna(value = 0)
-#subcat is float64 and replace all 0 in this column to allow regression
-data['subcat'].fillna(value = 0)
+#KEEP COPY TRUE TO AVOID BREAKING INHERITED FEATURES!
+data['category'].fillna(value = 0)
+data['category'] = data['category'].astype('float32', copy = True, errors = 'raise')
+#do not create a new column but change the old one
+data['LE_category'] = data.replace(to_replace={'category': {'nan': 0},
+                                                'category': {'Shops': 1},
+                                            'category': {'Food and Drink': 2},
+                                            'category': {'Travel': 3},
+                                            'category': {'Service': 4},
+                                            'category': {'Transfer': 5},
+                                            'category': {'Community': 6},
+                                            'category': {'Bank Fees': 7},
+                                            'category': {'Recreation': 8}},
+                                                value = None)
+
 #READY UP DATA TO BE READY FOR FEATURES AND PASS IT TO TENSOR FLOW
-data_features = data.drop(labels = ['date', 'trans_cat', 'shopname', 'LE_shopname'], axis = 1)
+data_features = data.drop(['date', 'trans_cat','subcat', 'shopname', 'LE_shopname'], axis = 1)
 #convert it to an array to make it a feature
-model_features = data_features.to_numpy()
+model_features = data_features.to_numpy(dtype = 'float32', copy = True)
 #no labels to see if tensor can handle the input
-model_label = data['LE_shopname'].to_numpy()
+model_label = data['LE_shopname'].to_numpy(dtype = 'float32', copy = True)
+
 #%%
-#INPUT: PANDAS DATA FRAME
+#INPUT: PANDAS DATA FRAMER
 #OUTPUT: OBJECT TYPE THAT CANT BE USED FOR FURTHER OPERATIONS IF IT IS NOT CONVERTED TO A DATA FRAME AGAIN
 
 #create a random sample
@@ -106,18 +109,21 @@ from sklearn.ensemble import GradientBoostingRegressor
 GBR = GradientBoostingRegressor(alpha = 0.05,learning_rate = 0.05, n_estimators = 150,max_depth = 5 ,random_state = 0)
 GBR.fit(X_train, y_train)
 y_test = GBR.predict(X_test)
+f"Training set accuracy: {GBR.score(X_train, y_train)}; Test set accuracy: {GBR.score(X_test, y_test)}"
 #%%
 #RANDOM FOREST CLASSIFIER
 from sklearn.ensemble import RandomForestClassifier
 RFC = RandomForestClassifier(max_depth = 5, max_features = 'auto', n_estimators = 25, random_state = None, n_jobs = -1)
 RFC.fit(X_train, y_train)
 y_test = RFC.predict(X_test)
+f"Training set accuracy: {RFC.score(X_train, y_train)}; Test set accuracy: {RFC.score(X_test, y_test)}"
 #%%
 #RANDOM FOREST REGRESSOR
 from sklearn.ensemble import RandomForestRegressor
 RFR = RandomForestRegressor(max_depth = 5, max_features = 'auto', n_estimators = 25, random_state = None, n_jobs = -1)
 RFR.fit(X_train, y_train)
 y_test = RFR.predict(X_test)
+f"Training set accuracy: {RFR.score(X_train, y_train)}; Test set accuracy: {RFR.score(X_test, y_test)}"
 #%%
 #Ridge Regression
 #Ridge Regression
@@ -126,3 +132,22 @@ Ridge = Ridge(alpha = 1.0, random_state = None)
 Ridge.fit(X_train, y_train)
 y_test = Ridge.predict(X_test)
 f"Training set accuracy: {Ridge.score(X_train, y_train)}; Test set accuracy: {Ridge.score(X_test, y_test)}"
+#%%
+#Neural Network
+#NO GPU SUPPORT FOR SKLEARN
+from sklearn.neural_network import MLPClassifier
+
+#adam: all-round solver for data
+#hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights; match with input features
+#alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
+MLP = MLPClassifier(hidden_layer_sizes = 100, solver='adam', alpha=0.01 )
+MLP.fit(X_train, y_train)
+f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}"
+#%%
+#K Nearest Neighbor Classifier
+from sklearn.neighbors import KNeighborsClassifier
+KNN = KNeighborsClassifier(algorithm = 'auto', leaf_size = 30, metric = 'minkowski',
+metric_params = None, n_jobs = 1, n_neighbors = 1, p = 2, weights = 'uniform')
+KNN.fit(X_train, y_train)
+y_test = KNN.predict(X_test)
+f"Training set accuracy: {KNN.score(X_train, y_train)}; Test set accuracy: {KNN.score(X_test, y_test)}"
