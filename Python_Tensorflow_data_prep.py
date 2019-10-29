@@ -7,7 +7,7 @@ Created on Thu Oct 24 12:01:09 2019
 
 #load the transaction data and all packages
 import pandas as pd
-import numpy as np
+#import numpy as np
 import os
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -24,42 +24,47 @@ file = ''.join(('', new_link,''))
 #subcat = subcategory
 #shopname = shop name
 #amount = amount in USD
+#####
 #index_col = None uses first column automatically
 #index_col = False uses no index at all
-data = pd.read_csv(file, skiprows = 1, index_col = False, names = ['date', 'category', 'trans_cat', 'subcat', 'shopname', 'amount'])
-df_no_date = data.drop(labels = ['date'], axis = 1)
+data = pd.read_csv(file, skiprows = 1, index_col = False, na_values = 0,  names = ['date',
+                                                                   'category',
+                                                                   'trans_cat',
+                                                                   'subcat',
+                                                                   'shopname',
+                                                                   'amount'])
 #%%
 #LabelEncoder for category, trans_cat, shopname
 #use the LabelEncoder to make shopname numerical
 LE = LabelEncoder()
 data['LE_shopname'] = LE.fit_transform(data['shopname'])
+#this one doesnt work
 data['LE_category'] = LE.fit_transform(data['category'])
+
 #category does not support conversion of strings; is being converted to numbers and then to integers values
-#change to categorical data
-#data['category'] = pd.Categorical(data['category'])
 #change to float number AND drop all kinds of NaNs for potential preprocessing
 #KEEP COPY TRUE TO AVOID BREAKING INHERITED FEATURES!
-data['category'].fillna(value = 0)
-data['category'] = data['category'].astype('float32', copy = True, errors = 'raise')
+data['category'].fillna(value = 0, inplace = True)
+data['category'].astype('float32', copy = True, errors = 'raise')
+
 #do not create a new column but change the old one
-data['LE_category'] = data.replace(to_replace={'category': {'nan': 0},
-                                                'category': {'Shops': 1},
-                                            'category': {'Food and Drink': 2},
-                                            'category': {'Travel': 3},
-                                            'category': {'Service': 4},
-                                            'category': {'Transfer': 5},
-                                            'category': {'Community': 6},
-                                            'category': {'Bank Fees': 7},
-                                            'category': {'Recreation': 8}},
+data['LE_category'] = data.replace(to_replace={'Shops': '1',
+                                                'Food and Drink': '2',
+                                                'Travel': '3',
+                                                'Service': '4',
+                                                'Transfer': '5',
+                                                'Community': '6',
+                                                'Bank Fees': '7',
+                                                'Recreation': '8'},
                                                 value = None)
 
-#READY UP DATA TO BE READY FOR FEATURES AND PASS IT TO TENSOR FLOW
+#READY UP DATA FOR TENSORFLOW
 data_features = data.drop(['date', 'trans_cat','subcat', 'shopname', 'LE_shopname'], axis = 1)
+#DF READY
 #convert it to an array to make it a feature
 model_features = data_features.to_numpy(dtype = 'float32', copy = True)
 #no labels to see if tensor can handle the input
 model_label = data['LE_shopname'].to_numpy(dtype = 'float32', copy = True)
-
 #%%
 #INPUT: PANDAS DATA FRAMER
 #OUTPUT: OBJECT TYPE THAT CANT BE USED FOR FURTHER OPERATIONS IF IT IS NOT CONVERTED TO A DATA FRAME AGAIN
@@ -82,6 +87,7 @@ def draw_sample(data, sample_size, sample_weights, random_state):
                              random_state = random_state, axis = 1)
 
     #ranking with index (axis = 0)
+    #NA_option to either remove or keep the NaNs!
     ranked_sample = random_sample.rank(axis = 0, method = 'min', numeric_only = None, na_option = 'keep',
                                     ascending = True, pct = False)
     print(ranked_sample.head(3))
@@ -100,13 +106,23 @@ def draw_sample(data, sample_size, sample_weights, random_state):
 #look up structure of train test split; since x= and y=  doesnt work sometimes
 X_train, X_test, y_train, y_test = train_test_split(model_features, model_label, test_size = 0.3)
 #%%
+#feature selection for artificial data in Q2 format
+#default for number of features picked is 10!
+#set no. of features picked to no. of columns - 1
+#that way all features will be taken into consideraton to predict one label
+from sklearn.feature_selection import SelectKBest, f_classif
+features = len(data.columns) - 1
+k_best = SelectKBest(score_func = f_classif, k = features)
+k_best.fit(X_train, y_train)
+#optimal parameters picked
+#%%
 #CLASSIFICATION & REGRESION BELOW
 #GRADIENT BOOSTING REGRESSOR
 #depth shouldnt allow overfitting; keep smaller than number of features available
 #CANNOT TAKE DATA WITH NAN, INFINITY OR FLOAT 32
 from sklearn.ensemble import GradientBoostingRegressor
 #alpha: regularization parameter; the higher, the stricter the parameters are forced toward zero
-GBR = GradientBoostingRegressor(alpha = 0.05,learning_rate = 0.05, n_estimators = 150,max_depth = 5 ,random_state = 0)
+GBR = GradientBoostingRegressor(alpha = 0.05, learning_rate = 0.05, n_estimators = 150, max_depth = 5 , random_state = 0)
 GBR.fit(X_train, y_train)
 y_test = GBR.predict(X_test)
 f"Training set accuracy: {GBR.score(X_train, y_train)}; Test set accuracy: {GBR.score(X_test, y_test)}"
