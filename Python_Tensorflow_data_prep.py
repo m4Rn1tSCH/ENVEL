@@ -7,7 +7,6 @@ Created on Thu Oct 24 12:01:09 2019
 
 #load the transaction data and all packages
 import pandas as pd
-#import numpy as np
 import os
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -27,7 +26,8 @@ file = ''.join(('', new_link,''))
 #####
 #index_col = None uses first column automatically
 #index_col = False uses no index at all
-data = pd.read_csv(file, skiprows = 1, index_col = False, na_values = 0,  names = ['date',
+data = pd.read_csv(file, skiprows = 1, index_col = False, na_values = 0,
+                                                               names = ['date',
                                                                    'category',
                                                                    'trans_cat',
                                                                    'subcat',
@@ -38,33 +38,23 @@ data = pd.read_csv(file, skiprows = 1, index_col = False, na_values = 0,  names 
 #use the LabelEncoder to make shopname numerical
 LE = LabelEncoder()
 data['LE_shopname'] = LE.fit_transform(data['shopname'])
-#this one doesnt work
-data['LE_category'] = LE.fit_transform(data['category'])
+#make sure the data is read as uniform data type; read everything as strings and encode them to numerical values!
+data['LE_category'] = LE.fit_transform(data['category'].astype(str, copy = True, errors = 'raise'))
+#CATEGORY HAS MIXED DATA TYPES; DTYPES 'OBJECT' INDICATES MIXED DATA TYPES!!!
+#COMBINE LE FUNCTION FOR THAT AND ASTYPE MAKE SURE IT IS A UNIFORM DATATYPE
 
-#category does not support conversion of strings; is being converted to numbers and then to integers values
-#change to float number AND drop all kinds of NaNs for potential preprocessing
-#KEEP COPY TRUE TO AVOID BREAKING INHERITED FEATURES!
-data['category'].fillna(value = 0, inplace = True)
-data['category'].astype('float32', copy = True, errors = 'raise')
-
+#fillna is obsolete; the LabelEncoder() removed all NaNs already
+#category can be safely dropped as well since LE_category is now ready to be a feature
 #do not create a new column but change the old one
-data['LE_category'] = data.replace(to_replace={'Shops': '1',
-                                                'Food and Drink': '2',
-                                                'Travel': '3',
-                                                'Service': '4',
-                                                'Transfer': '5',
-                                                'Community': '6',
-                                                'Bank Fees': '7',
-                                                'Recreation': '8'},
-                                                value = None)
-
+#%%
 #READY UP DATA FOR TENSORFLOW
-data_features = data.drop(['date', 'trans_cat','subcat', 'shopname', 'LE_shopname'], axis = 1)
+data_features = data.drop(['date','category', 'trans_cat','subcat', 'shopname', 'LE_shopname'], axis = 1)
 #DF READY
 #convert it to an array to make it a feature
 model_features = data_features.to_numpy(dtype = 'float32', copy = True)
 #no labels to see if tensor can handle the input
 model_label = data['LE_shopname'].to_numpy(dtype = 'float32', copy = True)
+#PREDICTION MODEL: AMOUNT + LE_CATEGORY > LE_SHOPNAME
 #%%
 #INPUT: PANDAS DATA FRAMER
 #OUTPUT: OBJECT TYPE THAT CANT BE USED FOR FURTHER OPERATIONS IF IT IS NOT CONVERTED TO A DATA FRAME AGAIN
@@ -82,7 +72,7 @@ random_state = None
 
 def draw_sample(data, sample_size, sample_weights, random_state):
     #draw the sample and rank it
-    #axis = None returns a stat axis; axis = 1 returns a series or data frame
+    #axis = None returns a static axis; axis = 1 returns a series or data frame
     random_sample = data.sample(n = sample_size, frac = None, replace = False, weights = sample_weights,
                              random_state = random_state, axis = 1)
 
@@ -94,25 +84,33 @@ def draw_sample(data, sample_size, sample_weights, random_state):
 
 #%%
 #train_test_split seems to take 2 times the identical data frame
-#DATA_FEATURES=LOADED TRANSACTION DATA
-#category       category
-#subcat          float64
+##FEATURES
+#LE_category       int32
 #amount          float64
+##LABEL
 #LE_shopname       int32
 
-#Equation: category + subcategory + amount ~ LE_shopname
+#Equation: amount + LE_category > LE_shopname
 
 #splitting of the data
 #look up structure of train test split; since x= and y=  doesnt work sometimes
-X_train, X_test, y_train, y_test = train_test_split(model_features, model_label, test_size = 0.3)
+X_train, X_test, y_train, y_test = train_test_split(model_features, model_label, test_size = 0.5)
+#shape of the splits:
+#features: X:[n_samples, n_features]
+#label: y: [n_samples]
+print(f"Shape of the split training data set: X_train:{X_train.shape}")
+print(f"Shape of the split training data set: X_test: {X_test.shape}")
+print(f"Shape of the split training data set: y_train: {y_train.shape}")
+print(f"Shape of the split training data set: y_test: {y_test.shape}")
 #%%
 #feature selection for artificial data in Q2 format
 #default for number of features picked is 10!
 #set no. of features picked to no. of columns - 1
 #that way all features will be taken into consideraton to predict one label
+#ENCAPSULATE 'ALL' IN LETTER TICKS TO AVOID MISINTERPRETATIONS IN THE FUNCTIONS
 from sklearn.feature_selection import SelectKBest, f_classif
 features = len(data.columns) - 1
-k_best = SelectKBest(score_func = f_classif, k = features)
+k_best = SelectKBest(score_func = f_classif, k = 'all')
 k_best.fit(X_train, y_train)
 #optimal parameters picked
 #%%
@@ -141,7 +139,6 @@ RFR.fit(X_train, y_train)
 y_test = RFR.predict(X_test)
 f"Training set accuracy: {RFR.score(X_train, y_train)}; Test set accuracy: {RFR.score(X_test, y_test)}"
 #%%
-#Ridge Regression
 #Ridge Regression
 from sklearn.linear_model import Ridge
 Ridge = Ridge(alpha = 1.0, random_state = None)
