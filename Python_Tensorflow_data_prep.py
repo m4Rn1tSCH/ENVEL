@@ -56,7 +56,7 @@ model_features = data_features.to_numpy(dtype = 'float32', copy = True)
 model_label = data['LE_shopname'].to_numpy(dtype = 'float32', copy = True)
 #PREDICTION MODEL: AMOUNT + LE_CATEGORY > LE_SHOPNAME
 #%%
-#INPUT: PANDAS DATA FRAMER
+#INPUT: PANDAS DATA FRAME
 #OUTPUT: OBJECT TYPE THAT CANT BE USED FOR FURTHER OPERATIONS IF IT IS NOT CONVERTED TO A DATA FRAME AGAIN
 
 #create a random sample
