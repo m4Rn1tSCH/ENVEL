@@ -9,7 +9,7 @@ require(magrittr)
 #alternative: enter observation_size manually
 
 ####SET DATES#####
-start_date <- as.Date("2019-11-01")
+start_date <- as.Date("2015-11-01")
 end_date <- Sys.Date()
 #end_date <- as.Date("2019-11-01")
 
@@ -114,8 +114,8 @@ yn_draw <- gl(n = 2, k = 100, labels = c("Y","N"))
 
 ##########BANK NAME LIST#################
 #labels needs a vector
-list_banks = c("Bank_of_America",
-                "Toronto_Dominion_Bank",
+list_banks = c("Bank of America",
+                "Toronto Dominion Bank",
                 "Citizens_Bank",
                 "Webster Bank",
                 "CHASE Bank",
@@ -157,7 +157,7 @@ masterId <- as.numeric(sample(x = .Random.seed ^ 2, size = observation_size, rep
 ##customer who is in possession of the bank account
 customerId <- abs(as.numeric(sample(x = .Random.seed, size = observation_size, replace = TRUE))) #NUM
 ##human-readable description of the type of a transaction (CorePro Withdrawal, CorePro Deposit) SEE TRANSACTION TYPES
-type <- sample(x = transaction_draw, size = observation_size, replace = TRUE)
+type <- sample(x = transaction_draw, size = observation_size, replace = TRUE, prob = c(0.3, 0.3, 0.02, 0.15, 0.08, 0.075, 0.075))
 ##programmatic code to indicate the type of the transaction
 typeCode <- abs(as.numeric(sample(x = .Random.seed, size = observation_size, replace = TRUE)))#NUM/STR
 ##program-wide unique identifier provided by the caller at transfer/create time; not from CorePro
@@ -171,7 +171,7 @@ status <- sample(x = c(Initiated, Pending, Settled, Voided), size = observation_
 ##exact date and time the transaction was created; returned in time zone of the bank
 createdDate <- seq(from = start_date, to = end_date, length.out = observation_size) #DATE
 ##amount in USD
-amount <- rnorm(n = observation_size, mean = 4500, sd = 480) #USD
+amount <- rnorm(n = observation_size, mean = 85, sd = 250) #USD
 ##TRUE if the amount is credited to the accountId, FALSE if the amount is debited
 isCredit <- sample(x = c("Y", "N"), size = observation_size, replace = TRUE)#BOOL; crediting or debiting
 ##date and time at which the transaction was settled; returned in time zone of the bank
@@ -185,7 +185,7 @@ returnCode <- sample(x = c(000, 111, 222,333), size = observation_size, replace 
 ##fee code a transaction
 feeCode <- sample(x = c(RGD, RTN, NSF), size = observation_size, replace = TRUE) #NUM
 ##description of the fee
-feeDescription <- sample(x = gl(n = 2, k = observation_size, labels = c("Gallia est omnis divisa in partes tres", "Abeus Papam")), size = observation_size, replace = TRUE) #STR
+feeDescription <- sample(x = gl(n = 4, k = observation_size, labels = c("Gallia est omnis divisa in partes tres", "Abeus Papam", "Dominus Vobiscum", "Veni, Vidi, Vici")), size = observation_size, replace = TRUE) #STR
 ##CorePro-generated identifier for the card that created the transaction; empty or 0 if not tied to a card
 cardId <- abs(sample(x = .Random.seed, size = observation_size, replace = TRUE))
 ##value are TBD; only referring to card-based transactions
@@ -230,7 +230,42 @@ df <- data.frame(transactionCount,
                   CS,
                   CS_FICO_num,
                   CS_FICO_str)
-                  
+
+#Refine data frame and adapt "isCredit"; "amount"; "type"; "subTypeCode" to follow a coherent logic 
+########ADAPT THE COLUMN "isCredit"######
+#syntax for iteration
+#df[row, "column_name"]
+for (row in 1:(nrow(df))) {
+  dep<- df[row, "type"]
+  
+  if(dep == "CorePro Deposit") {
+  replace.value( data = df, names = c("isCredit"), from = "N", to = "Y", verbose = FALSE) 
+  }
+}
+#######ADAPT THE COLUMN "Amount"#######
+for (row in 1:(nrow(df))) {
+  dep<- df[row, "type"]
+  
+  if(dep == "CorePro Deposit") {
+    replace.value( data = df, names = c("amount"), from = df[row, "amount"], to = abs(df[row, "amount"]), verbose = FALSE) 
+  }
+}
+
+#######ADAPT THE COLUMN "subTypeCode"#######
+for (row in 1:(nrow(df))) {
+  dep<- df[row, "subType"]
+  
+  if(dep == "N") {
+    replace.value( data = df, names = c("subTypeCode"), from = "Y", to = "N", verbose = FALSE) 
+  }
+}
+
+#for(i in 1:nrow(dataFrame)) {
+#  row <- dataFrame[i,]
+#    do stuff with row
+#}
+
+######Print to DF#####             
 print(df)
 if (is.data.frame(df) == TRUE) {
   write.csv(x = df, file = "Q_test_data.csv", append = FALSE)
