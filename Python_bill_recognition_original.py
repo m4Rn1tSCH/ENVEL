@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Nov 13 11:26:23 2019
+Original: Nan
+Created on Fri Nov  8 14:44:27 2019
 
 @author: bill-
 """
-
 import pandas as pd
 import os
-import re
 ##keep this for tests on other OSs and to avoid paths problems
 os.getcwd()
 #%%
+#absolute links are not a good idea
 #Pay attention if it is a CSV or Excel file to avoid tokenization errors and separator errors
 #link for the transaction csv
-transaction_input = r"C:\Users\bill-\Desktop\TransactionsD_test.csv"
+transaction_input = r"C:\Users\bill-\Desktop\TransactionsD.csv"
 path_1 = transaction_input.replace(os.sep,'/')
 transaction_input = ''.join(('', path_1, ''))
 #%%
@@ -31,10 +31,8 @@ df = pd.read_csv(transaction_input, header = 0, names = ['date',
                                                          'amount'])
 df.head(n = 3)
 len(df.index)
-#%%
-# figure out repetitive payments
-# exclude these merchants as repetitive payments
-blacklist = ['Uber', 'Lyft', 'Paypal', 'E-ZPass']
+
+
 #%%
 #if tokenizing error arises; might be due to pandas generated columns names with an \r
 #then the discrepancy causes an error; specify separator explicitly to fix
@@ -44,35 +42,25 @@ print("loading the vendor list...")
 BillVendors_uniqueVals = df1['MerchantName'].unique()
 BillVendors = BillVendors_uniqueVals.tolist()
 
-#change the elements to lower case only
-#for BillVendor in BillVendors:
-#
-bills_found = []
+print(BillVendors)
+
 #%%
+#this section is non-functional
 #statements = list of bank statement strings
 for i in range(len(df.index)):
-    descriptions = str(df.iloc[i]['shopname']).lower()
-    #descriptions = descriptions.lower()
+    descriptions = str(df.iloc[i]['shopname'])
+    descriptions = descriptions.lower()
     #print(descriptions)
-    #print(BillVendor)
     for BillVendor in BillVendors:
-        #BillVendor = BillVendor.lower()
-        ###first if-loop
-        #re.I makes the process ignore lower/upper case
-        if re.search(BillVendor, descriptions, flags = re.I):
-            # append to bill_found list
-            bills_found.append(descriptions)
-            print("bill found")
-        ###second if-loop
-    else:
-        print("no known bill found :(")
+        BillVendor = BillVendor.lower()
+        #print(BillVendor)
+        if BillVendor in descriptions:
+            print("Bill detected:{}".format(BillVendor))
+
 #%%
-#iterate through the elements of bills_found
-for i in range(len(bills_found)):
-    if re.search(blacklist, bills_found, flags = re.I):
-        # remove from bill_found list
-        bills_found.remove(descriptions)
-        print("blacklisted bill removed")
-    else:
-            pass
-#recurring bills have breen written to a list
+# figure out repetitive payments
+# exclude these merchants as repetitive payments
+blacklist = ['Uber', 'Lyft', 'Paypal', 'E-ZPass']
+
+# to be continued...
+
