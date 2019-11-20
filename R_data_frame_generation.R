@@ -1,4 +1,5 @@
 require(magrittr)
+require(anchors)
 ######TEST DATA SET#########
 
 #finished: 11/5/2019
@@ -9,7 +10,7 @@ require(magrittr)
 #alternative: enter observation_size manually
 
 ####SET DATES#####
-start_date <- as.Date("2015-11-01")
+start_date <- as.Date("2019-11-10")
 end_date <- Sys.Date()
 #end_date <- as.Date("2019-11-01")
 
@@ -124,7 +125,7 @@ list_banks = c("Bank of America",
                 "HSBC Bank USA",
                 "State Street Corporation",
                 "MUFG Union Bank",
-                "Citizens Bank",
+                "Wells Fargo & Co.",
                 "Barclays",
                 "New York Community Bank",
                 "CIT Group",
@@ -144,14 +145,14 @@ Student <- as.numeric(sample(x = 0:1, size = observation_size, replace = TRUE))
 account_balance <- sample(x=c(u100, o100u1000, o1000u10000, o10000), size = observation_size, replace = TRUE)
 CS_FICO_str <- round(sample(x=c(Exceptional_850_800, Very_Good_799_740, Average_701, Good_739_670, Fair_669_580, Very_Poor_579_300), size = observation_size, replace = TRUE), digits = 0) #STR
 CS_FICO_num <- round(rnorm(n = observation_size, mean = 701, sd = 100), digits = 0)
-CS <- sample(x=c(Average, Excellent, Poor), size = observation_size, replace = TRUE)
+CS_internal <- sample(x=c(Average, Excellent, Poor), size = observation_size, replace = TRUE)
 
 ##Q2 format columns# LEAVE SPACING AND SPELLING TO BE IDENTICAL WITH THE Q2 OBJECT!!!
 
 ##number of transactions that meet query criteria; returns a single page per call
 transactionCount <- as.numeric(seq_len(observation_size)) #NUM int32
 ##unique identifier created by CorePro for each transaction
-transactionId <- abs(as.numeric(sample(x = .Random.seed * 0.5, size = observation_size, replace = TRUE))) #NUM int64
+transactionId <- abs(as.numeric(sample(x = .Random.seed * 2, size = observation_size, replace = TRUE))) #NUM int64
 ##unique transaction identifier created by CorePro to group transactions together (Debit card auth + completions; ACH withdrawal + subsequent return)
 masterId <- as.numeric(sample(x = .Random.seed ^ 2, size = observation_size, replace = TRUE)) #NUM int64
 ##customer who is in possession of the bank account
@@ -227,7 +228,7 @@ df <- data.frame(transactionCount,
                   Student,
                   account_balance,
                   Age,
-                  CS,
+                  CS_internal,
                   CS_FICO_num,
                   CS_FICO_str)
 
