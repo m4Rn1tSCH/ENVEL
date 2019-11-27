@@ -64,7 +64,8 @@ else:
 #if 2 or fewer unique categories data type changes to "object"
 #iterate through columns and change the object (not int64)
 
-###ATTENTION; WHEN THE DATA FRAME IS OPEN AND THE SCRIPT IS RUN THE DATA TYPES CHANGE TO FLOAT64
+###ATTENTION; WHEN THE DATA FRAME IS OPEN AND THE SCRIPT IS RUN
+###THE DATA TYPES CHANGE TO FLOAT64 SINCE THE NUMBERS ARE BEING DISPLAYED
 le = LabelEncoder()
 le_count = 0
 #           V1
@@ -125,7 +126,7 @@ X_train, X_test, y_train, y_test = train_test_split(model_features, model_label,
 
 #%%
 #select statisitically significant features with Age as target variable
-from sklearn.feature_selection import SelectKBest, chi2
+#chi2 for non-negative ONLY!!
 #all features but one that becomes the label
 features = len(df.columns) - 1
 k_best = SelectKBest(score_func = chi2, k = 'all')
@@ -135,16 +136,17 @@ k_best.scores_
 k_best.pvalues_
 #%%
 #select statisitically significant features with Student as target variable
-from sklearn.feature_selection import SelectKBest, chi2
-#all features but one that becomes the labels
-features = len(df.columns) - 1
-k_best = SelectKBest(score_func = chi2, k = 'all')
+#deduct 10 features from all available ones (20 left here)
+#only the 20 best ones with the strongest correlation will be picked
+features = len(df.columns) - 10
+k_best = SelectKBest(score_func = chi2, k = features)
 k_best.fit(df, df['Student'])
 #optimal parameters picked
 print(k_best.scores_)
 print(k_best.pvalues_)
+
 #%%
-#############APPLICATION OF RIDGE REGRESSION###########################
+#############APPLICATION OF RECURSIVE FEATURE EXTRACTION/LOGISTIC REGRESSION###########################
 #Creating training and testing data
 train=df.sample(frac = 0.5,random_state = 200)
 test=df.drop(train.index)
@@ -164,14 +166,14 @@ print('Selected features: %s' % list(X_train.columns[rfe.support_]))
 
 ##Use the Cross-Validation function of the RFE modul
 #accuracy describes the number of correct classifications
-rfecv = RFECV(estimator=LogisticRegression(), step=1, cv=8, scoring='accuracy')
+rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring='accuracy')
 rfecv.fit(X_train, y_train)
 
 print("Optimal number of features: %d" % rfecv.n_features_)
 print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
 
 # Plot number of features VS. cross-validation scores
-plt.figure(figsize=(10,6))
+plt.figure(figsize = (10,6))
 plt.xlabel("Number of features selected")
 plt.ylabel("Cross validation score (nb of correct classifications)")
 plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
@@ -273,10 +275,81 @@ plt.plot(predictions[0:50], 'ro', color ='red', alpha=0.5)
 plt.show()
 #%%
 ############APPLICATION OF SKLEARN NEURAL NETWORK#####################
+'''
 from sklearn.neural_network import MLP
 mlp = MultiLayerPerceptron
 
+'''
 ###########APPLICATION OF PYTORCH###############################
 
 
 #############APPLICATION OF TENSORFLOW##########################
+#%%
+from __future__ import absolute_import, division, print_function, unicode_literals
+import functools
+
+import tensorflow as tf
+from tensorflow import feature_column
+from tensorflow.keras import layers
+#%%
+#custom train test split
+train, test = train_test_split(df, test_size=0.2)
+train, val = train_test_split(train, test_size=0.2)
+print(len(train), 'train examples')
+print(len(val), 'validation examples')
+print(len(test), 'test examples')
+#%%
+# A utility method to create a tf.data dataset from a Pandas Dataframe
+def df_to_dataset(dataframe, shuffle = True, batch_size = 32):
+  dataframe = dataframe.copy()
+  labels = dataframe.pop('CreditCard')
+  ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
+  if shuffle:
+    ds = ds.shuffle(buffer_size = len(dataframe))
+  ds = ds.batch(batch_size)
+  return ds
+#%%
+##STEP 1
+#feature columns to use in the layers
+columns = df.columns
+
+# numeric cols
+#for header in df.columns:
+#  feature_columns.append(feature_columns.numeric_column(header))
+
+#indicator cols
+
+
+##STEP 2
+#create layers
+feature_layer = DenseFeatures(columns)
+
+batch_size = 10
+train_ds = df_to_dataset(train, batch_size=batch_size)
+val_ds = df_to_dataset(val, shuffle = True, batch_size = batch_size)
+test_ds = df_to_dataset(test, shuffle = True, batch_size = batch_size)
+
+model = tf.keras.Sequential([
+  feature_layer,
+  layers.Dense(units = 256, activation = 'relu'),
+  layers.Dense(units = 256, activation = 'relu'),
+  layers.Dense(units = 1, activation = 'sigmoid')
+])
+
+##STEP 3
+model.compile(optimizer='Adam',
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
+
+model.fit(train_ds,
+          validation_data=val_ds,
+          epochs=2)
+
+##STEP 4
+# Check accuracy
+loss, accuracy = model.evaluate(test_ds)
+print("Accuracy", accuracy)
+
+##STEP 5
+# Infer labels on a batch
+predictions = model.predict(test_ds)
