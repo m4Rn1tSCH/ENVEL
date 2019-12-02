@@ -30,7 +30,9 @@ from sklearn.model_selection import GridSearchCV
 link = r"C:\Users\bill-\Desktop\Q_test_data.csv"
 link_1 = link.replace(os.sep, '/')
 file = ''.join(link_1)
-
+'''
+This test data needs more rows than features have been selected or various functions might fail
+'''
 #loading the data frame
 #first column is the index to avoid "unnamed column"
 df = pd.read_csv(file, index_col = [0])
@@ -217,7 +219,10 @@ y_validation_RF = y_test
 print('R2 score = ',r2_score(y_validation_RF, predictions), '/ 1.0')
 print('MSE score = ',mean_squared_error(y_validation_RF, predictions), '/ 0.0')
 #%%
-############APPLICATION OF KERAS#############################
+###########################################################
+'''
+APPLICATION OF KERAS
+'''
 #features: X
 #target: Y
 import keras
@@ -282,9 +287,12 @@ mlp = MultiLayerPerceptron
 '''
 ###########APPLICATION OF PYTORCH###############################
 
-
-#############APPLICATION OF TENSORFLOW##########################
 #%%
+##############################################################
+'''
+                    APLICATION OF TENSORFLOW
+'''
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
 
@@ -309,9 +317,45 @@ def df_to_dataset(dataframe, shuffle = True, batch_size = 32):
   ds = ds.batch(batch_size)
   return ds
 #%%
+'''
+This is an overview about the choice of columns for the model and how to preprocess them before
+compiling the model and training it
+
+Data columns (total 30 columns):
+transactionCount       6 non-null int64
+transactionId          6 non-null int64
+masterId               6 non-null int64
+customerId             6 non-null int64
+type                   6 non-null object categorical
+typeCode               6 non-null int64
+tag                    6 non-null int64
+friendlyDescription    6 non-null int64 cat with hashed feat
+description            6 non-null int64
+status                 6 non-null int64
+createdDate            6 non-null object bucketized?
+amount                 6 non-null float64
+isCredit               6 non-null object categorical
+settledDate            6 non-null object
+availableDate          6 non-null object
+voidedDate             6 non-null object
+returnCode             6 non-null int64 categorical
+feeCode                6 non-null int64 categorical
+feeDescription         6 non-null object
+cardId                 6 non-null int64
+subTypeCode            6 non-null object
+subType                6 non-null object
+institutionName        6 non-null object
+check                  6 non-null object categorical with hashed feat
+Student                6 non-null int64 categorical
+account_balance        6 non-null int64 bucketized
+Age                    6 non-null int64 bucketized
+CS_internal            6 non-null int64 bucketized/ categorical
+CS_FICO_num            6 non-null int64 categorical/bucketized if as strings
+CS_FICO_str            6 non-null int64 categorical
+'''
 ##STEP 1
 #feature columns to use in the layers
-columns = df.columns
+feature_columns = []
 
 # numeric cols
 #for header in df.columns:
@@ -322,7 +366,7 @@ columns = df.columns
 
 ##STEP 2
 #create layers
-feature_layer = DenseFeatures(columns)
+feature_layer = layers.DenseFeatures(columns)
 
 batch_size = 10
 train_ds = df_to_dataset(train, batch_size=batch_size)
