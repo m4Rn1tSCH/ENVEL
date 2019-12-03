@@ -5,12 +5,12 @@ require(anchors)
 #finished: 11/5/2019
 #R-version: 3.6.1 (x64)
 
-#set up dates in a way that start_date <= end_date
+#set up dates in a way that start_date =< end_date
 #difference between the two dates determines the length of the data frame
 #alternative: enter observation_size manually
 
 ####SET DATES#####
-start_date <- as.Date("2019-11-10")
+start_date <- as.Date("2019-11-15")
 end_date <- Sys.Date()
 #end_date <- as.Date("2019-11-01")
 
@@ -52,11 +52,11 @@ Fair_669_580 <- 5
 Very_Poor_579_300 <- 6
 
 #user experience encoding
-highly_satisfied <- 2
-satisfied <- 1
-neutral <- 0
-dissatified <- -1
-highly_dissatisfied <- -2
+#highly_satisfied <- 2
+#satisfied <- 1
+#neutral <- 0
+#dissatified <- -1
+#highly_dissatisfied <- -2
 
 #type (human-readable) encoding
 CorePro_Deposit <- "CorePro Deposit"
@@ -103,11 +103,12 @@ NSF <- 101
 #vstr - a character string containing a version number, e.g., "1.6.2". The default RNG configuration of the current R version is used if vstr is greater than the current version.
 #rng.kind - integer code in 0:k for the above kind.
 
-.Random.seed <- c(rng.kind = "default", n1 = 0, n2 = 12)
+
+.Random.seed <- c(rng.kind = RNGkind, n1 = 0, n2 = 12)
 RNGkind(kind = "Mersenne-Twister", normal.kind = "Box-Muller", sample.kind = NULL)
 RNGversion(getRversion())
 #for reproducibility set seed and identical normal.kind values
-set.seed(seed = 12, kind = "Mersenne-Twister", normal.kind = 'Box-Muller', sample.kind = NULL)
+set.seed(seed = 12, kind = NULL, normal.kind = NULL, sample.kind = NULL)
 #certain columns will ony take a single sample value to imitiate unique IDs
 
 #######YES/NO SAMPLE################
@@ -117,7 +118,7 @@ yn_draw <- gl(n = 2, k = 100, labels = c("Y","N"))
 #labels needs a vector
 list_banks = c("Bank of America",
                 "Toronto Dominion Bank",
-                "Citizens_Bank",
+                "Citizens Bank",
                 "Webster Bank",
                 "CHASE Bank",
                 "Citigroup",
@@ -135,12 +136,13 @@ list_banks = c("Bank of America",
                 "Budapest Bank"
                )
 
-bank_draw <- gl(n = length(list_banks), k = 3, labels = list_banks)
+bank_draw <- gl(n = length(list_banks), k = 2, labels = list_banks)
 
 
 #######################COLUMN NAMES#######################
 ####INDIVIDUAL COLUMNS THAT COULD PROVIDE MORE INFO BUT ARE NOT PART OF A ROW THAT Q2 TRANSACTION WOULD GENERATE
-Age <- sample(x = 18:35, size = observation_size, replace = TRUE)
+##picked a vector of 19 probability values to skew it toward persons between 18-21; probabilities must add up to 100%
+Age <- sample(x = 18:35, size = observation_size, replace = TRUE, prob = c(0.0275, 0.0725, 0.1, 0.1, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05))
 Student <- as.numeric(sample(x = 0:1, size = observation_size, replace = TRUE))
 account_balance <- sample(x=c(u100, o100u1000, o1000u10000, o10000), size = observation_size, replace = TRUE)
 CS_FICO_str <- round(sample(x=c(Exceptional_850_800, Very_Good_799_740, Average_701, Good_739_670, Fair_669_580, Very_Poor_579_300), size = observation_size, replace = TRUE), digits = 0) #STR
@@ -157,7 +159,7 @@ transactionId <- abs(as.numeric(sample(x = .Random.seed * 2, size = observation_
 masterId <- as.numeric(sample(x = .Random.seed ^ 2, size = observation_size, replace = TRUE)) #NUM int64
 ##customer who is in possession of the bank account
 customerId <- abs(as.numeric(sample(x = .Random.seed, size = observation_size, replace = TRUE))) #NUM
-##human-readable description of the type of a transaction (CorePro Withdrawal, CorePro Deposit) SEE TRANSACTION TYPES
+##human-readable description of the type of a transaction (CorePro Withdrawal, CorePro Deposit) SEE TRANSACTION TYPES; probabilities must add up to 100%
 type <- sample(x = transaction_draw, size = observation_size, replace = TRUE, prob = c(0.3, 0.3, 0.02, 0.15, 0.08, 0.075, 0.075))
 ##programmatic code to indicate the type of the transaction
 typeCode <- abs(as.numeric(sample(x = .Random.seed, size = observation_size, replace = TRUE)))#NUM/STR
@@ -201,6 +203,8 @@ check <- sample(x = gl(n = 2, k = 1, labels = c("Y","N")), size = observation_si
 
 
 ##########DATA FRAME#################
+#the data frame will have an index column which is redundant with the column transactionID
+#the columnn needs to be removed in Python later
 df <- data.frame(transactionCount, 
                   transactionId, 
                   masterId, 
@@ -231,6 +235,7 @@ df <- data.frame(transactionCount,
                   CS_internal,
                   CS_FICO_num,
                   CS_FICO_str)
+
 
 #Refine data frame and adapt "isCredit"; "amount"; "type"; "subTypeCode" to follow a coherent logic 
 ########ADAPT THE COLUMN "isCredit"######
@@ -266,7 +271,7 @@ for (row in 1:(nrow(df))) {
 #    do stuff with row
 #}
 
-######Print to DF#####             
+######PRINT TO DF#####             
 print(df)
 if (is.data.frame(df) == TRUE) {
   write.csv(x = df, file = "Q_test_data.csv", append = FALSE)

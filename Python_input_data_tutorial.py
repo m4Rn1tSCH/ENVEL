@@ -4,22 +4,17 @@ Created on Mon Dec  2 11:00:21 2019
 
 @author: bill-
 """
-
-
+######Eager execution mode needs to be run first with a fresh kernel restart or the programm will throw errors
 from __future__ import absolute_import, division, print_function, unicode_literals
-
-import numpy as np
-import pandas as pd
-
 import tensorflow as tf
-#tf.enable_eager_execution()
-
+tf.compat.v1.enable_eager_execution()
+import pandas as pd
 from tensorflow import feature_column
 from tensorflow.keras import layers
 from sklearn.model_selection import train_test_split
 #%%
 URL = 'https://storage.googleapis.com/applied-dl/heart.csv'
-dataaframe = pd.read_csv(URL)
+dataframe = pd.read_csv(URL)
 dataframe.head()
 
 #%%

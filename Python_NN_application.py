@@ -31,7 +31,7 @@ link = r"C:\Users\bill-\Desktop\Q_test_data.csv"
 link_1 = link.replace(os.sep, '/')
 file = ''.join(link_1)
 '''
-This test data needs more rows than features have been selected or various functions might fail
+This test data needs more rows than features that have been selected or various functions might fail
 '''
 #loading the data frame
 #first column is the index to avoid "unnamed column"
@@ -221,7 +221,7 @@ print('MSE score = ',mean_squared_error(y_validation_RF, predictions), '/ 0.0')
 #%%
 ###########################################################
 '''
-APPLICATION OF KERAS
+                        APPLICATION OF KERAS
 '''
 #features: X
 #target: Y
@@ -290,13 +290,13 @@ mlp = MultiLayerPerceptron
 #%%
 ##############################################################
 '''
-                    APLICATION OF TENSORFLOW
+                    APPLICATION OF TENSORFLOW
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
-
 import tensorflow as tf
+tf.compat.v1.enable_eager_execution()
 from tensorflow import feature_column
 from tensorflow.keras import layers
 #%%
@@ -352,21 +352,78 @@ Age                    6 non-null int64 bucketized
 CS_internal            6 non-null int64 bucketized/ categorical
 CS_FICO_num            6 non-null int64 categorical/bucketized if as strings
 CS_FICO_str            6 non-null int64 categorical
+
+##BANK LIST FOR FEATURES##
+Bank of America
+Toronto Dominion Bank
+Citizens Bank
+Webster Bank
+CHASE Bank
+Citigroup
+Capital One
+HSBC Bank USA
+State Street Corporation
+MUFG Union Bank
+Wells Fargo & Co.
+Barclays
+New York Community Bank
+CIT Group
+Santander Bank
+Royal Bank of Scotland
+First Rand Bank
+Budapest Bank
 '''
 ##STEP 1
 #feature columns to use in the layers
-feature_columns = []
+feature_columns_container = []
 
-# numeric cols
+# numeric column
 #for header in df.columns:
-#  feature_columns.append(feature_columns.numeric_column(header))
+#  feature_columns_container.append(feature_columns.numeric_column(header))
 
-#indicator cols
+#bucketized column
+
+#categorical column with vocabulary list
+feature_column.categorical_column_with_vocabulary_list(
+      'institutionName', ['Bank of America',
+                          'Toronto Dominion Bank',
+                          'Citizens Bank',
+                          'Webster Bank',
+                          'CHASE Bank',
+                          'Citigroup',
+                          'Capital One',
+                          'HSBC Bank USA',
+                          'State Street Corporation',
+                          'MUFG Union Bank',
+                          'Wells Fargo & Co.',
+                          'Barclays',
+                          'New York Community Bank',
+                          'CIT Group',
+                          'Santander Bank',
+                          'Royal Bank of Scotland',
+                          'First Rand Bank',
+                          'Budapest Bank'])
+feature_columns_container.append(age_buckets)
+
+#embedded column
+feature_column.embedding_column(thal, dimension=8)
+feature_columns_container.append(age_buckets)
+
+#hashed feature column
+feature_column.categorical_column_with_hash_bucket(
+      'thal', hash_bucket_size=1000)
+feature_columns_container.append(age_buckets)
+
+#crossed feature column
+feature_column.crossed_column([age_buckets, thal], hash_bucket_size=1000)
+feature_columns_container.append(age_buckets)
+
+#indicator column (like bucketized but with one vital string that is marked a "1")
 
 
 ##STEP 2
 #create layers
-feature_layer = layers.DenseFeatures(columns)
+feature_layer = layers.DenseFeatures(feature_columns_container)
 
 batch_size = 10
 train_ds = df_to_dataset(train, batch_size=batch_size)
