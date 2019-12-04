@@ -292,7 +292,8 @@ mlp = MultiLayerPerceptron
 '''
                     APPLICATION OF TENSORFLOW
 '''
-
+#future needs to be run first
+#eager execution needs to be run right after the TF instantiation to avoid errors
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
 import tensorflow as tf
@@ -326,31 +327,31 @@ transactionCount       6 non-null int64
 transactionId          6 non-null int64
 masterId               6 non-null int64
 customerId             6 non-null int64
-type                   6 non-null object categorical
-typeCode               6 non-null int64
+type                   6 non-null object categorical x
+typeCode               6 non-null int64 x
 tag                    6 non-null int64
-friendlyDescription    6 non-null int64 cat with hashed feat
+friendlyDescription    6 non-null int64 cat with hashed feat x
 description            6 non-null int64
 status                 6 non-null int64
-createdDate            6 non-null object bucketized?
-amount                 6 non-null float64
-isCredit               6 non-null object categorical
+createdDate            6 non-null object bucketized? x
+amount                 6 non-null float64 x
+isCredit               6 non-null object categorical x
 settledDate            6 non-null object
 availableDate          6 non-null object
 voidedDate             6 non-null object
 returnCode             6 non-null int64 categorical
-feeCode                6 non-null int64 categorical
+feeCode                6 non-null int64 categorical x
 feeDescription         6 non-null object
 cardId                 6 non-null int64
 subTypeCode            6 non-null object
 subType                6 non-null object
 institutionName        6 non-null object
-check                  6 non-null object categorical with hashed feat
-Student                6 non-null int64 categorical
-account_balance        6 non-null int64 bucketized
-Age                    6 non-null int64 bucketized
-CS_internal            6 non-null int64 bucketized/ categorical
-CS_FICO_num            6 non-null int64 categorical/bucketized if as strings
+check                  6 non-null object categorical x
+Student                6 non-null int64 x
+account_balance        6 non-null int64 bucketized x
+Age                    6 non-null int64 bucketized x
+CS_internal            6 non-null int64 bucketized/ categorical x
+CS_FICO_num            6 non-null int64 categorical/bucketized if as strings x
 CS_FICO_str            6 non-null int64 categorical
 
 ##BANK LIST FOR FEATURES##
@@ -372,20 +373,112 @@ Santander Bank
 Royal Bank of Scotland
 First Rand Bank
 Budapest Bank
+
+CorePro Deposit
+CorePro Withdrawal
+Internal CorePro Transfer
+Interest Paid
+CorePro Recurring Withdrawal
+Manual Adjustment
+Interest Adjustment
+
+Exceptional_850_800
+Very_Good_799_740
+Average_701
+Good_739_670
+Fair_669_580
+Very_Poor_579_300
 '''
+#%%
+#make columns numeric
+#age = feature_column.numeric_column(df.Age)
+
+
+
 ##STEP 1
 #feature columns to use in the layers
 feature_columns_container = []
 
-# numeric column
-#for header in df.columns:
-#  feature_columns_container.append(feature_columns.numeric_column(header))
+#numeric column needed in the model
+#other components altered to other data types
+for header in ['typeCode', 'status', 'amount', 'Student', 'CS_FICO_num']:
+  feature_columns_container.append(feature_column.numeric_column(header))
 
 #bucketized column
 
 #categorical column with vocabulary list
-feature_column.categorical_column_with_vocabulary_list(
-      'institutionName', ['Bank of America',
+type_col = feature_column.categorical_column_with_vocabulary_list(
+        'type', ['CorePro Deposit',
+                 'CorePro Withdrawal',
+                 'Internal CorePro Transfer',
+                 'Interest Paid',
+                 'CorePro Recurring Withdrawal',
+                 'Manual Adjustment',
+                 'Interest Adjustment'])
+type_col_pos = feature_column.indicator_column(type_col)
+feature_columns_container.append(type_col_pos)
+
+friendly_desc = feature_column.categorical_column_with_hash_bucket(
+        'friendlyDescription', hash_bucket_size = 1000)
+feature_columns_container.append(friendly_desc)
+
+created_date = feature_column.categorical_column_with_hash_bucket('createdDate', hash_bucket_size = 365)
+feature_columns_container.append(created_date)
+
+entry = feature_column.categorical_column_with_vocabulary_list(
+        'isCredit', ['Y', 'N'])
+entry_pos = feature_column.indicator_column(entry)
+feature_columns_container.append(entry_pos)
+
+#ret_c = feature_column.categorical_column_with_vocabulary_list(
+#        'returnCode', ['RGD', 'RTN', 'NSF'])
+
+fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
+                                                             ['RGD',
+                                                              'RTN',
+                                                              'NSF'])
+fee_pos = feature_column.indicator_column(fee)
+feature_columns_container.append(fee_pos)
+
+check = feature_column.categorical_column_with_vocabulary_list('check',
+                                                               ['Y', 'N'])
+check_pos = feature_column.indicator_column(check)
+feature_columns_container.append(check_pos)
+
+acc_bal = feature_column.categorical_column_with_vocabulary_list('account_balance',
+                                                                 ['u100',
+                                                                  'o100u1000',
+                                                                  'o1000u10000',
+                                                                  'o10000'])
+#set the indicator value
+acc_bal_pos = feature_column.indicator_column(acc_bal)
+feature_columns_container.append(acc_bal_pos)
+
+#age = feature_column.bucketized_column('Age', boundaries = [18, 20, 22, 26, 31, 35])
+#feature_columns_container.append(age)
+
+cs_internal = feature_column.categorical_column_with_vocabulary_list('CS_internal',
+                                                                       ['Poor',
+                                                                        'Average',
+                                                                        'Excellent'])
+#set the indicator value
+cs_positive = feature_column.indicator_column(cs_internal)
+feature_columns_container.append(cs_positive)
+
+#FICO 700 is the initial score and also the average in the US
+#The CS_FICO_num column is in this version converted to a bucketized column
+#instead of passing it to the feature_column_container
+fico_ready = feature_column.numeric_column('CS_FICO_num')
+fico_num = feature_column.bucketized_column(fico_ready, boundaries = [300,
+                                                                      580,
+                                                                      670,
+                                                                      700,
+                                                                      740,
+                                                                      800,
+                                                                      850])
+
+institutions = feature_column.categorical_column_with_vocabulary_list(
+        'institutionName', ['Bank of America',
                           'Toronto Dominion Bank',
                           'Citizens Bank',
                           'Webster Bank',
@@ -403,27 +496,37 @@ feature_column.categorical_column_with_vocabulary_list(
                           'Royal Bank of Scotland',
                           'First Rand Bank',
                           'Budapest Bank'])
-feature_columns_container.append(age_buckets)
+institutions_pos = feature_column.indicator_column(institutions)
+feature_columns_container.append(institutions_pos)
 
-#embedded column
-feature_column.embedding_column(thal, dimension=8)
-feature_columns_container.append(age_buckets)
+#######EXAMPLES#######
+#numeric column
+#age = feature_column.numeric_column("age")
+
+#categorical column with vocabulary list
+#thal = feature_column.categorical_column_with_vocabulary_list(
+#      'thal', ['fixed', 'normal', 'reversible'])
+
+
+#embedding column
+#feature_column.embedding_column(thal, dimension=8)
+#feature_columns_container.append(age_buckets)
 
 #hashed feature column
-feature_column.categorical_column_with_hash_bucket(
-      'thal', hash_bucket_size=1000)
-feature_columns_container.append(age_buckets)
+#feature_column.categorical_column_with_hash_bucket(
+#      'thal', hash_bucket_size=1000)
+#feature_columns_container.append(age_buckets)
 
 #crossed feature column
-feature_column.crossed_column([age_buckets, thal], hash_bucket_size=1000)
-feature_columns_container.append(age_buckets)
+#feature_column.crossed_column([age_buckets, thal], hash_bucket_size=1000)
+#feature_columns_container.append(age_buckets)
 
 #indicator column (like bucketized but with one vital string that is marked a "1")
-
-
+##########################
+#%%
 ##STEP 2
 #create layers
-feature_layer = layers.DenseFeatures(feature_columns_container)
+feature_layer = tf.keras.layers.DenseFeatures(feature_columns_container)
 
 batch_size = 10
 train_ds = df_to_dataset(train, batch_size=batch_size)
@@ -436,7 +539,7 @@ model = tf.keras.Sequential([
   layers.Dense(units = 256, activation = 'relu'),
   layers.Dense(units = 1, activation = 'sigmoid')
 ])
-
+#%%
 ##STEP 3
 model.compile(optimizer='Adam',
               loss='binary_crossentropy',
