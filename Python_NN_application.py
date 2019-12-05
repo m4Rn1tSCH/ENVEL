@@ -449,8 +449,8 @@ acc_bal = feature_column.categorical_column_with_vocabulary_list('account_balanc
 acc_bal_pos = feature_column.indicator_column(acc_bal)
 feature_columns_container.append(acc_bal_pos)
 
-age_ready = feature_column.numeric_column('Age')
-age = feature_column.bucketized_column(age_ready, boundaries = [18, 20, 22, 26, 31, 35])
+age_rdy = feature_column.numeric_column('Age')
+age = feature_column.bucketized_column(age_rdy, boundaries = [18, 20, 22, 26, 31, 35])
 age_pos = feature_column.indicator_column(age)
 feature_columns_container.append(age_pos)
 
@@ -504,6 +504,9 @@ feature_columns_container.append(institutions_pos)
 #thal = feature_column.categorical_column_with_vocabulary_list(
 #      'thal', ['fixed', 'normal', 'reversible'])
 
+#bucketized column
+#age_buckets = feature_column.bucketized_column(
+#   age, boundaries=[18, 25, 30, 35, 40, 45, 50, 55, 60, 65])
 
 #embedding column
 #feature_column.embedding_column(thal, dimension=8)
@@ -524,7 +527,7 @@ feature_columns_container.append(institutions_pos)
 # A utility method to create a tf.data dataset from a Pandas Dataframe
 def df_to_dataset(dataframe, shuffle = True, batch_size = 32):
   dataframe = dataframe.copy()
-  labels = dataframe.pop('Student')
+  labels = dataframe.pop('target')
   ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
   if shuffle:
     ds = ds.shuffle(buffer_size = len(dataframe))
