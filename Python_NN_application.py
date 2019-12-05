@@ -31,7 +31,8 @@ link = r"C:\Users\bill-\Desktop\Q_test_data.csv"
 link_1 = link.replace(os.sep, '/')
 file = ''.join(link_1)
 '''
-This test data needs more rows than features that have been selected or various functions might fail
+This test data needs more rows than features that have been selected or various
+functions might fail
 '''
 #loading the data frame
 #first column is the index to avoid "unnamed column"
@@ -119,12 +120,12 @@ print("new data frame ready for use")
 ####################################################################
 #%%
 ###################SPLITTING UP THE DATA###########################
-model_features = df
-model_label = df['Age']
+#model_features = df
+#model_label = df['Age']
 
-X_train, X_test, y_train, y_test = train_test_split(model_features, model_label,
-                                                    shuffle = True,
-                                                    test_size = 0.3)
+#X_train, X_test, y_train, y_test = train_test_split(model_features, model_label,
+#                                                    shuffle = True,
+#                                                    test_size = 0.3)
 
 #%%
 #select statisitically significant features with Age as target variable
@@ -296,6 +297,7 @@ mlp = MultiLayerPerceptron
 #eager execution needs to be run right after the TF instantiation to avoid errors
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
+
 import tensorflow as tf
 tf.compat.v1.enable_eager_execution()
 from tensorflow import feature_column
@@ -307,16 +309,6 @@ train, val = train_test_split(train, test_size=0.2)
 print(len(train), 'train examples')
 print(len(val), 'validation examples')
 print(len(test), 'test examples')
-#%%
-# A utility method to create a tf.data dataset from a Pandas Dataframe
-def df_to_dataset(dataframe, shuffle = True, batch_size = 32):
-  dataframe = dataframe.copy()
-  labels = dataframe.pop('CreditCard')
-  ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
-  if shuffle:
-    ds = ds.shuffle(buffer_size = len(dataframe))
-  ds = ds.batch(batch_size)
-  return ds
 #%%
 '''
 This is an overview about the choice of columns for the model and how to preprocess them before
@@ -401,7 +393,8 @@ feature_columns_container = []
 
 #numeric column needed in the model
 #other components altered to other data types
-for header in ['typeCode', 'status', 'amount', 'Student', 'CS_FICO_num']:
+#wrap all non-numerical columns with indicator col or embedding col
+for header in ['typeCode', 'status', 'amount', 'Student']:
   feature_columns_container.append(feature_column.numeric_column(header))
 
 #bucketized column
@@ -420,10 +413,12 @@ feature_columns_container.append(type_col_pos)
 
 friendly_desc = feature_column.categorical_column_with_hash_bucket(
         'friendlyDescription', hash_bucket_size = 1000)
-feature_columns_container.append(friendly_desc)
+fr_desc_pos = feature_column.embedding_column(friendly_desc, dimension = 250)
+feature_columns_container.append(fr_desc_pos)
 
 created_date = feature_column.categorical_column_with_hash_bucket('createdDate', hash_bucket_size = 365)
-feature_columns_container.append(created_date)
+cr_d_pos = feature_column.indicator_column(created_date)
+feature_columns_container.append(cr_d_pos)
 
 entry = feature_column.categorical_column_with_vocabulary_list(
         'isCredit', ['Y', 'N'])
@@ -454,16 +449,18 @@ acc_bal = feature_column.categorical_column_with_vocabulary_list('account_balanc
 acc_bal_pos = feature_column.indicator_column(acc_bal)
 feature_columns_container.append(acc_bal_pos)
 
-#age = feature_column.bucketized_column('Age', boundaries = [18, 20, 22, 26, 31, 35])
-#feature_columns_container.append(age)
+age_ready = feature_column.numeric_column('Age')
+age = feature_column.bucketized_column(age_ready, boundaries = [18, 20, 22, 26, 31, 35])
+age_pos = feature_column.indicator_column(age)
+feature_columns_container.append(age_pos)
 
-cs_internal = feature_column.categorical_column_with_vocabulary_list('CS_internal',
-                                                                       ['Poor',
-                                                                        'Average',
-                                                                        'Excellent'])
+#cs_internal = feature_column.categorical_column_with_vocabulary_list('CS_internal',
+#                                                                       ['Poor',
+#                                                                        'Average',
+#                                                                        'Excellent'])
 #set the indicator value
-cs_positive = feature_column.indicator_column(cs_internal)
-feature_columns_container.append(cs_positive)
+#cs_positive = feature_column.indicator_column(cs_internal)
+#feature_columns_container.append(cs_positive)
 
 #FICO 700 is the initial score and also the average in the US
 #The CS_FICO_num column is in this version converted to a bucketized column
@@ -523,6 +520,16 @@ feature_columns_container.append(institutions_pos)
 
 #indicator column (like bucketized but with one vital string that is marked a "1")
 ##########################
+#%%
+# A utility method to create a tf.data dataset from a Pandas Dataframe
+def df_to_dataset(dataframe, shuffle = True, batch_size = 32):
+  dataframe = dataframe.copy()
+  labels = dataframe.pop('Student')
+  ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
+  if shuffle:
+    ds = ds.shuffle(buffer_size = len(dataframe))
+  ds = ds.batch(batch_size)
+  return ds
 #%%
 ##STEP 2
 #create layers
