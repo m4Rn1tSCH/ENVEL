@@ -27,7 +27,7 @@ from sklearn.model_selection import GridSearchCV
 #import Python_df_label_encoding
 #%%
 #converting the link
-link = r"C:\Users\bill-\Desktop\Q_test_data.csv"
+link = r"C:\Users\bill-\Desktop\Q_test_data_v2.csv"
 link_1 = link.replace(os.sep, '/')
 file = ''.join(link_1)
 '''
@@ -411,8 +411,9 @@ type_col = feature_column.categorical_column_with_vocabulary_list(
 type_col_pos = feature_column.indicator_column(type_col)
 feature_columns_container.append(type_col_pos)
 
+#idea: words or fragments are a bucket and can be used to recognize recurring bills
 friendly_desc = feature_column.categorical_column_with_hash_bucket(
-        'friendlyDescription', hash_bucket_size = 1000)
+        'friendlyDescription', hash_bucket_size = 2500)
 fr_desc_pos = feature_column.embedding_column(friendly_desc, dimension = 250)
 feature_columns_container.append(fr_desc_pos)
 
