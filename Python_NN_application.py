@@ -394,7 +394,7 @@ feature_columns_container = []
 #numeric column needed in the model
 #other components altered to other data types
 #wrap all non-numerical columns with indicator col or embedding col
-for header in ['typeCode', 'status', 'amount', 'Student']:
+for header in ['typeCode', 'status', 'amount']:
   feature_columns_container.append(feature_column.numeric_column(header))
 
 #bucketized column
@@ -416,12 +416,15 @@ friendly_desc = feature_column.categorical_column_with_hash_bucket(
 fr_desc_pos = feature_column.embedding_column(friendly_desc, dimension = 250)
 feature_columns_container.append(fr_desc_pos)
 
-created_date = feature_column.categorical_column_with_hash_bucket('createdDate', hash_bucket_size = 365)
+created_date = feature_column.categorical_column_with_hash_bucket(
+        'createdDate', hash_bucket_size = 365)
+#set the indicator column
 cr_d_pos = feature_column.indicator_column(created_date)
 feature_columns_container.append(cr_d_pos)
 
 entry = feature_column.categorical_column_with_vocabulary_list(
         'isCredit', ['Y', 'N'])
+#set the indicator column
 entry_pos = feature_column.indicator_column(entry)
 feature_columns_container.append(entry_pos)
 
@@ -432,11 +435,13 @@ fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
                                                              ['RGD',
                                                               'RTN',
                                                               'NSF'])
+#set the indicator column
 fee_pos = feature_column.indicator_column(fee)
 feature_columns_container.append(fee_pos)
 
 check = feature_column.categorical_column_with_vocabulary_list('check',
                                                                ['Y', 'N'])
+#set the indicator column
 check_pos = feature_column.indicator_column(check)
 feature_columns_container.append(check_pos)
 
@@ -451,6 +456,7 @@ feature_columns_container.append(acc_bal_pos)
 
 age_rdy = feature_column.numeric_column('Age')
 age = feature_column.bucketized_column(age_rdy, boundaries = [18, 20, 22, 26, 31, 35])
+#set the indicator column
 age_pos = feature_column.indicator_column(age)
 feature_columns_container.append(age_pos)
 
@@ -527,7 +533,7 @@ feature_columns_container.append(institutions_pos)
 # A utility method to create a tf.data dataset from a Pandas Dataframe
 def df_to_dataset(dataframe, shuffle = True, batch_size = 32):
   dataframe = dataframe.copy()
-  labels = dataframe.pop('target')
+  labels = dataframe.pop('Student')
   ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
   if shuffle:
     ds = ds.shuffle(buffer_size = len(dataframe))

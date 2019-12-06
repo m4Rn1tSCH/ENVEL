@@ -10,7 +10,7 @@ require(anchors)
 #alternative: enter observation_size manually
 
 ####SET DATES#####
-start_date <- as.Date("2019-11-15")
+start_date <- as.Date("2005-01-01")
 end_date <- Sys.Date()
 #end_date <- as.Date("2019-11-01")
 
@@ -33,10 +33,10 @@ observation_size = end_date - start_date
 #o100u10,000: more than USD 100 - less than USD 10,000
 #o10,000: more than USD 10,000
 #balance encoding
-u100 <- 4
-o100u1000 <- 3 
-o1000u10000 <- 2
-o10000 <- 1
+u100 <- "u100"
+o100u1000 <- "o100u1000"
+o1000u10000 <- "o1000u10000"
+o10000 <- "o10000"
 
 #traditional credit score encoding (FICO)
 Excellent <- 01
@@ -77,18 +77,18 @@ transaction_draw <- c(CorePro_Deposit,
 
 
 #status encoding#
-Initiated <- 0  #transaction created but not yet in NACHA file
-Pending <- 100  #transaction created but amended to NACHA file
-Settled <- 200  #transaction has been posted to the account
-Voided <- 300   #transaction has been voided 
+Initiated <- "Initiated"  #transaction created but not yet in NACHA file
+Pending <- "Pending"  #transaction created but amended to NACHA file
+Settled <- "Settled"  #transaction has been posted to the account
+Voided <- "Voided"   #transaction has been voided 
 
 #fee code
 #RGD-Regulation_D_fee
-RGD <- 099
+RGD <- "RGD"
 #RTN-Return_Item_fee
-RTN <- 095
+RTN <- "RTN"
 #NSF-Insufficient_Funds_fee
-NSF <- 101
+NSF <- "NSF"
 
 ############RNG SETUP##############
 ##kind - character or NULL. 
@@ -245,7 +245,7 @@ for (row in 1:(nrow(df))) {
   dep<- df[row, "type"]
   
   if(dep == "CorePro Deposit") {
-  replace.value( data = df, names = c("isCredit"), from = "N", to = "Y", verbose = FALSE) 
+  replace.value(data = df, names = c("isCredit"), from = "N", to = "Y", verbose = FALSE) 
   }
 }
 #######ADAPT THE COLUMN "Amount"#######
@@ -253,7 +253,7 @@ for (row in 1:(nrow(df))) {
   dep<- df[row, "type"]
   
   if(dep == "CorePro Deposit") {
-    replace.value( data = df, names = c("amount"), from = df[row, "amount"], to = abs(df[row, "amount"]), verbose = FALSE) 
+    replace.value(data = df, names = c("amount"), from = df[row, "amount"], to = abs(df[row, "amount"]), verbose = FALSE) 
   }
 }
 
@@ -262,7 +262,7 @@ for (row in 1:(nrow(df))) {
   dep<- df[row, "subType"]
   
   if(dep == "N") {
-    replace.value( data = df, names = c("subTypeCode"), from = "Y", to = "N", verbose = FALSE) 
+    replace.value(data = df, names = c("subTypeCode"), from = "Y", to = "N", verbose = FALSE) 
   }
 }
 
