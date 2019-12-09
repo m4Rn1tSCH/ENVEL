@@ -11,6 +11,7 @@ import pandas as pd
 import pandas_profiling
 import numpy as np
 import matplotlib as plt
+import seaborn
 import os
 import re
 from sklearn.model_selection import train_test_split
@@ -53,12 +54,10 @@ for x in null_list:
 else:
     pass
 #%%
-#import seaborn
 #for jupyter-notebook; not practical here
 #seaborn.pairplot(df)
 #seaborn.heatmap(df)
 #seaborn.clustermap(df)
-
 #%%
 ###################APPLICATION OF LABELENCODER########################
 
@@ -345,41 +344,6 @@ Age                    6 non-null int64 bucketized x
 CS_internal            6 non-null int64 bucketized/ categorical x
 CS_FICO_num            6 non-null int64 categorical/bucketized if as strings x
 CS_FICO_str            6 non-null int64 categorical
-
-##BANK LIST FOR FEATURES##
-Bank of America
-Toronto Dominion Bank
-Citizens Bank
-Webster Bank
-CHASE Bank
-Citigroup
-Capital One
-HSBC Bank USA
-State Street Corporation
-MUFG Union Bank
-Wells Fargo & Co.
-Barclays
-New York Community Bank
-CIT Group
-Santander Bank
-Royal Bank of Scotland
-First Rand Bank
-Budapest Bank
-
-CorePro Deposit
-CorePro Withdrawal
-Internal CorePro Transfer
-Interest Paid
-CorePro Recurring Withdrawal
-Manual Adjustment
-Interest Adjustment
-
-Exceptional_850_800
-Very_Good_799_740
-Average_701
-Good_739_670
-Fair_669_580
-Very_Poor_579_300
 '''
 #%%
 #make columns numeric
@@ -408,7 +372,7 @@ type_col = feature_column.categorical_column_with_vocabulary_list(
                  'CorePro Recurring Withdrawal',
                  'Manual Adjustment',
                  'Interest Adjustment'])
-type_col_pos = feature_column.indicator_column(type_col)
+type_col_pos = feature_column.embedding_column(type_col, dimension = 7)
 feature_columns_container.append(type_col_pos)
 
 #idea: words or fragments are a bucket and can be used to recognize recurring bills
@@ -417,16 +381,16 @@ friendly_desc = feature_column.categorical_column_with_hash_bucket(
 fr_desc_pos = feature_column.embedding_column(friendly_desc, dimension = 250)
 feature_columns_container.append(fr_desc_pos)
 
-created_date = feature_column.categorical_column_with_hash_bucket(
-        'createdDate', hash_bucket_size = 365)
+#created_date = feature_column.categorical_column_with_hash_bucket(
+#        'createdDate', hash_bucket_size = 365)
 #set the indicator column
-cr_d_pos = feature_column.indicator_column(created_date)
-feature_columns_container.append(cr_d_pos)
+#cr_d_pos = feature_column.indicator_column(created_date)
+#feature_columns_container.append(cr_d_pos)
 
 entry = feature_column.categorical_column_with_vocabulary_list(
         'isCredit', ['Y', 'N'])
-#set the indicator column
-entry_pos = feature_column.indicator_column(entry)
+#set the embedding column
+entry_pos = feature_column.embedding_column(entry, dimension = 2)
 feature_columns_container.append(entry_pos)
 
 #ret_c = feature_column.categorical_column_with_vocabulary_list(
@@ -436,14 +400,14 @@ fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
                                                              ['RGD',
                                                               'RTN',
                                                               'NSF'])
-#set the indicator column
-fee_pos = feature_column.indicator_column(fee)
+#set the embedding column
+fee_pos = feature_column.embedding_column(fee, dimension = 3)
 feature_columns_container.append(fee_pos)
 
 check = feature_column.categorical_column_with_vocabulary_list('check',
                                                                ['Y', 'N'])
 #set the indicator column
-check_pos = feature_column.indicator_column(check)
+check_pos = feature_column.embedding_column(check, dimension = 2)
 feature_columns_container.append(check_pos)
 
 acc_bal = feature_column.categorical_column_with_vocabulary_list('account_balance',
@@ -452,14 +416,14 @@ acc_bal = feature_column.categorical_column_with_vocabulary_list('account_balanc
                                                                   'o1000u10000',
                                                                   'o10000'])
 #set the indicator value
-acc_bal_pos = feature_column.indicator_column(acc_bal)
+acc_bal_pos = feature_column.embedding_column(acc_bal, dimension = 5)
 feature_columns_container.append(acc_bal_pos)
 
-age_rdy = feature_column.numeric_column('Age')
-age = feature_column.bucketized_column(age_rdy, boundaries = [18, 20, 22, 26, 31, 35])
+
+age = feature_column.bucketized_column(feature_column.numeric_column('Age'), boundaries = [18, 20, 22, 26, 31, 35])
 #set the indicator column
-age_pos = feature_column.indicator_column(age)
-feature_columns_container.append(age_pos)
+feature_columns_container.append(age)
+
 
 #cs_internal = feature_column.categorical_column_with_vocabulary_list('CS_internal',
 #                                                                       ['Poor',
@@ -500,10 +464,10 @@ institutions = feature_column.categorical_column_with_vocabulary_list(
                           'Royal Bank of Scotland',
                           'First Rand Bank',
                           'Budapest Bank'])
-institutions_pos = feature_column.indicator_column(institutions)
+institutions_pos = feature_column.embedding_column(institutions, dimension = 18)
 feature_columns_container.append(institutions_pos)
 
-#######EXAMPLES#######
+###########EXAMPLES#######
 #numeric column
 #age = feature_column.numeric_column("age")
 
@@ -544,12 +508,14 @@ def df_to_dataset(dataframe, shuffle = True, batch_size = 32):
 ##STEP 2
 #create layers
 feature_layer = tf.keras.layers.DenseFeatures(feature_columns_container)
-
+#%%
+#STEP 3
 batch_size = 10
 train_ds = df_to_dataset(train, batch_size=batch_size)
 val_ds = df_to_dataset(val, shuffle = True, batch_size = batch_size)
 test_ds = df_to_dataset(test, shuffle = True, batch_size = batch_size)
-
+#%%
+#STEP 4
 model = tf.keras.Sequential([
   feature_layer,
   layers.Dense(units = 256, activation = 'relu'),
@@ -557,7 +523,7 @@ model = tf.keras.Sequential([
   layers.Dense(units = 1, activation = 'sigmoid')
 ])
 #%%
-##STEP 3
+##STEP 5
 model.compile(optimizer='Adam',
               loss='binary_crossentropy',
               metrics=['accuracy'])
@@ -565,12 +531,12 @@ model.compile(optimizer='Adam',
 model.fit(train_ds,
           validation_data=val_ds,
           epochs=2)
-
-##STEP 4
+#%%
+##STEP 6
 # Check accuracy
 loss, accuracy = model.evaluate(test_ds)
 print("Accuracy", accuracy)
 
-##STEP 5
+##STEP 7
 # Infer labels on a batch
 predictions = model.predict(test_ds)
