@@ -318,38 +318,45 @@ transactionCount       6 non-null int64
 transactionId          6 non-null int64
 masterId               6 non-null int64
 customerId             6 non-null int64
-type                   6 non-null object categorical x
+type                   6 non-null object categorical (wrapped in embedding)x
 typeCode               6 non-null int64 x
 tag                    6 non-null int64
-friendlyDescription    6 non-null int64 cat with hashed feat x
+friendlyDescription    6 non-null int64 cat with hashed feat (wrapped in embedding) x
 description            6 non-null int64
 status                 6 non-null int64
 createdDate            6 non-null object bucketized? x
 amount                 6 non-null float64 x
-isCredit               6 non-null object categorical x
+isCredit               6 non-null object categorical (wrapped in embedding) x
 settledDate            6 non-null object
 availableDate          6 non-null object
 voidedDate             6 non-null object
 returnCode             6 non-null int64 categorical
-feeCode                6 non-null int64 categorical x
+feeCode                6 non-null int64 categorical (wrapped in embedding) x
 feeDescription         6 non-null object
 cardId                 6 non-null int64
 subTypeCode            6 non-null object
 subType                6 non-null object
-institutionName        6 non-null object
-check                  6 non-null object categorical x
+institutionName        6 non-null object categorical (wrapped in indicator) x
+check                  6 non-null object categorical (wrapped in embedding) x
 Student                6 non-null int64 x
-account_balance        6 non-null int64 bucketized x
+account_balance        6 non-null int64 bucketized (wrapped in embedding) x
 Age                    6 non-null int64 bucketized x
 CS_internal            6 non-null int64 bucketized/ categorical x
-CS_FICO_num            6 non-null int64 categorical/bucketized if as strings x
+CS_FICO_num            6 non-null int64 categorical/bucketized if as strings (wrapped in embedding) x
 CS_FICO_str            6 non-null int64 categorical
 '''
 #%%
-#make columns numeric
-#age = feature_column.numeric_column(df.Age)
+#create tuples for lists to organize the columns conversion
+##Tuple (or list) for the bank list to refer to the length
+#banks = list('Bank of America','Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
+#      'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
+#      'State Street Corporation','MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
+#      'New York Community Bank', 'CIT Group', 'Santander Bank',
+#      'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank')
 
-
+#trans_type = list('CorePro Deposit', 'CorePro Withdrawal', 'Internal CorePro Transfer',
+#                   'Interest Paid', 'CorePro Recurring Withdrawal',
+#                   'Manual Adjustment', 'Interest Adjustment')
 
 ##STEP 1
 #feature columns to use in the layers
@@ -416,11 +423,12 @@ acc_bal = feature_column.categorical_column_with_vocabulary_list('account_balanc
                                                                   'o1000u10000',
                                                                   'o10000'])
 #set the indicator value
-acc_bal_pos = feature_column.embedding_column(acc_bal, dimension = 5)
+acc_bal_pos = feature_column.embedding_column(acc_bal, dimension = 10)
 feature_columns_container.append(acc_bal_pos)
 
 
-age = feature_column.bucketized_column(feature_column.numeric_column('Age'), boundaries = [18, 20, 22, 26, 31, 35])
+age = feature_column.bucketized_column(feature_column.numeric_column('Age'),
+                                       boundaries = [18, 20, 22, 26, 31, 35])
 #set the indicator column
 feature_columns_container.append(age)
 
@@ -430,42 +438,37 @@ feature_columns_container.append(age)
 #                                                                        'Average',
 #                                                                        'Excellent'])
 #set the indicator value
-#cs_positive = feature_column.indicator_column(cs_internal)
+#cs_positive = feature_column.embedding_column(cs_internal)
 #feature_columns_container.append(cs_positive)
 
 #FICO 700 is the initial score and also the average in the US
 #The CS_FICO_num column is in this version converted to a bucketized column
 #instead of passing it to the feature_column_container
-fico_ready = feature_column.numeric_column('CS_FICO_num')
-fico_num = feature_column.bucketized_column(fico_ready, boundaries = [300,
-                                                                      580,
-                                                                      670,
-                                                                      700,
-                                                                      740,
-                                                                      800,
-                                                                      850])
+fico_num = feature_column.bucketized_column(feature_column.numeric_column('CS_FICO_num'),
+                                                boundaries = [300,
+                                                              580,
+                                                              670,
+                                                              700,
+                                                              740,
+                                                              800,
+                                                              850])
+feature_columns_container.append(fico_num)
+
 
 institutions = feature_column.categorical_column_with_vocabulary_list(
-        'institutionName', ['Bank of America',
-                          'Toronto Dominion Bank',
-                          'Citizens Bank',
-                          'Webster Bank',
-                          'CHASE Bank',
-                          'Citigroup',
-                          'Capital One',
-                          'HSBC Bank USA',
-                          'State Street Corporation',
-                          'MUFG Union Bank',
-                          'Wells Fargo & Co.',
-                          'Barclays',
-                          'New York Community Bank',
-                          'CIT Group',
-                          'Santander Bank',
-                          'Royal Bank of Scotland',
-                          'First Rand Bank',
-                          'Budapest Bank'])
-institutions_pos = feature_column.embedding_column(institutions, dimension = 18)
+        'institutionName', [
+            'Bank of America', 'Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
+            'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
+            'State Street Corporation', 'MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
+            'New York Community Bank', 'CIT Group', 'Santander Bank',
+            'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank'
+            ])
+institutions_pos = feature_column.indicator_column(institutions)
 feature_columns_container.append(institutions_pos)
+
+crossed_feat = feature_column.crossed_column([age, fico_num], hash_bucket_size = 1000)
+crossed_feat = feature_column.indicator_column(crossed_feat)
+feature_columns_container.append(crossed_feat)
 
 ###########EXAMPLES#######
 #numeric column
@@ -508,9 +511,10 @@ def df_to_dataset(dataframe, shuffle = True, batch_size = 32):
 ##STEP 2
 #create layers
 feature_layer = tf.keras.layers.DenseFeatures(feature_columns_container)
+#print(feature_layer)
 #%%
 #STEP 3
-batch_size = 10
+batch_size = 250
 train_ds = df_to_dataset(train, batch_size=batch_size)
 val_ds = df_to_dataset(val, shuffle = True, batch_size = batch_size)
 test_ds = df_to_dataset(test, shuffle = True, batch_size = batch_size)
