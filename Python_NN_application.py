@@ -365,28 +365,31 @@ feature_columns_container = []
 #numeric column needed in the model
 #other components altered to other data types
 #wrap all non-numerical columns with indicator col or embedding col
-for header in ['typeCode', 'status', 'amount']:
+######IN V2 STATUS IS NUMERICAL; THATS WHY IT WILL THROW "CAST STRING TO FLOAT IS NOT SUPPORTED" ERROR######
+for header in ['typeCode', 'amount', 'returnCode', 'CS_FICO_num']:
   feature_columns_container.append(feature_column.numeric_column(header))
 
 #bucketized column
 
 #categorical column with vocabulary list
-type_col = feature_column.categorical_column_with_vocabulary_list(
-        'type', ['CorePro Deposit',
-                 'CorePro Withdrawal',
-                 'Internal CorePro Transfer',
-                 'Interest Paid',
-                 'CorePro Recurring Withdrawal',
-                 'Manual Adjustment',
-                 'Interest Adjustment'])
-type_col_pos = feature_column.embedding_column(type_col, dimension = 7)
-feature_columns_container.append(type_col_pos)
+#type_col = feature_column.categorical_column_with_vocabulary_list(
+#        'type', ['CorePro Deposit',
+#                 'CorePro Withdrawal',
+#                 'Internal CorePro Transfer',
+#                 'Interest Paid',
+#                 'CorePro Recurring Withdrawal',
+#                 'Manual Adjustment',
+#                 'Interest Adjustment'])
+#type_pos = feature_column.indicator_column(type_col)
+#type_pos_2 = feature_column.embedding_column(type_col, dimension = 8)
+#feature_columns_container.append(type_pos)
+#feature_columns_container.append(type_pos_2)
 
 #idea: words or fragments are a bucket and can be used to recognize recurring bills
-friendly_desc = feature_column.categorical_column_with_hash_bucket(
-        'friendlyDescription', hash_bucket_size = 2500)
-fr_desc_pos = feature_column.embedding_column(friendly_desc, dimension = 250)
-feature_columns_container.append(fr_desc_pos)
+#friendly_desc = feature_column.categorical_column_with_hash_bucket(
+#        'friendlyDescription', hash_bucket_size = 2500)
+#fr_desc_pos = feature_column.embedding_column(friendly_desc, dimension = 250)
+#feature_columns_container.append(fr_desc_pos)
 
 #created_date = feature_column.categorical_column_with_hash_bucket(
 #        'createdDate', hash_bucket_size = 365)
@@ -394,42 +397,41 @@ feature_columns_container.append(fr_desc_pos)
 #cr_d_pos = feature_column.indicator_column(created_date)
 #feature_columns_container.append(cr_d_pos)
 
-entry = feature_column.categorical_column_with_vocabulary_list(
-        'isCredit', ['Y', 'N'])
+#entry = feature_column.categorical_column_with_vocabulary_list(
+#        'isCredit', ['Y', 'N'])
 #set the embedding column
-entry_pos = feature_column.embedding_column(entry, dimension = 2)
-feature_columns_container.append(entry_pos)
+#entry_pos = feature_column.embedding_column(entry, dimension = 3)
+#feature_columns_container.append(entry_pos)
 
 #ret_c = feature_column.categorical_column_with_vocabulary_list(
 #        'returnCode', ['RGD', 'RTN', 'NSF'])
 
-fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
-                                                             ['RGD',
-                                                              'RTN',
-                                                              'NSF'])
+#fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
+#                                                             ['RGD',
+#                                                              'RTN',
+#                                                              'NSF'])
 #set the embedding column
-fee_pos = feature_column.embedding_column(fee, dimension = 3)
-feature_columns_container.append(fee_pos)
+#fee_pos = feature_column.embedding_column(fee, dimension = 3)
+#feature_columns_container.append(fee_pos)
 
-check = feature_column.categorical_column_with_vocabulary_list('check',
-                                                               ['Y', 'N'])
+#check = feature_column.categorical_column_with_vocabulary_list('check',
+#                                                               ['Y', 'N'])
 #set the indicator column
-check_pos = feature_column.embedding_column(check, dimension = 2)
-feature_columns_container.append(check_pos)
+#check_pos = feature_column.embedding_column(check, dimension = 2)
+#feature_columns_container.append(check_pos)
 
-acc_bal = feature_column.categorical_column_with_vocabulary_list('account_balance',
-                                                                 ['u100',
-                                                                  'o100u1000',
-                                                                  'o1000u10000',
-                                                                  'o10000'])
+#acc_bal = feature_column.categorical_column_with_vocabulary_list('account_balance',
+#                                                                 ['u100',
+#                                                                  'o100u1000',
+#                                                                  'o1000u10000',
+#                                                                  'o10000'])
 #set the indicator value
-acc_bal_pos = feature_column.embedding_column(acc_bal, dimension = 10)
-feature_columns_container.append(acc_bal_pos)
+#acc_bal_pos = feature_column.embedding_column(acc_bal, dimension = 10)
+#feature_columns_container.append(acc_bal_pos)
 
 
 age = feature_column.bucketized_column(feature_column.numeric_column('Age'),
                                        boundaries = [18, 20, 22, 26, 31, 35])
-#set the indicator column
 feature_columns_container.append(age)
 
 
@@ -444,6 +446,7 @@ feature_columns_container.append(age)
 #FICO 700 is the initial score and also the average in the US
 #The CS_FICO_num column is in this version converted to a bucketized column
 #instead of passing it to the feature_column_container
+#columns remains bucketized without wrapping to embedded or indicator
 fico_num = feature_column.bucketized_column(feature_column.numeric_column('CS_FICO_num'),
                                                 boundaries = [300,
                                                               580,
@@ -455,16 +458,16 @@ fico_num = feature_column.bucketized_column(feature_column.numeric_column('CS_FI
 feature_columns_container.append(fico_num)
 
 
-institutions = feature_column.categorical_column_with_vocabulary_list(
-        'institutionName', [
-            'Bank of America', 'Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
-            'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
-            'State Street Corporation', 'MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
-            'New York Community Bank', 'CIT Group', 'Santander Bank',
-            'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank'
-            ])
-institutions_pos = feature_column.indicator_column(institutions)
-feature_columns_container.append(institutions_pos)
+#institutions = feature_column.categorical_column_with_vocabulary_list(
+#        'institutionName', [
+#            'Bank of America', 'Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
+#            'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
+#            'State Street Corporation', 'MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
+#            'New York Community Bank', 'CIT Group', 'Santander Bank',
+#            'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank'
+#            ])
+#institutions_pos = feature_column.indicator_column(institutions)
+#feature_columns_container.append(institutions_pos)
 
 crossed_feat = feature_column.crossed_column([age, fico_num], hash_bucket_size = 1000)
 crossed_feat = feature_column.indicator_column(crossed_feat)
@@ -496,10 +499,11 @@ feature_columns_container.append(crossed_feat)
 #feature_columns_container.append(age_buckets)
 
 #indicator column (like bucketized but with one vital string that is marked a "1")
+#also used as a wrapper for categorical columns to ensure wokring feature_layers
 ##########################
 #%%
 # A utility method to create a tf.data dataset from a Pandas Dataframe
-def df_to_dataset(dataframe, shuffle = True, batch_size = 32):
+def df_to_dataset(dataframe, shuffle = True, batch_size = 150):
   dataframe = dataframe.copy()
   labels = dataframe.pop('Student')
   ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
@@ -507,6 +511,25 @@ def df_to_dataset(dataframe, shuffle = True, batch_size = 32):
     ds = ds.shuffle(buffer_size = len(dataframe))
   ds = ds.batch(batch_size)
   return ds
+######OVERHAUL NEEDED HERE#####
+def make_input_fn(df):
+  def pandas_to_tf(pdcol):
+    # convert the pandas column values to float
+    t = tf.constant(pdcol.astype('float32').values)
+    # take the column which is of shape (N) and make it (N, 1)
+    return tf.expand_dims(t, -1)
+
+  def input_fn():
+    # create features, columns
+    features = {k: pandas_to_tf(df[k]) for k in FEATURES}
+    labels = tf.constant(df[TARGET].values)
+    return features, labels
+  return input_fn
+
+def make_feature_cols():
+  input_columns = [tf.contrib.layers.real_valued_column(k) for k in FEATURES]
+  return input_columns
+##################################
 #%%
 ##STEP 2
 #create layers
@@ -528,12 +551,12 @@ model = tf.keras.Sequential([
 ])
 #%%
 ##STEP 5
-model.compile(optimizer='Adam',
-              loss='binary_crossentropy',
-              metrics=['accuracy'])
+model.compile(optimizer = 'Adam',
+              loss = 'binary_crossentropy',
+              metrics = ['accuracy'])
 
 model.fit(train_ds,
-          validation_data=val_ds,
+          validation_data = val_ds,
           epochs=2)
 #%%
 ##STEP 6
