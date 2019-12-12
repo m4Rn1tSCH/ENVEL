@@ -163,20 +163,24 @@ for x in k_best.pvalues_:
 train=df.sample(frac = 0.5,random_state = 200)
 test=df.drop(train.index)
 
-cols = ["type", "amount", "isCredit", "returnCode", "feeCode", "subTypeCode", "subType", "check", "Student", "account_balance", "Age", "CS_FICO_num", "CS_internal"]
+#pick feature columns to predict the label
+#y_train/test is the target label that is to be predicted
+#picked label = FICO numeric
+cols = ["type", "amount", "isCredit", "returnCode", "feeCode", "subTypeCode", "subType", "check", "Student", "account_balance", "Age", "CS_FICO_str", "CS_internal"]
 X_train = train[cols]
-y_train = train['CS_FICO_str']
+y_train = train['CS_FICO_num']
 X_test = test[cols]
-y_test = test['CS_FICO_str']
-# Build a logreg and compute the feature importances
+y_test = test['CS_FICO_num']
+#build a logistic regression and use recursive feature elimination to exclude trivial features
 log_reg = LogisticRegression()
-# create the RFE model and select 8 attributes
+# create the RFE model and select the eight most striking attributes
 rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
 rfe = rfe.fit(X_train, y_train)
 #selected attributes
 print('Selected features: %s' % list(X_train.columns[rfe.support_]))
+print(rfe.ranking_)
 
-##Use the Cross-Validation function of the RFE modul
+#Use the Cross-Validation function of the RFE modul
 #accuracy describes the number of correct classifications
 rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring='accuracy')
 rfecv.fit(X_train, y_train)
@@ -184,26 +188,26 @@ rfecv.fit(X_train, y_train)
 print("Optimal number of features: %d" % rfecv.n_features_)
 print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
 
-# Plot number of features VS. cross-validation scores
-plt.figure(figsize = (10,6))
-plt.xlabel("Number of features selected")
-plt.ylabel("Cross validation score (nb of correct classifications)")
-plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-plt.show()
+#plot number of features VS. cross-validation scores
+#plt.figure(figsize = (10,6))
+#plt.xlabel("Number of features selected")
+#plt.ylabel("Cross validation score (nb of correct classifications)")
+#plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+#plt.show()
 #%%
 #############APPLICATION OF A RANDOM FOREST REGRESSOR##################
-rfr = RandomForestRegressor()
+RFR = RandomForestRegressor()
 #set up the parameters as a dictionary
 parameters = {'n_estimators': [5, 10, 100],
               #'criterion': ['mse'],
               #'max_depth': [5, 10, 15],
               #'min_samples_split': [2, 5, 10],
-              'min_samples_leaf': [1,5]
+              'min_samples_leaf': [1, 5]
              }
 
 #set up the GridCV
-#cv determines the cross-validation splitting strategy /to specify the number of folds in a (Stratified)KFold
-gridcv = GridSearchCV(estimator = rfr, param_grid = parameters,
+#cv determines the cross-validation splitting strategy /to specify the number of folds in a (stratified)KFold
+gridcv = GridSearchCV(estimator = RFR, param_grid = parameters,
                         cv = 5,
                         n_jobs = -1,
                         verbose = 1)
@@ -211,23 +215,23 @@ gridcv = GridSearchCV(estimator = rfr, param_grid = parameters,
 grid = gridcv.fit(X_train, y_train)
 
 #activate the best combination of parameters
-rfr = grid.best_estimator_
-rfr.fit(X_train, y_train)
+RFR = grid.best_estimator_
+RFR.fit(X_train, y_train)
 #%%
 from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error
 
-predictions = rfr.predict(X_test)
+y_pred = RFR.predict(X_test)
 
-#if we want to Re-scale, use this lines of code :
-#predictions = predictions * (max_train - min_train) + min_train
+#in case of rescaling, activate these lines:
+#y_pred = y_pred * (max_train - min_train) + min_train
 #y_validation_RF = y_validation * (max_train - min_train) + min_train
 
 #if not, keep this one:
 y_validation_RF = y_test
 
-print('R2 score = ',r2_score(y_validation_RF, predictions), '/ 1.0')
-print('MSE score = ',mean_squared_error(y_validation_RF, predictions), '/ 0.0')
+print('R2 score = ', r2_score(y_validation_RF, y_pred), '/ 1.0')
+print('MSE score = ', mean_squared_error(y_validation_RF, y_pred), '/ 0.0')
 #%%
 ###########################################################
 '''
