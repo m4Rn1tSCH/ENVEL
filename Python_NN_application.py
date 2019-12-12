@@ -16,16 +16,16 @@ import os
 import re
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.feature_selection import SelectKBest, chi2, f_regression, f_classif
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_selection import RFE
 from sklearn.feature_selection import RFECV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
 
-
 #custom packages
 #import Python_df_label_encoding
+
 #%%
 #converting the link
 link = r"C:\Users\bill-\Desktop\Q_test_data_v2.csv"
@@ -59,15 +59,16 @@ else:
 #seaborn.heatmap(df)
 #seaborn.clustermap(df)
 #%%
-###################APPLICATION OF LABELENCODER########################
-
+'''
+                APPLICATION OF LABELENCODER####
+'''
 #applying fit_transform yields: encoding of 22 columns but most of them remain int32 or int64
 #applying first fit to train the data and then apply transform will encode only 11 columns and leaves the others unchanged
 #if 2 or fewer unique categories data type changes to "object"
 #iterate through columns and change the object (not int64)
 
 ###ATTENTION; WHEN THE DATA FRAME IS OPEN AND THE SCRIPT IS RUN
-###THE DATA TYPES CHANGE TO FLOAT64 SINCE THE NUMBERS ARE BEING DISPLAYED
+###THE DATA TYPES CHANGE TO FLOAT64 AS THE NUMBERS ARE BEING DISPLAYED
 le = LabelEncoder()
 le_count = 0
 #           V1
@@ -119,19 +120,21 @@ print("new data frame ready for use")
 ####################################################################
 #%%
 ###################SPLITTING UP THE DATA###########################
-#model_features = df
-#model_label = df['Age']
+#predcting age with all other columns as features
+model_features = df
+model_label = df['Age']
 
-#X_train, X_test, y_train, y_test = train_test_split(model_features, model_label,
-#                                                    shuffle = True,
-#                                                    test_size = 0.3)
+X_train, X_test, y_train, y_test = train_test_split(model_features, model_label,
+                                                    shuffle = True,
+                                                    test_size = 0.3)
 
 #%%
 #select statisitically significant features with Age as target variable
 #chi2 for non-negative ONLY!!
+#other score_functions : f_classif; f_regression; mutual_info_regressiom
 #all features but one that becomes the label
-features = len(df.columns) - 1
-k_best = SelectKBest(score_func = chi2, k = 'all')
+features = len(df.columns) - 10
+k_best = SelectKBest(score_func = f_classif, k = 'all')
 k_best.fit(df, df['Age'])
 #optimal parameters picked
 k_best.scores_
@@ -141,11 +144,18 @@ k_best.pvalues_
 #deduct 10 features from all available ones (20 left here)
 #only the 20 best ones with the strongest correlation will be picked
 features = len(df.columns) - 10
-k_best = SelectKBest(score_func = chi2, k = features)
+k_best = SelectKBest(score_func = f_regression, k = features)
 k_best.fit(df, df['Student'])
 #optimal parameters picked
-print(k_best.scores_)
-print(k_best.pvalues_)
+feat_list = []
+for x in k_best.pvalues_:
+    if x <= 0.05:
+        print(x)
+        feat_list.append(x)
+    else:
+        pass
+#print(k_best.scores_)
+#print(k_best.pvalues_)
 
 #%%
 #############APPLICATION OF RECURSIVE FEATURE EXTRACTION/LOGISTIC REGRESSION###########################
@@ -310,6 +320,7 @@ print(len(val), 'validation examples')
 print(len(test), 'test examples')
 #%%
 '''
+V_1COLUMN STRUCTURE
 This is an overview about the choice of columns for the model and how to preprocess them before
 compiling the model and training it
 
@@ -321,7 +332,7 @@ customerId             6 non-null int64
 type                   6 non-null object categorical (wrapped in embedding)x
 typeCode               6 non-null int64 x
 tag                    6 non-null int64
-friendlyDescription    6 non-null int64 cat with hashed feat (wrapped in embedding) x
+friendlyDescription    6 non-null int64 x
 description            6 non-null int64
 status                 6 non-null int64
 createdDate            6 non-null object bucketized? x
@@ -338,12 +349,45 @@ subTypeCode            6 non-null object
 subType                6 non-null object
 institutionName        6 non-null object categorical (wrapped in indicator) x
 check                  6 non-null object categorical (wrapped in embedding) x
-Student                6 non-null int64 x
+Student                6 non-null int64 LABEL
 account_balance        6 non-null int64 bucketized (wrapped in embedding) x
 Age                    6 non-null int64 bucketized x
 CS_internal            6 non-null int64 bucketized/ categorical x
 CS_FICO_num            6 non-null int64 categorical/bucketized if as strings (wrapped in embedding) x
 CS_FICO_str            6 non-null int64 categorical
+
+V_2 COLUMN STRUCTURE
+Data columns (total 30 columns):
+transactionCount       5452 non-null int64
+transactionId          5452 non-null int64
+masterId               5452 non-null float64
+customerId             5452 non-null int64
+type                   5452 non-null object x
+typeCode               5452 non-null int64 numeric x
+tag                    5452 non-null int64
+friendlyDescription    5452 non-null object cat with hashed feat (wrapped in embedding)
+description            5452 non-null float64
+status                 5452 non-null object
+createdDate            5452 non-null object
+amount                 5452 non-null float64 numeric x
+isCredit               5452 non-null object categorical (wrapped in embedding)
+settledDate            5452 non-null object
+availableDate          5452 non-null object
+voidedDate             5452 non-null object
+returnCode             5452 non-null int64
+feeCode                5452 non-null object
+feeDescription         5452 non-null object
+cardId                 5452 non-null int64
+subTypeCode            5452 non-null object
+subType                5452 non-null object
+institutionName        5452 non-null object categorical (wrapped in indicator)
+check                  5452 non-null object categorical (wrapped in embedding)
+Student                5452 non-null int64 LABEL
+account_balance        5452 non-null object
+Age                    5452 non-null int64 bucketized x
+CS_internal            5452 non-null int64 bucketized/ categorical x
+CS_FICO_num            5452 non-null int64 categorical/bucketized if as strings (wrapped in embedding) x
+CS_FICO_str            5452 non-null int64 categorical
 '''
 #%%
 #create tuples for lists to organize the columns conversion
@@ -359,13 +403,18 @@ CS_FICO_str            6 non-null int64 categorical
 #                   'Manual Adjustment', 'Interest Adjustment')
 
 ##STEP 1
+'''
+attempt 12/12/ ; 48%-51% accuracy to predict student with features: TYPECODE + AMOUNT + RETURNCODE + CS_FICO_NUM + AGE + CROSSED(CS_FICO;AGE)
+attempt_2 12/12/ ; 49%-50% accuracy to predict student with features: TYPECODE + FEE_CODE + AMOUNT + RETURNCODE + INSTITUTION_NAMES + CS_FICO_NUM + AGE + CROSSED(CS_FICO;AGE)
+'''
 #feature columns to use in the layers
 feature_columns_container = []
 
 #numeric column needed in the model
-#other components altered to other data types
 #wrap all non-numerical columns with indicator col or embedding col
 ######IN V2 STATUS IS NUMERICAL; THATS WHY IT WILL THROW "CAST STRING TO FLOAT IS NOT SUPPORTED" ERROR######
+#the argument default_value governs out of vocabulary values and how to replace them
+
 for header in ['typeCode', 'amount', 'returnCode', 'CS_FICO_num']:
   feature_columns_container.append(feature_column.numeric_column(header))
 
@@ -406,13 +455,13 @@ for header in ['typeCode', 'amount', 'returnCode', 'CS_FICO_num']:
 #ret_c = feature_column.categorical_column_with_vocabulary_list(
 #        'returnCode', ['RGD', 'RTN', 'NSF'])
 
-#fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
-#                                                             ['RGD',
-#                                                              'RTN',
-#                                                              'NSF'])
+fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
+                                                             ['RGD',
+                                                              'RTN',
+                                                              'NSF'])
 #set the embedding column
-#fee_pos = feature_column.embedding_column(fee, dimension = 3)
-#feature_columns_container.append(fee_pos)
+fee_pos = feature_column.embedding_column(fee, dimension = 3)
+feature_columns_container.append(fee_pos)
 
 #check = feature_column.categorical_column_with_vocabulary_list('check',
 #                                                               ['Y', 'N'])
@@ -458,16 +507,16 @@ fico_num = feature_column.bucketized_column(feature_column.numeric_column('CS_FI
 feature_columns_container.append(fico_num)
 
 
-#institutions = feature_column.categorical_column_with_vocabulary_list(
-#        'institutionName', [
-#            'Bank of America', 'Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
-#            'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
-#            'State Street Corporation', 'MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
-#            'New York Community Bank', 'CIT Group', 'Santander Bank',
-#            'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank'
-#            ])
-#institutions_pos = feature_column.indicator_column(institutions)
-#feature_columns_container.append(institutions_pos)
+institutions = feature_column.categorical_column_with_vocabulary_list(
+        'institutionName', [
+            'Bank of America', 'Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
+            'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
+            'State Street Corporation', 'MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
+            'New York Community Bank', 'CIT Group', 'Santander Bank',
+            'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank'
+            ])
+institutions_pos = feature_column.indicator_column(institutions)
+feature_columns_container.append(institutions_pos)
 
 crossed_feat = feature_column.crossed_column([age, fico_num], hash_bucket_size = 1000)
 crossed_feat = feature_column.indicator_column(crossed_feat)
@@ -547,6 +596,7 @@ model = tf.keras.Sequential([
   feature_layer,
   layers.Dense(units = 256, activation = 'relu'),
   layers.Dense(units = 256, activation = 'relu'),
+  layers.Dense(units = 256, activation = 'relu'),
   layers.Dense(units = 1, activation = 'sigmoid')
 ])
 #%%
@@ -562,7 +612,7 @@ model.fit(train_ds,
 ##STEP 6
 # Check accuracy
 loss, accuracy = model.evaluate(test_ds)
-print("Accuracy", accuracy)
+print("Accuracy:", accuracy)
 
 ##STEP 7
 # Infer labels on a batch
