@@ -120,7 +120,7 @@ print("new data frame ready for use")
 ####################################################################
 #%%
 ###################SPLITTING UP THE DATA###########################
-#predcting age with all other columns as features
+#predicting age with all other columns as features
 model_features = df
 model_label = df['Age']
 
@@ -158,7 +158,7 @@ for x in k_best.pvalues_:
 #print(k_best.pvalues_)
 
 #%%
-#############APPLICATION OF RECURSIVE FEATURE EXTRACTION/LOGISTIC REGRESSION###########################
+#############APPLICATION OF RECURSIVE FEATURE ELIMINATION/LOGISTIC REGRESSION###########################
 #Creating training and testing data
 train=df.sample(frac = 0.5,random_state = 200)
 test=df.drop(train.index)
