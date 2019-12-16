@@ -3,6 +3,7 @@ require(anchors)
 ######TEST DATA SET#########
 
 #finished: 11/5/2019
+#last updated: 12/6/2019 
 #R-version: 3.6.1 (x64)
 
 #set up dates in a way that start_date =< end_date
@@ -75,12 +76,77 @@ transaction_draw <- c(CorePro_Deposit,
                       Manual_Adjustment,
                       Interest_Adjustment)
 
+#friendly description addendum and description phrases
+#numerical version of friendly desc
+###
+#friendlyDescription <- abs(as.numeric(sample(x = .Random.seed, size = observation_size, replace = TRUE)))
+##
+phrase_1 <- "Uber Technologies"
+phrase_2 <- "Thank you for your purchase"
+phrase_3 <- "NATIONAL GRID"
+phrase_4 <- "DUNKIN #33428"
+phrase_5 <- "BEST BUY 537 CAMBRIDGE"
+phrase_6 <- "EXPRESS 1748 SOMERVILLE"
+phrase_7 <- "STAR MARKET 358 SOMERVILLE"
+phrase_8 <- "STAR OSCO 564 ALLSTON"
+phrase_9 <- "EVERSOURCE WEB_PAY"
+phrase_10 <- "VENMO CASHOUT"
+phrase_11 <- "TRADER JOE S 65 BACKBAY"
+phrase_12 <- "TATTE CAFE HARVARD SQ 45 CAMBRIDGE"
+
+desc_phrases <- c(phrase_1,
+                  phrase_2,
+                  phrase_3,
+                  phrase_4,
+                  phrase_5,
+                  phrase_6,
+                  phrase_7,
+                  phrase_8,
+                  phrase_9,
+                  phrase_10,
+                  phrase_11,
+                  phrase_12)
 
 #status encoding#
 Initiated <- "Initiated"  #transaction created but not yet in NACHA file
 Pending <- "Pending"  #transaction created but amended to NACHA file
 Settled <- "Settled"  #transaction has been posted to the account
 Voided <- "Voided"   #transaction has been voided 
+
+'''
+#UNUSED
+#return Code
+#standardized reasons why a transaction could not be completed 
+R01 <- "Insufficient Funds"
+R02 <- "Account Closed"
+R03 <- "No Account; Unable to Locate Account"
+R04 <- "Invalid Account Number"
+R05 <- "Unauthorized Debit Entry"
+R06 <- "Returned per ODFIs Request"
+R07 <- "Authorization revoked by Customer"
+R08 <- "Payment stopped or Stop Payment on Item"
+R09 <- "Uncollected Funds"
+R10 <- "Customer Advises not Authorized; Item is Ineligible; Notice not Provided; Signatures not Genuine; Item Altered"
+R11 <- "Check Truncation Entry Return"
+R12 <- "Branch Sold to Another DFI"
+R13 <- "RDFI not Qualified to Particiate"
+R14 <- "Representative Payee Deceased or Unable to Continue in that Capacity"
+R15 <- "Beneficiary or Account Holder Deceased"
+R16 <- "Account Frozen"
+R17 <- "File Record Edit Criteria"
+R20 <- "Non-Transaction Account"
+R21 <- "Invalid Company Identification"
+R22 <- Invalid Individual ID Number
+R23 <- Credit Entry Refused by Receiver
+R24 <- Duplicate Entry
+R29 <- Corporate Customer Advises Not Authorized
+R31 <- Permissible Return Entry
+R33 <- Return of XCK Entry
+ach_codes <- c(R01, R02, R03, R04, R05, R06, R07,
+              R08, R09, R10, R11, R12, R13, R14,
+              R15, R16, R17, R20, R21, R22, R23,
+              R24, R29, R31, R33)
+'''
 
 #fee code
 #RGD-Regulation_D_fee
@@ -166,7 +232,7 @@ typeCode <- abs(as.numeric(sample(x = .Random.seed, size = observation_size, rep
 ##program-wide unique identifier provided by the caller at transfer/create time; not from CorePro
 tag <- abs(as.numeric(sample(x = .Random.seed, size = observation_size, replace = TRUE)))#NUM
 ##human-readable description about the transactions; automatically generated; driven by "typeCode" of the transaction
-friendlyDescription <- abs(as.numeric(sample(x = .Random.seed, size = observation_size, replace = TRUE)))#STR
+friendlyDescription <- sample(x = gl(n = length(desc_phrases), k = 2, labels = desc_phrases, ordered = FALSE ), size = observation_size, replace = TRUE)#NUM
 ##client-specified description; contains NACHA info; ATM name/location (ISO-8583 interface); BY LAW, MUST BE SHOWN TO THE CLIENT
 description <- as.numeric(sample(x = .Random.seed ^ 2, size = observation_size, replace = TRUE))#STR
 ##indicates status of the transaction; 
@@ -174,7 +240,7 @@ status <- sample(x = c(Initiated, Pending, Settled, Voided), size = observation_
 ##exact date and time the transaction was created; returned in time zone of the bank
 createdDate <- seq(from = start_date, to = end_date, length.out = observation_size) #DATE
 ##amount in USD
-amount <- rnorm(n = observation_size, mean = 85, sd = 250) #USD
+amount <- rnorm(n = observation_size, mean = 95, sd = 250) #USD
 ##TRUE if the amount is credited to the accountId, FALSE if the amount is debited
 isCredit <- sample(x = c("Y", "N"), size = observation_size, replace = TRUE)#BOOL; crediting or debiting
 ##date and time at which the transaction was settled; returned in time zone of the bank
@@ -184,7 +250,7 @@ availableDate <- seq(from = start_date, to = end_date, length.out = observation_
 ##date and time at which the transaction was voided; returned in time zone of the bank
 voidedDate <- seq(from = start_date, to = end_date, length.out = observation_size) #DATE
 ##gives a reason why the transaction was returned; 
-returnCode <- sample(x = c(000, 111, 222,333), size = observation_size, replace = TRUE) #NUM
+returnCode <- as.numeric(sample(x = ach_codes, size = observation_size, replace = TRUE)) #NUM
 ##fee code a transaction
 feeCode <- sample(x = c(RGD, RTN, NSF), size = observation_size, replace = TRUE) #NUM
 ##description of the fee
