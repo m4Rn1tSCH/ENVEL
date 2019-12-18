@@ -10,7 +10,7 @@ import pandas as pd
 #installed separately in the conda base env and p37
 import pandas_profiling
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import seaborn
 import os
 import re
@@ -120,14 +120,23 @@ print("new data frame ready for use")
 ####################################################################
 #%%
 ###################SPLITTING UP THE DATA###########################
-#predicting age with all other columns as features
-model_features = df
-model_label = df['Age']
+#predicting STUDENT with all other columns as features EXCEPT STUDENT
+#drop the students column which is the target to avoid overfitting
+#all remaining columns will be the features
+feature_df = df.copy()
+model_features = feature_df.drop('Student', axis = 1)
+model_label = feature_df['Student']
 
 X_train, X_test, y_train, y_test = train_test_split(model_features, model_label,
                                                     shuffle = True,
                                                     test_size = 0.3)
+#create a validation set from the  training set
 
+
+print(f"Shape of the split training data set: X_train:{X_train.shape}")
+print(f"Shape of the split training data set: X_test: {X_test.shape}")
+print(f"Shape of the split training data set: y_train: {y_train.shape}")
+print(f"Shape of the split training data set: y_test: {y_test.shape}")
 #%%
 #select statisitically significant features with Age as target variable
 #chi2 for non-negative ONLY!!
@@ -160,12 +169,12 @@ for x in k_best.pvalues_:
 #%%
 #############APPLICATION OF RECURSIVE FEATURE ELIMINATION/LOGISTIC REGRESSION###########################
 #Creating training and testing data
-train=df.sample(frac = 0.5,random_state = 200)
-test=df.drop(train.index)
+train = df.sample(frac = 0.5, random_state = 200)
+test = df.drop(train.index)
 
 #pick feature columns to predict the label
 #y_train/test is the target label that is to be predicted
-#picked label = FICO numeric
+#PICKED LABEL = FICO numeric
 cols = ["type", "amount", "isCredit", "returnCode", "feeCode", "subTypeCode", "subType", "check", "Student", "account_balance", "Age", "CS_FICO_str", "CS_internal"]
 X_train = train[cols]
 y_train = train['CS_FICO_num']
@@ -189,11 +198,11 @@ print("Optimal number of features: %d" % rfecv.n_features_)
 print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
 
 #plot number of features VS. cross-validation scores
-#plt.figure(figsize = (10,6))
-#plt.xlabel("Number of features selected")
-#plt.ylabel("Cross validation score (nb of correct classifications)")
-#plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-#plt.show()
+plt.figure(figsize = (10,6))
+plt.xlabel("Number of features selected")
+plt.ylabel("Cross validation score (nb of correct classifications)")
+plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+plt.show()
 #%%
 #############APPLICATION OF A RANDOM FOREST REGRESSOR##################
 RFR = RandomForestRegressor()
@@ -248,6 +257,7 @@ targets_validation = np.array(y_test.values.reshape(y_test.shape[0],1))
 print(features[:10])
 print(targets[:10])
 ####
+#%%
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation
 
@@ -259,29 +269,31 @@ model.add(Dense(16, activation='relu'))
 model.add(Dropout(.1))
 model.add(Dense(1))
 
-# Compiling the model
+#compiling the model
 model.compile(loss = 'mse', optimizer='adam', metrics=['mse']) #mse: mean_square_error
 model.summary()
+#%%
 
-# Training the model
-epochs_tot = 1000
+#training of the model
+epochs_total = 1000
 epochs_step = 250
-epochs_ratio = int(epochs_tot / epochs_step)
-hist =np.array([])
+epochs_ratio = int(epochs_total / epochs_step)
+hist = np.array([])
 #######
 #building the epochs
 for i in range(epochs_ratio):
     history = model.fit(features, targets, epochs=epochs_step, batch_size=100, verbose=0)
 
-    # Evaluating the model on the training and testing set
-    print("Step : " , i * epochs_step, "/", epochs_tot)
+    #evaluating the model on the training and testing set
+    print("Step : " , i * epochs_step, "/", epochs_total)
     score = model.evaluate(features, targets)
     print("Training MSE:", score[1])
     score = model.evaluate(features_validation, targets_validation)
     print("Validation MSE:", score[1], "\n")
     hist = np.concatenate((hist, np.array(history.history['mean_squared_error'])), axis = 0)
+#%%
 
-# plot metrics
+#plot metrics
 plt.plot(hist)
 plt.show()
 
@@ -293,14 +305,74 @@ plt.plot(y_test.as_matrix()[0:50], '+', color ='blue', alpha=0.7)
 plt.plot(predictions[0:50], 'ro', color ='red', alpha=0.5)
 plt.show()
 #%%
-############APPLICATION OF SKLEARN NEURAL NETWORK#####################
 '''
-from sklearn.neural_network import MLP
-mlp = MultiLayerPerceptron
-
+                APPLICATION OF SKLEARN NEURAL NETWORK
 '''
-###########APPLICATION OF PYTORCH###############################
 
+#NEURAL NETWORK
+#NO GPU SUPPORT FOR SKLEARN
+from sklearn.neural_network import MLPClassifier
+
+#adam: all-round solver for data
+#hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
+#match with input features
+#alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
+MLP = MLPClassifier(hidden_layer_sizes = 1000, solver='adam', alpha=0.001 )
+MLP.fit(X_train, y_train)
+y_val = MLP.predict(X_test)
+#y_val.reshape(-1, 1)
+print(f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}")
+#%%
+from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error
+#y_val = y_pred as the split is still unfisnished
+print('R2 score = ', r2_score(y_val, y_pred), '/ 1.0')
+print('MSE score = ', mean_squared_error(y_val, y_pred), '/ 0.0')
+#%%
+'''
+                    APPLICATION OF PYTORCH
+'''
+#GENERAL
+#root package
+import torch
+#dataset representation and loading
+from torch.utils.data import Dataset, Dataloader
+#set up x and y and use the non-processed data for analysis
+
+#NEURAL NETWORK API
+#computation graph
+import torch.autograd as autograd
+#tensor node in the computation graph
+from torch import Tensor
+#neural networks
+import torch.nn as nn
+#layers, activations and more
+import torch.nn.functional as F
+#optimizers e.g. gradient descent, ADAM, etc.
+import torch.optim as optim
+#hybrid frontend decorator and tracing jit
+from torch.jit import script, trace
+
+#CREATION OF TENSORS
+#tensor with independent N(0,1) entries
+torch.randn(*size)
+#tensor with all 1's [or 0's]
+torch.[ones|zeros](*size)
+#create tensor from [nested] list or ndarray L
+torch.Tensor(L)
+#clone of x
+x.clone()
+#code wrap that stops autograd from tracking tensor history
+with torch.no_grad():
+#arg, when set to True, tracks computation
+    requires_grad=True
+#history for future derivative calculations
+
+##building the model
+#setting up layers
+model = Sequential(
+    torch.layers()
+    )
 #%%
 ##############################################################
 '''
