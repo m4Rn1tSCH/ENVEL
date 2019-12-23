@@ -333,46 +333,271 @@ print('MSE score = ', mean_squared_error(y_val, y_pred), '/ 0.0')
                     APPLICATION OF PYTORCH
 '''
 #GENERAL
-#root package
-import torch
-#dataset representation and loading
-from torch.utils.data import Dataset, Dataloader
-#set up x and y and use the non-processed data for analysis
+    #root package
+    #import torch
+    #dataset representation and loading
+    #from torch.utils.data import Dataset, Dataloader
+    #set up x and y and use the non-processed data for analysis
 
 #NEURAL NETWORK API
-#computation graph
-import torch.autograd as autograd
-#tensor node in the computation graph
-from torch import Tensor
-#neural networks
+    #computation graph
+    #import torch.autograd as autograd
+    #tensor node in the computation graph
+    #from torch import Tensor
+    #neural networks
+    #import torch.nn as nn
+    #layers, activations and more
+    #import torch.nn.functional as F
+    #optimizers e.g. gradient descent, ADAM, etc.
+    #import torch.optim as optim
+    #hybrid frontend decorator and tracing jit
+    #from torch.jit import script, trace
+
+
+#define the network
+    #import torch
+    #import torch.nn as nn
+    #import torch.nn.functional as F
+#%%
+#required packages
+import torch
 import torch.nn as nn
-#layers, activations and more
-import torch.nn.functional as F
-#optimizers e.g. gradient descent, ADAM, etc.
-import torch.optim as optim
-#hybrid frontend decorator and tracing jit
-from torch.jit import script, trace
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+#%%
+#loading the data set
+dataset = pd.read_csv(r'E:Datasets\customer_data.csv')
+
+#exploratory data analyis
+dataset.shape
+dataset.head()
+fig_size = plt.rcParams["figure.figsize"]
+fig_size[0] = 10
+fig_size[1] = 8
+plt.rcParams["figure.figsize"] = fig_size
+dataset.Exited.value_counts().plot(kind='pie', autopct='%1.0f%%', colors=['skyblue', 'orange'], explode=(0.05, 0.05))
+sns.countplot(x='Geography', data=dataset)
+sns.countplot(x='Exited', hue='Geography', data=dataset)
+
+#Preprocessing of data
+#conversion of columns + preparation of cols for NN
+dataset.columns
+categorical_columns = ['Geography', 'Gender', 'HasCrCard', 'IsActiveMember']
+numerical_columns = ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'EstimatedSalary']
+outputs = ['Exited']
+
+for category in categorical_columns:
+    dataset[category] = dataset[category].astype('category')
+
+
+dataset.dtypes
+dataset['Geography'].cat.categories
+dataset['Geography'].head().cat.codes
+
+
+geo = dataset['Geography'].cat.codes.values
+gen = dataset['Gender'].cat.codes.values
+hcc = dataset['HasCrCard'].cat.codes.values
+iam = dataset['IsActiveMember'].cat.codes.values
+
+categorical_data = np.stack([geo, gen, hcc, iam], 1)
+
+categorical_data[:10]
+
+categorical_data = torch.tensor(categorical_data, dtype=torch.int64)
+categorical_data[:10]
+
+numerical_data = np.stack([dataset[col].values for col in numerical_columns], 1)
+numerical_data = torch.tensor(numerical_data, dtype=torch.float)
+numerical_data[:5]
+
+outputs = torch.tensor(dataset[outputs].values).flatten()
+outputs[:5]
+
+print(categorical_data.shape)
+print(numerical_data.shape)
+print(outputs.shape)
+
+
+#conversion to tensors to feed into Neural Network model
+categorical_column_sizes = [len(dataset[column].cat.categories) for column in categorical_columns]
+categorical_embedding_sizes = [(col_size, min(50, (col_size+1)//2)) for col_size in categorical_column_sizes]
+print(categorical_embedding_sizes)
+
+total_records = 10000
+test_records = int(total_records * .2)
+
+categorical_train_data = categorical_data[:total_records-test_records]
+categorical_test_data = categorical_data[total_records-test_records:total_records]
+numerical_train_data = numerical_data[:total_records-test_records]
+numerical_test_data = numerical_data[total_records-test_records:total_records]
+train_outputs = outputs[:total_records-test_records]
+test_outputs = outputs[total_records-test_records:total_records]
+
+print(len(categorical_train_data))
+print(len(numerical_train_data))
+print(len(train_outputs))
+
+print(len(categorical_test_data))
+print(len(numerical_test_data))
+print(len(test_outputs))
+
+#building the model and passing training  data with labels
+#set up everything as a class to summarize all steps
+#model inherits from Pytorch's NN.module class
+class Model(nn.Module):
+
+    def __init__(self, embedding_size, num_numerical_cols, output_size, layers, p=0.4):
+        super().__init__()
+        self.all_embeddings = nn.ModuleList([nn.Embedding(ni, nf) for ni, nf in embedding_size])
+        self.embedding_dropout = nn.Dropout(p)
+        self.batch_norm_num = nn.BatchNorm1d(num_numerical_cols)
+
+        all_layers = []
+        num_categorical_cols = sum((nf for ni, nf in embedding_size))
+        input_size = num_categorical_cols + num_numerical_cols
+
+        for i in layers:
+            all_layers.append(nn.Linear(input_size, i))
+            all_layers.append(nn.ReLU(inplace=True))
+            all_layers.append(nn.BatchNorm1d(i))
+            all_layers.append(nn.Dropout(p))
+            input_size = i
+
+        all_layers.append(nn.Linear(layers[-1], output_size))
+
+        self.layers = nn.Sequential(*all_layers)
+
+    def forward(self, x_categorical, x_numerical):
+        embeddings = []
+        for i,e in enumerate(self.all_embeddings):
+            embeddings.append(e(x_categorical[:,i]))
+        x = torch.cat(embeddings, 1)
+        x = self.embedding_dropout(x)
+
+        x_numerical = self.batch_norm_num(x_numerical)
+        x = torch.cat([x, x_numerical], 1)
+        x = self.layers(x)
+        return x
+
+#initializing the model
+#in square brackets; structure of hidden layers, 200, 100 and 50 neurons respectively
+pytorch_model = Model(categorical_embedding_sizes, numerical_data.shape[1], 2, [200,100,50], p=0.4)
+print(pytorch_model)
+
+loss_function = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+epochs = 300
+aggregated_losses = []
+
+for i in range(epochs):
+    i += 1
+    y_pred = model(categorical_train_data, numerical_train_data)
+    single_loss = loss_function(y_pred, train_outputs)
+    aggregated_losses.append(single_loss)
+
+    if i%25 == 1:
+        print(f'epoch: {i:3} loss: {single_loss.item():10.8f}')
+
+    optimizer.zero_grad()
+    single_loss.backward()
+    optimizer.step()
+
+print(f'epoch: {i:3} loss: {single_loss.item():10.10f}')
+
+plt.plot(range(epochs), aggregated_losses)
+plt.ylabel('Loss')
+plt.xlabel('epoch');
+
+#using a trained model for predictions
+with torch.no_grad():
+    y_val = model(categorical_test_data, numerical_test_data)
+    loss = loss_function(y_val, test_outputs)
+print(f'Loss: {loss:.8f}')
+
+print(y_val[:5])
+
+#finding out the maximum of predictions
+y_val = np.argmax(y_val, axis=1)
+print(y_val[:5])
+
+#examine accuracy of the predictions
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+
+print(confusion_matrix(test_outputs,y_val))
+print(classification_report(test_outputs,y_val))
+print(accuracy_score(test_outputs, y_val))
+
+#%%
+##DEFINING THE NET OF LAYERS
+
+##STRUCTURE OF A LAYER
+#1 input image channel, 6 output channels, 3x3 square convolution
+#conv1 = nn.Conv2d(1, 6, 3)
+##FORWARD OPERATION
+#one forward operation with relu as activation
+#class Net(nn.Module):
+
+#    def __init__(self):
+#        super(Net, self).__init__()
+#        # 1 input image channel, 6 output channels, 3x3 square convolution
+#        # kernel
+#        self.conv1 = nn.Conv2d(1, 6, 3)
+#        self.conv2 = nn.Conv2d(6, 16, 3)
+#        # an affine operation: y = Wx + b
+#        self.fc1 = nn.Linear(16 * 6 * 6, 120)  # 6*6 from image dimension
+#        self.fc2 = nn.Linear(120, 84)
+#        self.fc3 = nn.Linear(84, 10)
+
+#    def forward(self, x):
+#        # Max pooling over a (2, 2) window
+#        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
+#        # If the size is a square you can only specify a single number
+#        x = F.max_pool2d(F.relu(self.conv2(x)), 2)
+#        x = x.view(-1, self.num_flat_features(x))
+#        x = F.relu(self.fc1(x))
+#        x = F.relu(self.fc2(x))
+#        x = self.fc3(x)
+#        return x
+
+#    def num_flat_features(self, x):
+#        size = x.size()[1:]  # all dimensions except the batch dimension
+#        num_features = 1
+#        for s in size:
+#            num_features *= s
+#        return num_features
+
+#net = Net()
+#print(net)
+#%%
+#print learnable parameters
+#params = list(net.parameters())
+#print(len(params))
+#print(params[0].size())  # conv1's .weight
+#%%
 
 #CREATION OF TENSORS
 #tensor with independent N(0,1) entries
-torch.randn(*size)
+#torch.randn(*size)
 #tensor with all 1's [or 0's]
-torch.[ones|zeros](*size)
+#torch.[ones|zeros](*size)
 #create tensor from [nested] list or ndarray L
-torch.Tensor(L)
+#torch.Tensor(L)
 #clone of x
-x.clone()
+#x.clone()
 #code wrap that stops autograd from tracking tensor history
-with torch.no_grad():
+#with torch.no_grad():
 #arg, when set to True, tracks computation
-    requires_grad=True
+#    requires_grad=True
 #history for future derivative calculations
 
 ##building the model
 #setting up layers
-model = Sequential(
-    torch.layers()
-    )
+#model = Sequential(
+#    torch.layers())
 #%%
 ##############################################################
 '''
