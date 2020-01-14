@@ -367,7 +367,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 #%%
-#loading the data set
+#load the data set
 dataset = pd.read_csv(r'E:Datasets\customer_data.csv')
 
 #exploratory data analyis
@@ -380,12 +380,15 @@ plt.rcParams["figure.figsize"] = fig_size
 dataset.Exited.value_counts().plot(kind='pie', autopct='%1.0f%%', colors=['skyblue', 'orange'], explode=(0.05, 0.05))
 sns.countplot(x='Geography', data=dataset)
 sns.countplot(x='Exited', hue='Geography', data=dataset)
-
+#%%
 #Preprocessing of data
 #conversion of columns + preparation of cols for NN
 dataset.columns
+#categorical columns for boolean info or encoded strings
 categorical_columns = ['Geography', 'Gender', 'HasCrCard', 'IsActiveMember']
+#numerical columns for integer or float values
 numerical_columns = ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'EstimatedSalary']
+#the target value or the label that is to be predicted
 outputs = ['Exited']
 
 for category in categorical_columns:
@@ -396,31 +399,30 @@ dataset.dtypes
 dataset['Geography'].cat.categories
 dataset['Geography'].head().cat.codes
 
-
+#encode of categorical values to numerical values
 geo = dataset['Geography'].cat.codes.values
 gen = dataset['Gender'].cat.codes.values
 hcc = dataset['HasCrCard'].cat.codes.values
 iam = dataset['IsActiveMember'].cat.codes.values
-
+#stack them as an N-dimensional vector to feed it into the Pytorch network
 categorical_data = np.stack([geo, gen, hcc, iam], 1)
-
+#print the first 10 values
 categorical_data[:10]
-
+#convert the categorical data to a tensor ready for Pytorch
 categorical_data = torch.tensor(categorical_data, dtype=torch.int64)
 categorical_data[:10]
-
+#convert the numerical data to a tensor ready for Pytorch
 numerical_data = np.stack([dataset[col].values for col in numerical_columns], 1)
 numerical_data = torch.tensor(numerical_data, dtype=torch.float)
 numerical_data[:5]
-
+#preparation of labels
 outputs = torch.tensor(dataset[outputs].values).flatten()
 outputs[:5]
 
 print(categorical_data.shape)
 print(numerical_data.shape)
 print(outputs.shape)
-
-
+#%%
 #conversion to tensors to feed into Neural Network model
 categorical_column_sizes = [len(dataset[column].cat.categories) for column in categorical_columns]
 categorical_embedding_sizes = [(col_size, min(50, (col_size+1)//2)) for col_size in categorical_column_sizes]
@@ -862,23 +864,23 @@ def df_to_dataset(dataframe, shuffle = True, batch_size = 150):
   ds = ds.batch(batch_size)
   return ds
 ######OVERHAUL NEEDED HERE#####
-def make_input_fn(df):
-  def pandas_to_tf(pdcol):
+#def make_input_fn(df):
+#  def pandas_to_tf(pdcol):
     # convert the pandas column values to float
-    t = tf.constant(pdcol.astype('float32').values)
+#    t = tf.constant(pdcol.astype('float32').values)
     # take the column which is of shape (N) and make it (N, 1)
-    return tf.expand_dims(t, -1)
+#    return tf.expand_dims(t, -1)
 
-  def input_fn():
+#  def input_fn():
     # create features, columns
-    features = {k: pandas_to_tf(df[k]) for k in FEATURES}
-    labels = tf.constant(df[TARGET].values)
-    return features, labels
-  return input_fn
+#    features = {k: pandas_to_tf(df[k]) for k in FEATURES}
+#    labels = tf.constant(df[TARGET].values)
+#    return features, labels
+#  return input_fn
 
-def make_feature_cols():
-  input_columns = [tf.contrib.layers.real_valued_column(k) for k in FEATURES]
-  return input_columns
+#def make_feature_cols():
+#  input_columns = [tf.contrib.layers.real_valued_column(k) for k in FEATURES]
+#  return input_columns
 ##################################
 #%%
 ##STEP 2

@@ -26,7 +26,6 @@ data = pd.read_csv(file, skiprows = 1, index_col = None, names =
 from sklearn.preprocessing import LabelEncoder
 LE = LabelEncoder()
 data['feat_shopname'] = LE.fit_transform(data['shopname'])
-data.dtypes
 #%%
 #create numerical values
 data_1 = data.replace(to_replace={'Shops': '1',

@@ -68,7 +68,7 @@ from sklearn.model_selection import GridSearchCV
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
     ('feature_selection', SelectKBest(score_func = f_classif)),
-    ('clf', GradientBoostingClassifier(random_state=42))])
+    ('clf', GradientBoostingClassifier(random_state = 42))])
 
 #Create a parameter grid
 #parameter grids provide the values for the models to try
