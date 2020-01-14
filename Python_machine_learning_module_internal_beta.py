@@ -10,6 +10,37 @@ Created on Mon Jan 13 11:05:14 2020
 '''
 Incoming approved transaction transmitted by the Q2 API in the Q2-format
 '''
+###connection to flask with relative link#####
+###FLASK FUNCTION###
+from flask import Flask
+####PACKAGES OF THE MODULE######
+import pandas as pd
+import os
+import re
+##from sqlalchemy import create_engine
+############################################
+###SQL-CONNECTION TO QUERY THE VENDOR FILE
+###Create engine named engine
+##engine = create_engine('sqlite:///Chinook.sqlite')
+
+##Open engine connection: con
+##con = engine.connect()
+
+##Perform query: rs
+##rs = con.execute("SELECT * from <<DB_FOLDER>>")
+
+#Save results of the query to DataFrame: df
+##df = pd.DataFrame(rs.fetchall())
+
+##Close connection
+##con.close()
+##############################################
+#%%
+######LOADING THE TWO FILES#####
+#transaction_file = r"C:\Users\bill-\Desktop\TransactionsD_test.csv"
+#path_1 = transaction_file.replace(os.sep,'/')
+#transactions = ''.join(('', path_1, ''))
+relative_t_path = './TransactionsD_test.csv'
 #%%
 #CHECK FOR TRANSACTION HISTORY
 '''
