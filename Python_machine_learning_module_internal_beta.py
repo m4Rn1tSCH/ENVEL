@@ -17,6 +17,7 @@ from flask import Flask
 import pandas as pd
 import os
 import re
+#%%
 ##from sqlalchemy import create_engine
 ############################################
 ###SQL-CONNECTION TO QUERY THE VENDOR FILE
@@ -36,19 +37,34 @@ import re
 ##con.close()
 ##############################################
 #%%
-######LOADING THE TWO FILES#####
-#transaction_file = r"C:\Users\bill-\Desktop\TransactionsD_test.csv"
-#path_1 = transaction_file.replace(os.sep,'/')
-#transactions = ''.join(('', path_1, ''))
-relative_t_path = './TransactionsD_test.csv'
+######LOADING THE TRANSACTION FILES#####
+transaction_file = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\Q2_test_data.csv"
+path_1 = transaction_file.replace(os.sep,'/')
+transactions = ''.join(('', path_1, ''))
+'''
+SCRIPT WILL GET ALL CSV FILES AT THIS STAGE!
+'''
+#relative_t_path = './*.csv'
+df = pd.read_csv(transactions,index_col = [0])
 #%%
 #CHECK FOR TRANSACTION HISTORY
 '''
 If previous transactions are in the list/database/history, it is passed to check for missing values
 If htere are no precedent transactions, the object will be passed to Paavna's splitting algorithm
 '''
+#for column in df.columns:
+#    df[column].isnull() =
 #%%
 #PASS TO PAAVNA'S ALGORITHM
+import One_function_trial_pure.py as split_eng
+#######
+df = df
+income = 1000
+newincome = 1300
+bills = 250
+bill_change_value = 30
+#######
+df_split = split_eng.one_trial(df, income, newincome, bills, bill_change_value)
 '''
 Paavna's splitting algorithm will apply an initial split without the involvement of AI or a dynamic element
 '''
@@ -57,6 +73,37 @@ Paavna's splitting algorithm will apply an initial split without the involvement
 '''
 find missing values and mark the corresponding column as target that is to be predicted
 '''
+#iterate over all columns and search for missing values
+#find such missing values and declare it the target value
+#df in use is pandas datafame, use .iloc[]
+#df is a dictionary, .get()
+#iterate over columns first to find missing targets
+#iterate over rows of the specific column that has missing values
+#fill the missing values with a value
+for col in df:
+    if df[col].isnull().all() == True:
+        print(f"{col} is target variable and will be used for prediction")
+        for index, row in df.iterrows():
+            if row.isnull() == True:
+                print(f"Value missing in row {index}")
+                df[row].fillna(method = bfill)
+            #df.iloc[lambda df: [df[col.isnull() == True]], column]
+            #df.iterrows
+#%%
+##V2
+#first .all() for the entire column; second .all() for the entire df as a single value
+assert df.iloc[:, 1:].apply(df.notnull(), axis=1).all().all()
+#%%
+#######FIX IMPUTER SOLUTION
+#V3
+#not running with anaconda python 3.7.3
+#use imputer from sklearn
+#axis = 0 col; axis = 1 row
+from sklearn. import Imputer
+#imputer = Imputer(missing_values = 'NaN', strategy = 'mean', axis = 0)
+#imputer = imputer.fit(X[:, 1:3])
+#X[:, 1:3] = imputer.transform(X[:, 1:3])
+
 #%%
 #LABEL ENCODER
 '''
@@ -69,6 +116,7 @@ encode all non-numerical values to ready up the data set for classification and 
 
 ###ATTENTION; WHEN THE DATA FRAME IS OPEN AND THE SCRIPT IS RUN
 ###THE DATA TYPES CHANGE TO FLOAT64 AS THE NUMBERS ARE BEING DISPLAYED
+from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
 le_count = 0
 #           V1
@@ -82,7 +130,7 @@ for col in df:
         df[col] = le.transform(df[col])
         le_count += 1
 
-print('%d columns were label encoded.' % le_count)
+print('%d columns were converted.' % le_count)
 
 #for comparison of the old data frame and the new one
 print("PROCESSED DATA FRAME:")
@@ -123,7 +171,7 @@ from sklearn.model_selection import train_test_split
 X = data_features
 y = data_label
 #split with 50-50 ratio
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.5, random_state = 42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42)
 #shape of the splits:
 #features: X:[n_samples, n_features]
 #label: y: [n_samples]
@@ -138,7 +186,6 @@ print(f"Shape of the split training data set: y_test: {y_test.shape}")
 from sklearn.feature_selection import SelectKBest, f_classif
 #RandomForestClassifier is insufficient and does not provide enough splits
 from sklearn.ensemble import RandomForestClassifier
-#%%
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 # Create pipeline with feature selector and classifier
@@ -151,8 +198,8 @@ pipe = Pipeline([
 #parameter grids provide the values for the models to try
 #PARAMETERS NEED TO HAVE THE SAME LENGTH
 params = {
-   'feature_selection__k':[1, 2],
-   'clf__n_estimators':[20, 50, 75, 150]}
+   'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
+   'clf__n_estimators':[10, 25, 45, 100, 150]}
 
 #Initialize the grid search object
 grid_search = GridSearchCV(pipe, param_grid = params)
@@ -164,14 +211,6 @@ print(grid_search.fit(X_train, y_train).best_params_)
 '''
 use the gradient boosting decision to predict labels
 '''
-#Train Size: 50% of the data set
-#Test Size: remaining 50%
-from sklearn.model_selection import train_test_split
-X = data_features
-y = data_label
-#split with 50-50 ratio
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=42)
-
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #funtion of Selecr K Best is here f_classifier; determines features based on the f-values between features & labels
 #other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
@@ -184,13 +223,13 @@ from sklearn.model_selection import GridSearchCV
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
     ('feature_selection', SelectKBest(score_func = f_classif)),
-    ('clf', GradientBoostingClassifier(random_state=42))])
+    ('clf', GradientBoostingClassifier(random_state = 42))])
 
 #Create a parameter grid
 #parameter grids provide the values for the models to try
 #PARAMETERs NEED TO HAVE THE SAME LENGTH
 params = {
-   'feature_selection__k':[1, 2],
+   'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
    'clf__n_estimators':[20, 50, 75, 150]}
 
 #Initialize the grid search object
@@ -225,7 +264,7 @@ from sklearn.neural_network import MLPClassifier
 #hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
 #match with input features
 #alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
-MLP = MLPClassifier(hidden_layer_sizes = 100, solver='adam', alpha=0.01 )
+MLP = MLPClassifier(hidden_layer_sizes = 250, solver = 'adam', alpha = 0.01 )
 MLP.fit(X_train, y_train)
 y_test = MLP.predict(X_test)
 f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}"
