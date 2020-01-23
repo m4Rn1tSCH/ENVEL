@@ -57,6 +57,20 @@ from flask import Flask
 app = Flask(__name__)
 ####TRIGGER URL#####
 @app.route('/')
+
+#RUN THE APPLICATION
+#flask command or -m swith in Python
+
+########SETTING THE ENVIRONMENT VARIABLE#######
+#$ export FLASK_APP=CONNECTION.py
+#$ flask run
+#* Running on http://127.0.0.1:5000/
+
+####COMMAND PROMPT#####
+#C:\path\to\app>set FLASK_APP=CONNECTION.py
+
+####for production use##
+#$ flask run --host=0.0.0.0
 #%%
 #CHECK FOR TRANSACTION HISTORY
 '''
@@ -148,23 +162,21 @@ print("PROCESSED DATA FRAME:")
 print(df.head(3))
 print("new data frame ready for use")
 #%%
-#split into 2 different data sets
-#FEATURES: feat_shopname(int32) + amount(float64)
-#LABELS: category(float64)
+#TRAIN TEST SPLIT INTO TWO DIFFERENT DATASETS
 #Train Size: 50% of the data set
 #Test Size: remaining 50%
-#from sklearn.model_selection import train_test_split
-#X = data_features
-#y = data_label
-#split with 50-50 ratio
-#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42)
+from sklearn.model_selection import train_test_split
+X = data_features
+y = data_label
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42)
 #shape of the splits:
-#features: X:[n_samples, n_features]
-#label: y: [n_samples]
-#print(f"Shape of the split training data set: X_train:{X_train.shape}")
-#print(f"Shape of the split training data set: X_test: {X_test.shape}")
-#print(f"Shape of the split training data set: y_train: {y_train.shape}")
-#print(f"Shape of the split training data set: y_test: {y_test.shape}")
+##features: X:[n_samples, n_features]
+##label: y: [n_samples]
+print(f"Shape of the split training data set: X_train:{X_train.shape}")
+print(f"Shape of the split training data set: X_test: {X_test.shape}")
+print(f"Shape of the split training data set: y_train: {y_train.shape}")
+print(f"Shape of the split training data set: y_test: {y_test.shape}")
 #%%
 #PASS TO RECURSIVE FEATURE EXTRACTION
 '''
@@ -172,7 +184,7 @@ all other columns are features and need to be checked for significance to be add
 '''
 from sklearn.feature_selection import RFE
 from sklearn.feature_selection import RFECV
-from sklearn.model_selection import LogisticRegression
+from sklearn.linear_model import LogisticRegression
 
 #Creating training and testing data
 train = df.sample(frac = 0.5, random_state = 200)
@@ -197,7 +209,7 @@ print(rfe.ranking_)
 
 #Use the Cross-Validation function of the RFE module
 #accuracy describes the number of correct classifications
-rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring='accuracy')
+rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring = 'accuracy')
 rfecv.fit(X_train, y_train)
 
 print("Optimal number of features: %d" % rfecv.n_features_)
@@ -273,10 +285,10 @@ pipe = Pipeline([
 #PARAMETERs NEED TO HAVE THE SAME LENGTH
 params = {
    'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
-   'clf__n_estimators':[20, 50, 75, 150]}
+   'clf__n_estimators':[15, 25, 50, 75, 120, 200, 350]}
 
 #Initialize the grid search object
-grid_search = GridSearchCV(pipe, param_grid=params)
+grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
 print(grid_search.fit(X_train, y_train).best_params_)
@@ -337,7 +349,7 @@ accuracy_table = pd.DataFrame(data = {'Y_TEST_VALUE_SCORE':[KNN.score(X_test, y_
 #PASS PREDICTED VALUES TO APP
 '''
 let the app display the suggested value in a separate window and ask for confirmation
-"correct" "wrong prediction"
+"correct" OR "wrong prediction"
 '''
 #%%
 #AWAIT RESPONSE FROM APP

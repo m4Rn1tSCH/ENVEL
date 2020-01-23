@@ -616,8 +616,8 @@ from tensorflow import feature_column
 from tensorflow.keras import layers
 #%%
 #custom train test split
-train, test = train_test_split(df, test_size=0.2)
-train, val = train_test_split(train, test_size=0.2)
+train, test = train_test_split(df, test_size = 0.2)
+train, val = train_test_split(train, test_size = 0.2)
 print(len(train), 'train examples')
 print(len(val), 'validation examples')
 print(len(test), 'test examples')

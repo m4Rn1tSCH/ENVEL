@@ -113,40 +113,71 @@ Pending <- "Pending"  #transaction created but amended to NACHA file
 Settled <- "Settled"  #transaction has been posted to the account
 Voided <- "Voided"   #transaction has been voided 
 
-'''
-#UNUSED
-#return Code
+
+#USE EITHER AS A STRING SET OR AS A CODE
+#return Code as string
 #standardized reasons why a transaction could not be completed 
-R01 <- "Insufficient Funds"
-R02 <- "Account Closed"
-R03 <- "No Account; Unable to Locate Account"
-R04 <- "Invalid Account Number"
-R05 <- "Unauthorized Debit Entry"
-R06 <- "Returned per ODFIs Request"
-R07 <- "Authorization revoked by Customer"
-R08 <- "Payment stopped or Stop Payment on Item"
-R09 <- "Uncollected Funds"
-R10 <- "Customer Advises not Authorized; Item is Ineligible; Notice not Provided; Signatures not Genuine; Item Altered"
-R11 <- "Check Truncation Entry Return"
-R12 <- "Branch Sold to Another DFI"
-R13 <- "RDFI not Qualified to Particiate"
-R14 <- "Representative Payee Deceased or Unable to Continue in that Capacity"
-R15 <- "Beneficiary or Account Holder Deceased"
-R16 <- "Account Frozen"
-R17 <- "File Record Edit Criteria"
-R20 <- "Non-Transaction Account"
-R21 <- "Invalid Company Identification"
-R22 <- Invalid Individual ID Number
-R23 <- Credit Entry Refused by Receiver
-R24 <- Duplicate Entry
-R29 <- Corporate Customer Advises Not Authorized
-R31 <- Permissible Return Entry
-R33 <- Return of XCK Entry
-ach_codes <- c(R01, R02, R03, R04, R05, R06, R07,
+
+#R01 <- "Insufficient Funds"
+#R02 <- "Account Closed"
+#R03 <- "No Account; Unable to Locate Account"
+#R04 <- "Invalid Account Number"
+#R05 <- "Unauthorized Debit Entry"
+#R06 <- "Returned per ODFIs Request"
+#R07 <- "Authorization revoked by Customer"
+#R08 <- "Payment stopped or Stop Payment on Item"
+#R09 <- "Uncollected Funds"
+#R10 <- "Customer Advises not Authorized; Item is Ineligible; Notice not Provided; Signatures not Genuine; Item Altered"
+#R11 <- "Check Truncation Entry Return"
+#R12 <- "Branch Sold to Another DFI"
+#R13 <- "RDFI not Qualified to Particiate"
+#R14 <- "Representative Payee Deceased or Unable to Continue in that Capacity"
+#R15 <- "Beneficiary or Account Holder Deceased"
+#R16 <- "Account Frozen"
+#R17 <- "File Record Edit Criteria"
+#R20 <- "Non-Transaction Account"
+#R21 <- "Invalid Company Identification"
+#R22 <- "Invalid Individual ID Number"
+#R23 <- "Credit Entry Refused by Receiver"
+#R24 <- "Duplicate Entry"
+#R29 <- "Corporate Customer Advises Not Authorized"
+#R31 <- "Permissible Return Entry"
+#R33 <- "Return of XCK Entry"
+#ach_codes_str <- c(R01, R02, R03, R04, R05, R06, R07,
+#                   R08, R09, R10, R11, R12, R13, R14,
+#                   R15, R16, R17, R20, R21, R22, R23,
+#                   R24, R29, R31, R33)
+#return Code as number
+#standardized reasons why a transaction could not be completed 
+R01 <- "R01"
+R02 <- "R02"
+R03 <- "R03"
+R04 <- "R04"
+R05 <- "R05"
+R06 <- "R06"
+R07 <- "R07"
+R08 <- "R08"
+R09 <- "R09"
+R10 <- "R10"
+R11 <- "R11"
+R12 <- "R12"
+R13 <- "R13"
+R14 <- "R14"
+R15 <- "R15"
+R16 <- "R16"
+R17 <- "R17"
+R20 <- "R20"
+R21 <- "R21"
+R22 <- "R22"
+R23 <- "R23"
+R24 <- "R24"
+R29 <- "R29"
+R31 <- "R31"
+R33 <- "R33"
+ach_codes_num <- c(R01, R02, R03, R04, R05, R06, R07,
               R08, R09, R10, R11, R12, R13, R14,
               R15, R16, R17, R20, R21, R22, R23,
               R24, R29, R31, R33)
-'''
 
 #fee code
 #RGD-Regulation_D_fee
@@ -174,7 +205,7 @@ NSF <- "NSF"
 RNGkind(kind = "Mersenne-Twister", normal.kind = "Box-Muller", sample.kind = NULL)
 RNGversion(getRversion())
 #for reproducibility set seed and identical normal.kind values
-set.seed(seed = 12, kind = NULL, normal.kind = NULL, sample.kind = NULL)
+set.seed(seed = 45, kind = NULL, normal.kind = NULL, sample.kind = NULL)
 #certain columns will ony take a single sample value to imitiate unique IDs
 
 #######YES/NO SAMPLE################
@@ -250,7 +281,7 @@ availableDate <- seq(from = start_date, to = end_date, length.out = observation_
 ##date and time at which the transaction was voided; returned in time zone of the bank
 voidedDate <- seq(from = start_date, to = end_date, length.out = observation_size) #DATE
 ##gives a reason why the transaction was returned; 
-returnCode <- as.numeric(sample(x = ach_codes, size = observation_size, replace = TRUE)) #NUM
+returnCode <- sample(x = ach_codes_num, size = observation_size, replace = TRUE) #STR
 ##fee code a transaction
 feeCode <- sample(x = c(RGD, RTN, NSF), size = observation_size, replace = TRUE) #NUM
 ##description of the fee
@@ -340,5 +371,5 @@ for (row in 1:(nrow(df))) {
 ######PRINT TO DF#####             
 print(df)
 if (is.data.frame(df) == TRUE) {
-  write.csv(x = df, file = "Q_test_data.csv", append = FALSE)
+  write.csv(x = df, file = "Q2_test_data.csv", append = FALSE)
 }
