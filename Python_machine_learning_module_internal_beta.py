@@ -10,9 +10,7 @@ Created on Mon Jan 13 11:05:14 2020
 '''
 Incoming approved transaction transmitted by the Q2 API in the Q2-format
 '''
-###connection to flask with relative link#####
-###FLASK FUNCTION###
-from flask import Flask
+
 ####PACKAGES OF THE MODULE######
 import pandas as pd
 import os
@@ -47,15 +45,28 @@ SCRIPT WILL GET ALL CSV FILES AT THIS STAGE!
 #relative_t_path = './*.csv'
 df = pd.read_csv(transactions,index_col = [0])
 #%%
+#vendor_file = r"C:\Users\bill-\Dropbox\Nan\Archived\BillVendors_Only.xlsx"
+#path_11 = vendor_file.replace(os.sep,'/')
+#vendors = ''.join(('', path_11, ''))
+#relative_v_path = './BillVendors_Only.xlsx'
+#%%
+###connection to flask with relative link#####
+###FLASK FUNCTION###
+from flask import Flask
+#############SETTING UP THE APP##########
+app = Flask(__name__)
+####TRIGGER URL#####
+@app.route('/')
+#%%
 #CHECK FOR TRANSACTION HISTORY
 '''
 If previous transactions are in the list/database/history, it is passed to check for missing values
-If htere are no precedent transactions, the object will be passed to Paavna's splitting algorithm
+If there are no precedent transactions, the object will be passed to the income splitter
 '''
 #for column in df.columns:
-#    df[column].isnull() =
+#   df[column].isnull() =
 #%%
-#PASS TO PAAVNA'S ALGORITHM
+#PASS TO NEUTRAL SOLITTING ALGORITHM
 import One_function_trial_pure.py as split_eng
 #######
 df = df
@@ -92,14 +103,14 @@ for col in df:
 #%%
 ##V2
 #first .all() for the entire column; second .all() for the entire df as a single value
-assert df.iloc[:, 1:].apply(df.notnull(), axis=1).all().all()
+#assert df.iloc[:, 1:].apply(df.notnull(), axis=1).all().all()
 #%%
 #######FIX IMPUTER SOLUTION
 #V3
 #not running with anaconda python 3.7.3
 #use imputer from sklearn
 #axis = 0 col; axis = 1 row
-from sklearn. import Imputer
+#from sklearn. import Imputer
 #imputer = Imputer(missing_values = 'NaN', strategy = 'mean', axis = 0)
 #imputer = imputer.fit(X[:, 1:3])
 #X[:, 1:3] = imputer.transform(X[:, 1:3])
@@ -137,48 +148,80 @@ print("PROCESSED DATA FRAME:")
 print(df.head(3))
 print("new data frame ready for use")
 #%%
-#PASS TO RECURSIVE FEATURE EXTRACTION
-'''
-all other columns are features and need to be checked for significance to be added to the feature list
-'''
-#%%
-#PASS TO ML ALGO
-#RANDOM FOREST MODULE
-'''
-use the random forest algorithm to predict labels
-'''
-#Packages
-import pandas as pd
-import os
-
-#load the data and skip the first row, then rename the columns
-#columns
-#date = date of transaction
-#trans_cat = category of transaction
-#subcat = subcategory
-#shopname = shop name
-#amount = amount in USD
-data = pd.read_csv(file, skiprows = 1, index_col = None, names =
-                   ['category', 'trans_cat', 'subcat', 'shopname', 'amount'])
-
-#%%
 #split into 2 different data sets
 #FEATURES: feat_shopname(int32) + amount(float64)
 #LABELS: category(float64)
 #Train Size: 50% of the data set
 #Test Size: remaining 50%
-from sklearn.model_selection import train_test_split
-X = data_features
-y = data_label
+#from sklearn.model_selection import train_test_split
+#X = data_features
+#y = data_label
 #split with 50-50 ratio
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42)
+#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42)
 #shape of the splits:
 #features: X:[n_samples, n_features]
 #label: y: [n_samples]
-print(f"Shape of the split training data set: X_train:{X_train.shape}")
-print(f"Shape of the split training data set: X_test: {X_test.shape}")
-print(f"Shape of the split training data set: y_train: {y_train.shape}")
-print(f"Shape of the split training data set: y_test: {y_test.shape}")
+#print(f"Shape of the split training data set: X_train:{X_train.shape}")
+#print(f"Shape of the split training data set: X_test: {X_test.shape}")
+#print(f"Shape of the split training data set: y_train: {y_train.shape}")
+#print(f"Shape of the split training data set: y_test: {y_test.shape}")
+#%%
+#PASS TO RECURSIVE FEATURE EXTRACTION
+'''
+all other columns are features and need to be checked for significance to be added to the feature list
+'''
+from sklearn.feature_selection import RFE
+from sklearn.feature_selection import RFECV
+from sklearn.model_selection import LogisticRegression
+
+#Creating training and testing data
+train = df.sample(frac = 0.5, random_state = 200)
+test = df.drop(train.index)
+
+#pick feature columns to predict the label
+#y_train/test is the target label that is to be predicted
+#PICKED LABEL = FICO numeric
+cols = ["type", "amount", "isCredit", "returnCode", "feeCode", "subTypeCode", "subType", "check", "Student", "account_balance", "Age", "CS_FICO_str", "CS_internal"]
+X_train = train[cols]
+y_train = train['CS_FICO_num']
+X_test = test[cols]
+y_test = test['CS_FICO_num']
+#build a logistic regression and use recursive feature elimination to exclude trivial features
+log_reg = LogisticRegression()
+#create the RFE model and select the eight most striking attributes
+rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+rfe = rfe.fit(X_train, y_train)
+#selected attributes
+print('Selected features: %s' % list(X_train.columns[rfe.support_]))
+print(rfe.ranking_)
+
+#Use the Cross-Validation function of the RFE module
+#accuracy describes the number of correct classifications
+rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring='accuracy')
+rfecv.fit(X_train, y_train)
+
+print("Optimal number of features: %d" % rfecv.n_features_)
+print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
+
+#plot number of features VS. cross-validation scores
+#plt.figure(figsize = (10,6))
+#plt.xlabel("Number of features selected")
+#plt.ylabel("Cross validation score (nb of correct classifications)")
+#plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+#plt.show()
+#%%
+#PASS TO ML ALGO
+#RANDOM FOREST MODULE
+'''
+use the random forest regressor algorithm to predict labels
+'''
+#Packages
+from sklearn.ensemble import RandomForestRegressor
+
+RFR = RandomForestRegressor(n_estimators = 150, max_depth = len(df.columns), min_samples_split = 5)
+RFR.fit(X_train, y_train)
+y_pred = RFR.predict(X_test)
+f"Training set accuracy: {RFR.score(X_train, y_train)}; Test set accuracy: {RFR.score(X_test, y_test)}; Test set validation: {RFR.score(X_test, y_pred)}"
 #%%
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #funtion of Selecr K Best is here f_classifier; determines features based on the f-values between features & labels
@@ -188,7 +231,7 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
-# Create pipeline with feature selector and classifier
+#Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
     ('feature_selection', SelectKBest(score_func = f_classif)),
@@ -219,7 +262,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
-# Create pipeline with feature selector and classifier
+#Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
     ('feature_selection', SelectKBest(score_func = f_classif)),
@@ -250,8 +293,8 @@ from sklearn.neighbors import KNeighborsClassifier
 KNN = KNeighborsClassifier(algorithm = 'auto', leaf_size = 30, metric = 'minkowski',
 metric_params = None, n_jobs = 1, n_neighbors = 1, p = 2, weights = 'uniform')
 KNN.fit(X_train, y_train)
-y_test = KNN.predict(X_test)
-f"Training set accuracy: {KNN.score(X_train, y_train)}; Test set accuracy: {KNN.score(X_test, y_test)}"
+y_pred = KNN.predict(X_test)
+f"Training set accuracy: {KNN.score(X_train, y_train)}; Test set accuracy: {KNN.score(X_test, y_test)}; Test set validation: {KNN.score(X_test, y_pred)}"
 #%%
 #MLP NEURAL NETWORK
 '''
@@ -266,8 +309,8 @@ from sklearn.neural_network import MLPClassifier
 #alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
 MLP = MLPClassifier(hidden_layer_sizes = 250, solver = 'adam', alpha = 0.01 )
 MLP.fit(X_train, y_train)
-y_test = MLP.predict(X_test)
-f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}"
+y_pred = MLP.predict(X_test)
+f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}; Test set validation: {MLP.score(X_test, y_pred)}"
 #%%
 #MEASURE ACCURACY OF PREDICTION
 #CREATE CONTAINER FOR ACCURACY METRICS
@@ -285,6 +328,11 @@ f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.
 pick accuracy measures
 store the value in a data frame
 '''
+from sklearn.metrics import accuracy_score
+accuracy_table = pd.DataFrame(data = {'Y_TEST_VALUE_SCORE':[KNN.score(X_test, y_test), RFC.score(X_test, y_test), RFR.score(X_test, y_test_rfr), Logreg.score(X_test, y_test_lgreg), MLP.score(X_test, y_test_mlp)],
+                                      'Y_TEST_PREDICTION_SCORE':[KNN.score(X_test, y_pred_knn), RFC.score(X_test, y_pred_rfc), RFR.score(X_test, y_pred_rfr), Logreg.score(X_test, y_pred_lgreg), MLP.score(X_test, y_pred_mlp)],
+                                      'AUC_VALUE':[auc_score(y_test, y_pred_knn), auc_score(y_test, y_pred_rfc), auc_score(y_test, y_pred_rfr), auc_score(y_test, y_pred_lgreg), auc_score(y_test, y_pred_mlp)],
+                                      'CONFUSION_MATRIX':[confusion_matrix(y_test, y_pred_knn), confusion_matrix(y_test, y_pred_rfc), confusion_matrix(y_test, y_pred_rfr), confusion_matrix(y_test, y_pred_lgreg), confusion_matrix(y_test, y_pred_mlp)]})
 #%%
 #PASS PREDICTED VALUES TO APP
 '''
@@ -301,7 +349,10 @@ await user input
 '''
 allocate more weight to correct predictions for later training
 create a new column for the weights as numerical values or with a marker
+these weights will give constellations of students conducting transactions more weights
 '''
+#dict or dataframe?
+enhancement_weights = []
 #%%
 #WRITE THIS TRANSACTION IN ITS ENTIRETY TO A CSV ROW THAT IS THE TRAINING DATA
 '''
@@ -317,18 +368,18 @@ with open('Proportions-Auto recovered.csv','a') as newFile:
 #ALTERNATIVE VERSION
 #import pandas as pd
 ##WILL BE SAVED IN THE SAME FOLDER AS THIS SCRIPT
-# Create a Pandas Excel writer using XlsxWriter as the engine.
+#Create a Pandas Excel writer using XlsxWriter as the engine.
 #def export_df():
 #    sheet_name = 'Sheet_1'
 #    writer     = pd.ExcelWriter('filename.xlsx', engine='xlsxwriter')
 #    df.to_excel(writer, sheet_name=sheet_name)
 
-# Access the XlsxWriter workbook and worksheet objects from the dataframe.
+#Access the XlsxWriter workbook and worksheet objects from the dataframe.
 #    workbook  = writer.book
 #    worksheet = writer.sheets[sheet_name]
 
-# Adjust the width of the first column to make the date values clearer.
+#Adjust the width of the first column to make the date values clearer.
 #    worksheet.set_column('A:A', 20)
 
-# Close the Pandas Excel writer and output the Excel file.
+#Close the Pandas Excel writer and output the Excel file.
 #    writer.save()
