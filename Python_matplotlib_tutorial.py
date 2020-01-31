@@ -16,38 +16,33 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-#Don't worry if you don't know how to use numpy, pandas and seaborn, I will explain them in details in other notebooks.
-
-
-#set random seed so that you could have the exactly same results as mine.
+#%%
+#set random seed so that you could have the exact same results as mine.
 np.random.seed(0)
 
 df = pd.DataFrame(data={'a':np.random.randint(0, 100, 30),
                         'b':np.random.randint(0, 100, 30),
                         'c':np.random.randint(0, 100, 30)})
 df.head()
-
+#%%
 #Let's create a figure and call it fig.
 fig = plt.figure()
 #This will return an empty figure.
 
 #Let's create a figure with figsize (15, 8) and also call it fig (thus overwriting the reference to the previous fig).
 #The 15x8 figsize is arbitrary, but I use it as a standard size to work with for visibility.
-fig = plt.figure(figsize=(15,8))
-
+#The empty figure can be filld with subplots called axes/ax
+#%%
 fig = plt.figure(figsize=(15,8))
 ax = plt.subplot(1,1,1) # (rows, columns, and location)
                         # this would create a 1x1 grid of subplots
                         # and choose axes #1
-
+#%%
 fig = plt.figure(figsize=(15,8))
 ax1 = plt.subplot(2,1,1) # this would create a 2x1 grid of subplots
                          # and choose axes #1
 ax2 = plt.subplot(2,1,2) # this would create a 2x1 grid of subplots
                          # and choose axes #2
-#%%
-fig, ax = plt.subplots(2, 1, figsize=(15,8)) # This creates a figure of size 15x8 with
-                                             # a 2x1 grid of subplots.
 #%%
 fig, ax = plt.subplots(2, 1, figsize=(15,8)) # This creates a figure of size 15x8 with
                                              # a 2x1 grid of subplots.
@@ -70,8 +65,8 @@ y = df['a'] # Column 'a' from df.
 
 ax.plot(x, y)
 
-# The above plot can be generated without creating the variables
-# x and y by passing the values directly to the function.
+#The above plot can be generated without creating the variables
+#x and y by passing the values directly to the function.
 #%%
 fig, ax = plt.subplots(2,1, figsize=(15,8))
 

@@ -43,7 +43,7 @@ transactions = ''.join(('', path_1, ''))
 SCRIPT WILL GET ALL CSV FILES AT THIS STAGE!
 '''
 #relative_t_path = './*.csv'
-df = pd.read_csv(transactions,index_col = [0])
+df = pd.read_csv(transactions, index_col = [0])
 #%%
 #vendor_file = r"C:\Users\bill-\Dropbox\Nan\Archived\BillVendors_Only.xlsx"
 #path_11 = vendor_file.replace(os.sep,'/')
@@ -77,8 +77,6 @@ app = Flask(__name__)
 If previous transactions are in the list/database/history, it is passed to check for missing values
 If there are no precedent transactions, the object will be passed to the income splitter
 '''
-#for column in df.columns:
-#   df[column].isnull() =
 #%%
 #PASS TO NEUTRAL SOLITTING ALGORITHM
 import One_function_trial_pure.py as split_eng
@@ -162,12 +160,47 @@ print("PROCESSED DATA FRAME:")
 print(df.head(3))
 print("new data frame ready for use")
 #%%
+#SET UP LABELS WHICH ARE BEING PREDICTED BY FEATURES
+X = data_features
+y = data_label
+#%%
+#PASS TO STANDARD SCALER TO PREPROCESS FOR PCA
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+# calling fit and transform in sequence (using method chaining)
+X_scaled = scaler.fit(X).transform(X)
+# same result, but more efficient computation
+X_scaled_d = scaler.fit_transform(X)
+#%%
+#PASS TO PRINCIPAL COMPONENT ANALYSIS
+from sklearn.decomposition import PCA
+# keep the first two principal components of the data
+pca = PCA(n_components = 2)
+# fit PCA model to breast cancer data
+pca.fit(X_scaled)
+# transform data onto the first two principal components
+X_pca = pca.transform(X_scaled)
+print("Original shape: {}".format(str(X_scaled.shape)))
+print("Reduced shape: {}".format(str(X_pca.shape)))
+#%%
 #TRAIN TEST SPLIT INTO TWO DIFFERENT DATASETS
 #Train Size: 50% of the data set
 #Test Size: remaining 50%
 from sklearn.model_selection import train_test_split
-X = data_features
-y = data_label
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42)
+#shape of the splits:
+##features: X:[n_samples, n_features]
+##label: y: [n_samples]
+print(f"Shape of the split training data set: X_train:{X_train.shape}")
+print(f"Shape of the split training data set: X_test: {X_test.shape}")
+print(f"Shape of the split training data set: y_train: {y_train.shape}")
+print(f"Shape of the split training data set: y_test: {y_test.shape}")
+#%%
+#TRAIN TEST SPLIT INTO TWO DIFFERENT DATASETS - UNSCALED
+#Train Size: 50% of the data set
+#Test Size: remaining 50%
+from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42)
 #shape of the splits:
