@@ -161,8 +161,11 @@ print(df.head(3))
 print("new data frame ready for use")
 #%%
 #SET UP LABELS WHICH ARE BEING PREDICTED BY FEATURES
-X = data_features
-y = data_label
+#set the features
+a = input(f"choose from following columns of given dataframe: {df.columns}; type in the desired label to be predicted...")
+X = df.pop(index = picked_feat.index(a))
+#set the label
+y = picked_feat
 #%%
 #PASS TO STANDARD SCALER TO PREPROCESS FOR PCA
 from sklearn.preprocessing import StandardScaler
@@ -174,21 +177,22 @@ X_scaled_d = scaler.fit_transform(X)
 #%%
 #PASS TO PRINCIPAL COMPONENT ANALYSIS
 from sklearn.decomposition import PCA
-# keep the first two principal components of the data
-pca = PCA(n_components = 2)
-# fit PCA model to breast cancer data
+#keep the most important features of the data
+#in this case; keep all columns that have not been picked by  the algorithm
+pca = PCA(n_components = int(len(df.columns) - 1))
+#fit PCA model to breast cancer data
 pca.fit(X_scaled)
-# transform data onto the first two principal components
+#transform data onto the first two principal components
 X_pca = pca.transform(X_scaled)
 print("Original shape: {}".format(str(X_scaled.shape)))
 print("Reduced shape: {}".format(str(X_pca.shape)))
 #%%
-#TRAIN TEST SPLIT INTO TWO DIFFERENT DATASETS
+#TRAIN TEST SPLIT INTO TWO DIFFERENT DATASETS - SCALED
 #Train Size: 50% of the data set
 #Test Size: remaining 50%
 from sklearn.model_selection import train_test_split
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42)
+X_train, X_test, y_train, y_test = train_test_split(X_pca, y, test_size = 0.3, random_state = 42)
 #shape of the splits:
 ##features: X:[n_samples, n_features]
 ##label: y: [n_samples]
@@ -368,7 +372,9 @@ f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.
 #Column 'a' from df.
 #y = df['x']
 
-#ax.plot(x, y)
+#plot both graphs with the test and the prediction values
+#ax[0].plot(x, y)
+#ax[1].plot(x, y)
 '''
 pick accuracy measures
 store the value in a data frame
