@@ -103,13 +103,18 @@ find missing values and mark the corresponding column as target that is to be pr
 #iterate over columns first to find missing targets
 #iterate over rows of the specific column that has missing values
 #fill the missing values with a value
-for col in df:
-    if df[col].isnull().all() == True:
+target_list = []
+for col in df_card.columns:
+    if df_card[col].isnull().any() == True:
         print(f"{col} is target variable and will be used for prediction")
-        for index, row in df.iterrows():
+        target_list.append(col)
+        for index, row in df_card.iterrows():
             if row.isnull() == True:
                 print(f"Value missing in row {index}")
                 df[row].fillna(method = bfill)
+            else:
+                print("Data contains no missing values; specify the label manually")
+                pass
             #df.iloc[lambda df: [df[col.isnull() == True]], column]
             #df.iterrows
 #%%
@@ -171,7 +176,7 @@ y = picked_feat
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
 # calling fit and transform in sequence (using method chaining)
-X_scaled = scaler.fit(X).transform(X)
+#X_scaled = scaler.fit(X).transform(X)
 # same result, but more efficient computation
 X_scaled_d = scaler.fit_transform(X)
 #%%
