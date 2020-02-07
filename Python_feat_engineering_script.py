@@ -12,6 +12,11 @@ Created on Tue Feb  4 12:22:06 2020
 #%%
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
+#import seaborn as sns
+#plt.rcParams["figure.dpi"] = 600
+#plt.rcParams['figure.figsize'] = [12, 10]
+#%%
 ######LOADING THE TRANSACTION FILE#####
 transaction_file = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx"
 path_1 = transaction_file.replace(os.sep,'/')
@@ -24,10 +29,22 @@ df_card = pd.read_excel(transactions, sheet_name = "Card Panel")
 df_bank = pd.read_excel(transactions, sheet_name = "Bank Panel")
 df_demo = pd.read_excel(transactions, sheet_name = "User Demographics")
 #%%
+#import pandas_profiling
+#produces a detailed report in HTML when run in jupyter
+#df_set = [df_card, df_bank, df_demo]
+#for df in df_set:
+#    pandas_profiling.ProfileReport(df)
+#%%
 df_card.info()
+df_card.describe()
+#takes several minutes!!
+#sns.pairplot(df_card)
 print(df_card.head(3))
 print("--------------------------------------------")
 df_bank.info()
+df_bank.describe()
+#takes several minutes!!
+#sns.pairplot(df_bank)
 print(df_bank.head(3))
 print("--------------------------------------------")
 df_demo.info()
@@ -48,16 +65,17 @@ find missing values and mark the corresponding column as target that is to be pr
 #iterate over columns first to find missing targets
 #iterate over rows of the specific column that has missing values
 #fill the missing values with a value
-for col in df_card.columns:
+for col in list(df_card):
     if df_card[col].isnull().any() == True:
         print(f"{col} is target variable and will be used for prediction")
         for index, row in df_card.iterrows():
-            if row.isnull() == True:
+            if row.isnull().any() == True:
                 print(f"Value missing in row {index}")
+                #df_card.loc[row].drop_duplicates(method = bfill)
             else:
                 print("Data set contains no missing values; specify the label manually")
                 pass
-                df[row].fillna(method = bfill)
+
 ##
 #%%
 #LABEL ENCODER
@@ -79,32 +97,30 @@ le_count = 0
 #Train on the training data
 #Transform both training and testing
 #Keep track of how many columns were converted
-for col in df_card:
+for col in df_card.columns:
     if df_card[col].dtype == 'object':
-        le.fit(df_card[col])
-        df_card[col] = le.transform(df_card[col])
+        df_card[col] = le.fit_transform(df_card[col])
         le_count += 1
 
 print('%d columns were converted.' % le_count)
-
+print("--------------------------------------------")
 #for comparison of the old data frame and the new one
 print("PROCESSED DATA FRAME:")
 print(df_card.head(3))
 print("new data frame ready for use")
 #%%
-
-#%%
 #PICK FEATURES AND LABELS
-X = df.columns
+X = list(df_card)
 #set the label
-y = picked_feat
+y = list(df_card).pop(list(df_card).index('amount'))
 #%%
-#APPLY THESCALER FIRST AND THEN SPLIT INTO TEST AND TRAINING
+#APPLY THE SCALER FIRST AND THEN SPLIT INTO TEST AND TRAINING
 #PASS TO STANDARD SCALER TO PREPROCESS FOR PCA
 #ONLY APPLY SCALING TO X!!!
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
 #fit_transform also separately callable; but this one ism ore time-efficient
+for col in X
 X_scl = scaler.fit_transform(X)
 #%%
 #TRAIN TEST SPLIT INTO TWO DIFFERENT DATASETS
@@ -120,6 +136,17 @@ print(f"Shape of the split training data set: X_train:{X_train.shape}")
 print(f"Shape of the split training data set: X_test: {X_test.shape}")
 print(f"Shape of the split training data set: y_train: {y_train.shape}")
 print(f"Shape of the split training data set: y_test: {y_test.shape}")
+#%%
+#PLOTTING OF THE ORIGINAL/ENGINEERED FEATURES
+#the figure has to be created in the same cell/section as the axes with values!!
+fig, ax = plt.subplots(2, 2, figsize = (20, 12))
+#pick the graph from top to bottom
+#DONT PICK COORDINATES LIKE ax[row_pos][col_pos] when column arg not 2
+#picking starts from top left to bottom right
+ax[0][0].plot(df_card.index.values, df_card['amount'])
+ax[0][1].plot(df_card.index.values, df_card['account_score'])
+ax[1][0].plot(df_bank.index.values, df_bank['amount'])
+ax[1][1].plot(df_bank.index.values, df_bank['account_score'])
 #%%
 #PASS TO RECURSIVE FEATURE EXTRACTION
 '''

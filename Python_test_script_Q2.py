@@ -1,39 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jan 13 11:05:14 2020
+Created on Fri Feb  7 15:06:50 2020
 
 @author: bill-
 """
-
-#############ML logic for internal beta period#########
-#INCOMING TRANSACTION
-'''
-Incoming approved transaction transmitted by the Q2 API in the Q2-format
-'''
 
 ####PACKAGES OF THE MODULE######
 import pandas as pd
 import os
 import re
-#%%
-##from sqlalchemy import create_engine
-############################################
-###SQL-CONNECTION TO QUERY THE VENDOR FILE
-###Create engine named engine
-##engine = create_engine('sqlite:///Chinook.sqlite')
-
-##Open engine connection: con
-##con = engine.connect()
-
-##Perform query: rs
-##rs = con.execute("SELECT * from <<DB_FOLDER>>")
-
-#Save results of the query to DataFrame: df
-##df = pd.DataFrame(rs.fetchall())
-
-##Close connection
-##con.close()
-##############################################
 #%%
 ######LOADING THE TRANSACTION FILES#####
 transaction_file = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\Q2_test_data.csv"
@@ -44,93 +19,6 @@ SCRIPT WILL GET ALL CSV FILES AT THIS STAGE!
 '''
 #relative_t_path = './*.csv'
 df = pd.read_csv(transactions, index_col = [0])
-#%%
-#vendor_file = r"C:\Users\bill-\Dropbox\Nan\Archived\BillVendors_Only.xlsx"
-#path_11 = vendor_file.replace(os.sep,'/')
-#vendors = ''.join(('', path_11, ''))
-#relative_v_path = './BillVendors_Only.xlsx'
-#%%
-###connection to flask with relative link#####
-###FLASK FUNCTION###
-from flask import Flask
-#############SETTING UP THE APP##########
-app = Flask(__name__)
-####TRIGGER URL#####
-@app.route('/')
-
-#RUN THE APPLICATION
-#flask command or -m swith in Python
-
-########SETTING THE ENVIRONMENT VARIABLE#######
-#$ export FLASK_APP=CONNECTION.py
-#$ flask run
-#* Running on http://127.0.0.1:5000/
-
-####COMMAND PROMPT#####
-#C:\path\to\app>set FLASK_APP=CONNECTION.py
-
-####for production use##
-#$ flask run --host=0.0.0.0
-#%%
-#CHECK FOR TRANSACTION HISTORY
-'''
-If previous transactions are in the list/database/history, it is passed to check for missing values
-If there are no precedent transactions, the object will be passed to the income splitter
-'''
-#%%
-#PASS TO NEUTRAL SPLITTING ALGORITHM
-import One_function_trial_pure.py as split_eng
-#######
-df = df
-income = 1000
-newincome = 1300
-bills = 250
-bill_change_value = 30
-#######
-df_split = split_eng.one_trial(df, income, newincome, bills, bill_change_value)
-'''
-Paavna's splitting algorithm will apply an initial split without the involvement of AI or a dynamic element
-'''
-#%%
-#CHECK FOR MISSING VALUES
-'''
-find missing values and mark the corresponding column as target that is to be predicted
-'''
-#iterate over all columns and search for missing values
-#find such missing values and declare it the target value
-#df in use is pandas datafame, use .iloc[]
-#df is a dictionary, .get()
-#iterate over columns first to find missing targets
-#iterate over rows of the specific column that has missing values
-#fill the missing values with a value
-target_list = []
-for col in df.columns:
-    if df[col].isnull().any() == True:
-        print(f"{col} is target variable and will be used for prediction")
-        target_list.append(col)
-        for index, row in df.iterrows():
-            if row.isnull() == True:
-                print(f"Value missing in row {index}")
-                df[row].fillna(method = bfill)
-            else:
-                print("Data contains no missing values; specify the label manually")
-                pass
-            #df.iloc[lambda df: [df[col.isnull() == True]], column]
-            #df.iterrows
-#%%
-##V2
-#first .all() for the entire column; second .all() for the entire df as a single value
-#assert df.iloc[:, 1:].apply(df.notnull(), axis=1).all().all()
-#%%
-#######FIX IMPUTER SOLUTION
-#V3
-#not running with anaconda python 3.7.3
-#use imputer from sklearn
-#axis = 0 col; axis = 1 row
-#from sklearn. import Imputer
-#imputer = Imputer(missing_values = 'NaN', strategy = 'mean', axis = 0)
-#imputer = imputer.fit(X[:, 1:3])
-#X[:, 1:3] = imputer.transform(X[:, 1:3])
 
 #%%
 #LABEL ENCODER
@@ -165,53 +53,12 @@ print("PROCESSED DATA FRAME:")
 print(df.head(3))
 print("new data frame ready for use")
 #%%
-#SET UP LABELS WHICH ARE BEING PREDICTED BY FEATURES
-#set the features
-a = input(f"choose from following columns of given dataframe: {df.columns}; type in the desired label to be predicted...")
-X = df.pop(index = picked_feat.index(a))
-#set the label
-y = picked_feat
-#%%
-#PASS TO STANDARD SCALER TO PREPROCESS FOR PCA
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-# calling fit and transform in sequence (using method chaining)
-#X_scaled = scaler.fit(X).transform(X)
-# same result, but more efficient computation
-X_scaled_d = scaler.fit_transform(X)
-#%%
-#PASS TO PRINCIPAL COMPONENT ANALYSIS
-from sklearn.decomposition import PCA
-#keep the most important features of the data
-#in this case; keep all columns that have not been picked by  the algorithm
-pca = PCA(n_components = int(len(df.columns) - 1))
-#fit PCA model to breast cancer data
-pca.fit(X_scaled)
-#transform data onto the first two principal components
-X_pca = pca.transform(X_scaled)
-print("Original shape: {}".format(str(X_scaled.shape)))
-print("Reduced shape: {}".format(str(X_pca.shape)))
-#%%
 #TRAIN TEST SPLIT INTO TWO DIFFERENT DATASETS - SCALED
 #Train Size: 50% of the data set
 #Test Size: remaining 50%
 from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(X_pca, y, test_size = 0.3, random_state = 42)
-#shape of the splits:
-##features: X:[n_samples, n_features]
-##label: y: [n_samples]
-print(f"Shape of the split training data set: X_train:{X_train.shape}")
-print(f"Shape of the split training data set: X_test: {X_test.shape}")
-print(f"Shape of the split training data set: y_train: {y_train.shape}")
-print(f"Shape of the split training data set: y_test: {y_test.shape}")
-#%%
-#TRAIN TEST SPLIT INTO TWO DIFFERENT DATASETS - UNSCALED
-#Train Size: 50% of the data set
-#Test Size: remaining 50%
-from sklearn.model_selection import train_test_split
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42)
 #shape of the splits:
 ##features: X:[n_samples, n_features]
 ##label: y: [n_samples]
@@ -264,7 +111,6 @@ print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
 #plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
 #plt.show()
 #%%
-#PASS TO ML ALGO
 #RANDOM FOREST MODULE
 '''
 use the random forest regressor algorithm to predict labels
@@ -420,22 +266,3 @@ with open('Proportions-Auto recovered.csv','a') as newFile:
     return(X2, X3, X4, X5)
     print("row has been written to training data...")
     break
-
-#ALTERNATIVE VERSION
-#import pandas as pd
-##WILL BE SAVED IN THE SAME FOLDER AS THIS SCRIPT
-#Create a Pandas Excel writer using XlsxWriter as the engine.
-#def export_df():
-#    sheet_name = 'Sheet_1'
-#    writer     = pd.ExcelWriter('filename.xlsx', engine='xlsxwriter')
-#    df.to_excel(writer, sheet_name=sheet_name)
-
-#Access the XlsxWriter workbook and worksheet objects from the dataframe.
-#    workbook  = writer.book
-#    worksheet = writer.sheets[sheet_name]
-
-#Adjust the width of the first column to make the date values clearer.
-#    worksheet.set_column('A:A', 20)
-
-#Close the Pandas Excel writer and output the Excel file.
-#    writer.save()
