@@ -13,7 +13,8 @@ Created on Tue Feb  4 12:22:06 2020
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
-#import seaborn as sns
+#from datetime import datetime
+import seaborn as sns
 #plt.rcParams["figure.dpi"] = 600
 #plt.rcParams['figure.figsize'] = [12, 10]
 #%%
@@ -37,19 +38,26 @@ df_demo = pd.read_excel(transactions, sheet_name = "User Demographics")
 #%%
 df_card.info()
 df_card.describe()
-#takes several minutes!!
+#takes 10 minutes!!
 #sns.pairplot(df_card)
 print(df_card.head(3))
 print("--------------------------------------------")
 df_bank.info()
 df_bank.describe()
-#takes several minutes!!
+#takes 10 minutes!!
 #sns.pairplot(df_bank)
 print(df_bank.head(3))
 print("--------------------------------------------")
 df_demo.info()
 print(df_demo.head(3))
 print("--------------------------------------------")
+#%%
+#Add date feature columns to improve accuracy
+for col in list(df_card):
+    if df_card[col].dtype == 'datetime64[ns]':
+        df_card[f"{col}_month"] = df_card[col].dt.month
+        df_card[f"{col}_week"] = df_card[col].dt.week
+        df_card[f"{col}_weekday"] = df_card[col].dt.weekday
 #%%
 ##plan for features + prediction
 #conversion of df_card; df_bank; df_demo
@@ -65,9 +73,12 @@ find missing values and mark the corresponding column as target that is to be pr
 #iterate over columns first to find missing targets
 #iterate over rows of the specific column that has missing values
 #fill the missing values with a value
+y = []
+X = []
 for col in list(df_card):
     if df_card[col].isnull().any() == True:
         print(f"{col} is target variable and will be used for prediction")
+        y.append(df_card[col])
         for index, row in df_card.iterrows():
             if row.isnull().any() == True:
                 print(f"Value missing in row {index}")
@@ -120,8 +131,8 @@ y = list(df_card).pop(list(df_card).index('amount'))
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
 #fit_transform also separately callable; but this one ism ore time-efficient
-for col in X
-X_scl = scaler.fit_transform(X)
+for col in X:
+    X_scl = scaler.fit_transform(X)
 #%%
 #TRAIN TEST SPLIT INTO TWO DIFFERENT DATASETS
 #Train Size: percentage of the data set

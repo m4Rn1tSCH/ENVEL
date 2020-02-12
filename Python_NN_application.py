@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import seaborn
 import os
 import re
+from datetime import datetime
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_selection import SelectKBest, chi2, f_regression, f_classif
@@ -58,6 +59,17 @@ else:
 #seaborn.pairplot(df)
 #seaborn.heatmap(df)
 #seaborn.clustermap(df)
+#%%
+#Add date features to improve accuracy
+#list called on a df generates an iterable list
+#if the column is a datetime object it wil be converted and based on month; week and weekday it occured
+#will add this as a new column
+#this will enhance accuracy and detect seasonal patterns
+for col in list(df):
+    if df[col].dtype == 'datetime64[ns]':
+        df[f"{col}_month"] = df[col].dt.month
+        df[f"{col}_week"] = df[col].dt.week
+        df[f"{col}_weekday"] = df[col].dt.weekday
 #%%
 '''
                 APPLICATION OF LABELENCODER####
