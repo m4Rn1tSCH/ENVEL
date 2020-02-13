@@ -7,7 +7,7 @@ from PySide2.QtCore import *
 from PySide2.QtWidgets import *
 
 def loadOpenOrders():
-    open_orders = api.list_orders(status='open', limit=500, direction='desc')
+    open_orders = api.list_orders(status='open', limit = 500, direction = 'desc')
     return open_orders
 
 def loadOpenPosition():
@@ -15,7 +15,7 @@ def loadOpenPosition():
     return existing_positions
 
 def loadClosedOrders():
-    closed_orders= api.list_orders(status='closed', limit=500, direction='desc')
+    closed_orders= api.list_orders(status = 'closed', limit = 500, direction = 'desc')
     return closed_orders
 
 class Tree(QWidget):
@@ -91,11 +91,12 @@ if __name__ == "__main__":
     # Run the main Qt loop
     sys.exit(app.exec_())
 
-##from alpha_vantage.timeseries import TimeSeries
-##from pprint import pprint
-#import pandas as pd
+############################################################################
+from alpha_vantage.timeseries import TimeSeries
+from pprint import pprint
+import pandas as pd
 
-##ts = TimeSeries(key = 'IH4EENERLUFUKJRW', output_format = 'pandas')
-##data, meta_data = ts.get_intraday(symbol = 'MSFT', interval = '1min', outputsize = 'full')
+ts = TimeSeries(key = 'IH4EENERLUFUKJRW', output_format = 'pandas')
+data, meta_data = ts.get_intraday(symbol = 'MSFT', interval = '1min', outputsize = 'full')
 
-##data.to_csv('stock_data_MSFT_1_5_2019.csv')
+data.to_csv('stock_data_MSFT_1_5_2019.csv')

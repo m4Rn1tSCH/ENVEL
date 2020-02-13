@@ -13,8 +13,9 @@ Created on Tue Feb  4 12:22:06 2020
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
+
 #from datetime import datetime
-import seaborn as sns
+#import seaborn as sns
 #plt.rcParams["figure.dpi"] = 600
 #plt.rcParams['figure.figsize'] = [12, 10]
 #%%
@@ -59,7 +60,33 @@ for col in list(df_card):
         df_card[f"{col}_week"] = df_card[col].dt.week
         df_card[f"{col}_weekday"] = df_card[col].dt.weekday
 #%%
-##plan for features + prediction
+#Add feature columns for additive spending on a weekly; monthly; daily basis
+#total throughput of money
+total_throughput = df_card['amount'].sum()
+#monthly figures
+net_monthly_throughput = df_card['amount'].groupby(df_card['transaction_date_month']).sum()
+avg_monthly_throughput = df_card['amount'].groupby(df_card['transaction_date_month']).mean()
+monthly_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_week']).sum()
+monthly_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_week']).sum()
+#weekly figures
+net_weekly_throughput = df_card['amount'].groupby(df_card['transaction_date_week']).sum()
+avg_weekly_throughput = df_card['amount'].groupby(df_card['transaction_date_week']).mean()
+weekly_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_week']).sum()
+weekly_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_week']).sum()
+#daily figures
+net_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).mean()
+avg_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).sum()
+daily_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_weekday']).sum()
+daily_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_weekday']).sum()
+
+
+
+spending_metrics = pd.DataFrame(data = {'Monthly Metrics':[avg_monthly_throughput, net_monthly_throughput, monthly_gain],
+                                        'Weekly Metrics':[avg_weekly_throughput, net_weekly_throughput, weekly_gain],
+                                        'Daily Metrics':[avg_daily_spending, net_daily_spending, daily_gain]}, index = ['Average Value', 'Netted', 'Total Sum'])
+#%%
+#V1
+#plan for features + prediction
 #conversion of df_card; df_bank; df_demo
 
 #CHECK FOR MISSING VALUES
@@ -86,8 +113,18 @@ for col in list(df_card):
             else:
                 print("Data set contains no missing values; specify the label manually")
                 pass
-
-##
+#%%
+#V2
+#first prediction loop and stop
+y = []
+X = []
+for col in list(df_card):
+    if df_card[col].isnull().any() == True:
+        print(f"{col} is target variable and will be used for prediction")
+        y.append(df_card[col])
+        if len(y) == 1:
+            print("first prediction target found...")
+            break
 #%%
 #LABEL ENCODER
 '''
@@ -108,11 +145,16 @@ le_count = 0
 #Train on the training data
 #Transform both training and testing
 #Keep track of how many columns were converted
-for col in df_card.columns:
-    if df_card[col].dtype == 'object':
-        df_card[col] = le.fit_transform(df_card[col])
-        le_count += 1
-
+#fit first (dont create a column yet)
+#transform and overwrite column or create a new one
+try:
+    for col in list(df_card):
+        if df_card[col].dtype == 'object':
+            le.fit(df_card[col])
+            df_card[col] = le.transform(df_card[col])
+            le_count += 1
+except:
+    print(f"({df_card[col]} could not be converted")
 print('%d columns were converted.' % le_count)
 print("--------------------------------------------")
 #for comparison of the old data frame and the new one
@@ -121,7 +163,7 @@ print(df_card.head(3))
 print("new data frame ready for use")
 #%%
 #PICK FEATURES AND LABELS
-X = list(df_card)
+X = list(df_card).
 #set the label
 y = list(df_card).pop(list(df_card).index('amount'))
 #%%
@@ -130,7 +172,7 @@ y = list(df_card).pop(list(df_card).index('amount'))
 #ONLY APPLY SCALING TO X!!!
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
-#fit_transform also separately callable; but this one ism ore time-efficient
+#fit_transform also separately callable; but this one is more time-efficient
 for col in X:
     X_scl = scaler.fit_transform(X)
 #%%
@@ -139,7 +181,7 @@ for col in X:
 #Test Size: remaining percentage
 from sklearn.model_selection import train_test_split
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42)
+X_train, X_test, y_train, y_test = train_test_split(X_scl, y, test_size = 0.3, random_state = 42)
 #shape of the splits:
 ##features: X:[n_samples, n_features]
 ##label: y: [n_samples]
