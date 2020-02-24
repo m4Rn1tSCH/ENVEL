@@ -29,7 +29,7 @@ from sklearn.model_selection import GridSearchCV
 
 #%%
 #converting the link
-link = r"C:\Users\bill-\Desktop\Q_test_data_v2.csv"
+link = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\Q2_test_data.csv"
 link_1 = link.replace(os.sep, '/')
 file = ''.join(link_1)
 '''
@@ -47,13 +47,6 @@ df.info()
 #'Student', 'account_balance', 'Age', 'CS_internal', 'CS_FICO_num', 'CS_FICO_str'
 #these columns columns are added to the Q2 object
 ###
-#%%
-null_list = df.isnull().sum()
-for x in null_list:
-    if x > 0:
-        print("There are NAs in the data!")
-else:
-    pass
 #%%
 #for jupyter-notebook; not practical here
 #seaborn.pairplot(df)

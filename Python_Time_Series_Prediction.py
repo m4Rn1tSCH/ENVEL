@@ -20,7 +20,8 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 import lightgbm as lgb
-from fbprophet import Prophet
+#from fbprophet import Prophet
+#from holidays import WEEKEND, HolidayBase, easter, rd
 from pmdarima import auto_arima
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 #%%
@@ -36,14 +37,18 @@ file = ''.join(link_1)
 #%%
 #loading the data set
 df = pd.read_csv(file)
-#df.set_index("Date", drop=False, inplace=True)
-#df.head(n = 3)
+#set the date column as index to maneuver through the data more easily
+df.set_index("date", drop=False, inplace=True)
+#print the head
+df.head(n = 3)
 '''
+Column names of given data frame; based on trading data from alpha vantage
 pick or rename columns accordingly
-Index(['date', '1. open', '2. high', '3. low', '4. close', '5. volume'], dtype='object')
+Index(['date', '1. open', '2. high', '3. low', '4. close', '5. volume'], dtype = 'object')
 '''
 #%%
 #plotting the vwap
+#FIX; define function VWAP
 df.VWAP.plot(figsize = (14, 7))
 #%%
 #FEATURE ENGINEERING
@@ -52,21 +57,25 @@ df.VWAP.plot(figsize = (14, 7))
 #mean + stdev of past 3d/7d/30d/ + rolling volume
 
 df.reset_index(drop = True, inplace = True)
-lag_features = ["High", "Low", "Volume", "Turnover", "Trades"]
+#pick lag features to iterate through and calculate features
+#original lag features; based on tutorial dataset
+#lag_features = ["High", "Low", "Volume", "Turnover", "Trades"]
+lag_features = ["1. open", "2. high", "3. low", "4. close", "5. volume"]
 time1 = 3
 time2 = 7
 time3 = 30
 
-#rolling volume of HLVTT
+#rolling values for all columns ready to be processed
 df_rolled_3d = df[lag_features].rolling(window = time1, min_periods = 0)
 df_rolled_7d = df[lag_features].rolling(window = time2, min_periods = 0)
 df_rolled_30d = df[lag_features].rolling(window = time3, min_periods = 0)
 
-#
+#calculate the mean with a shifting time window
 df_mean_3d = df_rolled_3d.mean().shift(1).reset_index().astype(np.float32)
 df_mean_7d = df_rolled_7d.mean().shift(1).reset_index().astype(np.float32)
 df_mean_30d = df_rolled_30d.mean().shift(1).reset_index().astype(np.float32)
 
+#calculate the std dev with a shifting time window
 df_std_3d = df_rolled_3d.std().shift(1).reset_index().astype(np.float32)
 df_std_7d = df_rolled_7d.std().shift(1).reset_index().astype(np.float32)
 df_std_30d = df_rolled_30d.std().shift(1).reset_index().astype(np.float32)
@@ -80,18 +89,21 @@ for feature in lag_features:
     df[f"{feature}_std_lag{time2}"] = df_std_7d[feature]
     df[f"{feature}_std_lag{time3}"] = df_std_30d[feature]
 
-df.fillna(df.mean(), inplace=True)
-
-df.set_index("Date", drop=False, inplace=True)
-df.head(n = 3)
+#fill missing values with the mean to keep distortion very low and allow prediction
+df.fillna(df.mean(), inplace = True)
+#associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
+df.set_index("date", drop = False, inplace = True)
 #%%
 #add daytime features to add additional info the model can be fed
-df.Date = pd.to_datetime(df.Date, format="%Y-%m-%d")
-df["month"] = df.Date.dt.month
-df["week"] = df.Date.dt.week
-df["day"] = df.Date.dt.day
-df["day_of_week"] = df.Date.dt.dayofweek
-df.head()
+from datetime import datetime as dt
+for date in df['date']:
+    df.date = dt.strptime(date, '%Y-%m-%d; HH:MM:SS')
+#df.date = pd.to_datetime(df.date, format = "%Y-%m-%d; %hh:%mm:%ms")
+df["month"] = df.date.dt.month
+df["week"] = df.date.dt.week
+df["day"] = df.date.dt.day
+df["week_day"] = df.date.dt.weekday
+#%%
 
 #split up in test and training data
 df_train = df[df.Date < "2019"]
