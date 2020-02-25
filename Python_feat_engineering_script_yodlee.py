@@ -53,12 +53,72 @@ df_demo.info()
 print(df_demo.head(3))
 print("--------------------------------------------")
 #%%
-#Add date feature columns to improve accuracy
+#FEATURE ENGINEERING
+#Add date feature columns
+#this is done to enhance the models prediction ability and accuracy
 for col in list(df_card):
     if df_card[col].dtype == 'datetime64[ns]':
         df_card[f"{col}_month"] = df_card[col].dt.month
         df_card[f"{col}_week"] = df_card[col].dt.week
         df_card[f"{col}_weekday"] = df_card[col].dt.weekday
+#%%
+#FEATURE ENGINEERING II
+#typical engineered features based on lagging metrics
+#mean + stdev of past 3d/7d/30d/ + rolling volume
+
+df_card.reset_index(drop = True, inplace = True)
+#pick lag features to iterate through and calculate features
+#original lag features; based on tutorial dataset
+#lag_features = ["High", "Low", "Volume", "Turnover", "Trades"]
+#lag_features = ["1. open", "2. high", "3. low", "4. close", "5. volume"]
+#set up time frames; how many days/months back/forth
+t1 = 3
+t2 = 7
+t3 = 30
+
+#rolling values for all columns ready to be processed
+#DataFrame.rolling(self, window, min_periods = None, center = False, win_type = None, on = None, axis = 0, closed = None)
+#rolling method; window = size of the moving window;
+                #min_periods = min no. of obersvations that need to have a value(otherwise result is NA)
+                #center = set labels at the center of the window
+                #win_type = weighting of points, "None" all points are equally weighted
+                #on = use datetime-like column index (instead of df indices) to calculate the value
+                #axis = 0:row-wise; 1:column-wise
+                #closed = ['right', 'left', 'both', 'neither'] close of the interval; for offset-based windows defaults to rights;
+                #for fixed windows defaults to both
+
+#DataFrame.shift(self, periods = 1, freq = None, axis = 0, fill_value = None)
+                #periods = pos/ neg downwards or upwards shift in periods
+                #freq = offset/timedelta/str; index shifted but data not realigned; extend index when shifting + preserve original data
+                #axis = shift direction (0: index 1: columns None)
+                #fill_value = numeric: np.nan; datetime,timedelta: NaT; extension types:dtype.na_value
+df_card_rolled_3d = df_card[lag_features].rolling(window = t1, min_periods = 0)
+df_card_rolled_7d = df_card[lag_features].rolling(window = t2, min_periods = 0)
+df_card_rolled_30d = df_card[lag_features].rolling(window = t3, min_periods = 0)
+
+#calculate the mean with a shifting time window
+df_card_mean_3d = df_card_rolled_3d.mean().shift(1).reset_index().astype(np.float32)
+df_card_mean_7d = df_card_rolled_7d.mean().shift(1).reset_index().astype(np.float32)
+df_card_mean_30d = df_card_rolled_30d.mean().shift(1).reset_index().astype(np.float32)
+
+#calculate the std dev with a shifting time window
+df_card_std_3d = df_card_rolled_3d.std().shift(periods = 1).reset_index().astype(np.float32)
+df_card_std_7d = df_card_rolled_7d.std().shift(periods = 1).reset_index().astype(np.float32)
+df_card_std_30d = df_card_rolled_30d.std().shift(periods = 1).reset_index().astype(np.float32)
+
+for feature in lag_features:
+    df_card[f"{feature}_mean_lag{t1}"] = df_card_mean_3d[feature]
+    df_card[f"{feature}_mean_lag{t2}"] = df_card_mean_7d[feature]
+    df_card[f"{feature}_mean_lag{t3}"] = df_card_mean_30d[feature]
+
+    df_card[f"{feature}_std_lag{t1}"] = df_card_std_3d[feature]
+    df_card[f"{feature}_std_lag{t2}"] = df_card_std_7d[feature]
+    df_card[f"{feature}_std_lag{t3}"] = df_card_std_30d[feature]
+
+#fill missing values with the mean to keep distortion very low and allow prediction
+df_card.fillna(df.mean(), inplace = True)
+#associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
+df_card.set_index("date", drop = False, inplace = True)
 #%%
 #Holiday check for feature engineering
 '''
@@ -73,7 +133,7 @@ today = dt.today().strftime('%m/%d/%Y')
 
 #format is MM/DD/YYYY
 #given in string with leading zero for single-digit month
-holidays = ['04/01/2020', '05/29/2020', '12/31/2020', '02/21/2020']
+holidays = ['04/01/2020', '05/29/2020', '12/31/2020', '02/21/2020', '02/25/2020']
 #separate test container for a picked local calendar for example
 test = []
 

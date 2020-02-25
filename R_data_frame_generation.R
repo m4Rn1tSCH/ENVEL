@@ -263,9 +263,9 @@ typeCode <- abs(as.numeric(sample(x = .Random.seed, size = observation_size, rep
 ##program-wide unique identifier provided by the caller at transfer/create time; not from CorePro
 tag <- abs(as.numeric(sample(x = .Random.seed, size = observation_size, replace = TRUE)))#NUM
 ##human-readable description about the transactions; automatically generated; driven by "typeCode" of the transaction
-friendlyDescription <- sample(x = gl(n = length(desc_phrases), k = 2, labels = desc_phrases, ordered = FALSE ), size = observation_size, replace = TRUE)#NUM
+friendlyDescription <- as.numeric(sample(x = .Random.seed ^ 2, size = observation_size, replace = TRUE))#STR
 ##client-specified description; contains NACHA info; ATM name/location (ISO-8583 interface); BY LAW, MUST BE SHOWN TO THE CLIENT
-description <- as.numeric(sample(x = .Random.seed ^ 2, size = observation_size, replace = TRUE))#STR
+description <- sample(x = gl(n = length(desc_phrases), k = 2, labels = desc_phrases, ordered = FALSE ), size = observation_size, replace = TRUE)#STR
 ##indicates status of the transaction; 
 status <- sample(x = c(Initiated, Pending, Settled, Voided), size = observation_size, replace = TRUE)#STR
 ##exact date and time the transaction was created; returned in time zone of the bank
