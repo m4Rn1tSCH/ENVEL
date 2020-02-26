@@ -19,8 +19,52 @@ plt.rcParams['figure.figsize'] = [12, 10]
 #%%
 #CONNECTION TO FLASK/SQL
 #INSERT FLASK CONNECTION SCRIPT HERE
-############################
-############################
+###########################################
+#loading the simplified applications
+#from flask import Flask
+#app = Flask(__Preprocessor__)
+
+##put address here
+#@app.route('/')
+#def hello_world():
+#    return 'Hello, World!'
+#route tells what URL should trigger the function
+#use __main__ only for the actual core of the application
+# pick unique names for particular functions if these are imported later
+#DONT CALL APPLICATIONS FLASK.PY TO AVOID CONFLICTS WITH FLASK
+
+#RUN THE APPLICATION
+#flask command or -m swith in Python
+
+########SETTING THE ENVIRONMENT VARIABLE#######
+#$ export FLASK_APP = C:\Users\bill-\OneDrive\Dokumente\Docs Bill\TA_files\functions_scripts_storage\Python_preprocessing_merged_function_database.py
+#$ flask run
+# * Running on http://127.0.0.1:5000/
+
+####COMMAND PROMPT#####
+#C:\path\to\app>set FLASK_APP=hello.py
+
+####for production use##
+#$ flask run --host=0.0.0.0
+############################################
+#INSERT SQL CONNECTION HERE
+############################################
+###SQL-CONNECTION TO QUERY THE VENDOR FILE
+###Create engine
+##engine = create_engine('sqlite:///Chinook.sqlite')
+
+##Open engine connection: con
+##con = engine.connect()
+
+##Perform query: rs
+##rs = con.execute("SELECT * from <<DB_FOLDER>>")
+
+#Save results df
+##df = pd.DataFrame(rs.fetchall())
+
+##Close connection
+##con.close()
+##############################################
 #%%
 ######LOADING THE TRANSACTION FILE#####
 transaction_file = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx"
@@ -30,7 +74,7 @@ transactions = ''.join(('', path_1, ''))
 SCRIPT WILL GET ALL XLSX SHEETS AT THIS STAGE!
 '''
 #relative_t_path = './*.csv'
-
+#%%
 def preprocess_input_file(transactions):
     df_card = pd.read_excel(transactions, sheet_name = "Card Panel")
     df_bank = pd.read_excel(transactions, sheet_name = "Bank Panel")
@@ -51,6 +95,7 @@ def preprocess_input_file(transactions):
     df_demo.info()
     print(df_demo.head(3))
     print("--------------------------------------------")
+#%%
     #FEATURE ENGINEERING
     #Add date feature columns
     #this is done to enhance the models prediction ability and accuracy
@@ -59,6 +104,7 @@ def preprocess_input_file(transactions):
             df_card[f"{col}_month"] = df_card[col].dt.month
             df_card[f"{col}_week"] = df_card[col].dt.week
             df_card[f"{col}_weekday"] = df_card[col].dt.weekday
+#%%
     #FEATURE ENGINEERING II
     #typical engineered features based on lagging metrics
     #mean + stdev of past 3d/7d/30d/ + rolling volume
@@ -81,7 +127,6 @@ def preprocess_input_file(transactions):
                     #axis = 0:row-wise; 1:column-wise
                     #closed = ['right', 'left', 'both', 'neither'] close of the interval; for offset-based windows defaults to rights;
                     #for fixed windows defaults to both
-
     #DataFrame.shift(self, periods = 1, freq = None, axis = 0, fill_value = None)
                     #periods = pos/ neg downwards or upwards shift in periods
                     #freq = offset/timedelta/str; index shifted but data not realigned; extend index when shifting + preserve original data
@@ -114,6 +159,7 @@ def preprocess_input_file(transactions):
     df_card.fillna(df.mean(), inplace = True)
     #associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
     df_card.set_index("date", drop = False, inplace = True)
+#%%
     #HOLIDAY CHECK FOR FEATURE ENGINEERING
     '''
     The idea is to have it a an engineered feature to find anomalies which might be attributable to holidays or pre-holiday periods
@@ -135,6 +181,8 @@ def preprocess_input_file(transactions):
 
     if today in test:
         print(f"Today is {today}; have fun and enjoy your holiday :)")
+#%%
+    #REPORTING & ANALYSIS FEATURE FOR USERS
     #Add feature columns for additive spending on a weekly; monthly; daily basis
     #total throughput of money
     total_throughput = df_card['amount'].sum()
@@ -187,7 +235,7 @@ def preprocess_input_file(transactions):
     #V1
     #plan for features + prediction
     #conversion of df_card; df_bank; df_demo
-
+#%%
     #CHECK FOR MISSING VALUES
     '''
     find missing values and mark the corresponding column as target that is to be predicted
@@ -212,7 +260,7 @@ def preprocess_input_file(transactions):
                 else:
                     print("Data set contains no missing values; specify the label manually")
                     pass
-    #%%
+#%%
     #V2
     #first prediction loop and stop
     y = []
@@ -224,6 +272,7 @@ def preprocess_input_file(transactions):
             if len(y) == 1:
                 print("first prediction target found...")
                 break
+#%%
     #LABEL ENCODER
     '''
     encode all non-numerical values to ready up the data set for classification and regression purposes
@@ -237,7 +286,6 @@ def preprocess_input_file(transactions):
     ###THE DATA TYPES CHANGE TO FLOAT64 AS THE NUMBERS ARE BEING DISPLAYED
     le = LabelEncoder()
     le_count = 0
-
     #Iterate through the columns
     #Train on the training data
     #Transform both training and testing
@@ -255,27 +303,6 @@ def preprocess_input_file(transactions):
     print('%d columns were converted.' % le_count)
     print("--------------------------------------------")
     #for comparison of the old data frame and the new one
-    print("PROCESSED DATA FRAME:")
+    print("PROCESSED DATAFRAME:")
     print(df_card.head(3))
-    print("new data frame ready for use")
-    X = list(df_card)
-    #set the label
-    y = list(df_card).pop(list(df_card).index('amount'))
-    #APPLY THE SCALER FIRST AND THEN SPLIT INTO TEST AND TRAINING
-    #PASS TO STANDARD SCALER TO PREPROCESS FOR PCA
-    #ONLY APPLY SCALING TO X!!!
-    scaler = StandardScaler()
-    #fit_transform also separately callable; but this one is more time-efficient
-    for col in X:
-        X_scl = scaler.fit_transform(X)
-    #TRAIN TEST SPLIT INTO TWO DIFFERENT DATASETS
-    #Train Size: percentage of the data set
-    #Test Size: remaining percentage
-    X_train, X_test, y_train, y_test = train_test_split(X_scl, y, test_size = 0.3, random_state = 42)
-    #shape of the splits:
-    ##features: X:[n_samples, n_features]
-    ##label: y: [n_samples]
-    print(f"Shape of the split training data set: X_train:{X_train.shape}")
-    print(f"Shape of the split training data set: X_test: {X_test.shape}")
-    print(f"Shape of the split training data set: y_train: {y_train.shape}")
-    print(f"Shape of the split training data set: y_test: {y_test.shape}")
+    print("Dataframe preprocessing finished + Ready for a report + Pass to ML models")
