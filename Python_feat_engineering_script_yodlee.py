@@ -19,6 +19,11 @@ import matplotlib.pyplot as plt
 #plt.rcParams["figure.dpi"] = 600
 #plt.rcParams['figure.figsize'] = [12, 10]
 #%%
+'''
+Setup of the function to merge every single operation into one function that is then called by the flask connection/or SQL
+contains: preprocessing, splitting, training and eventually prediction
+'''
+#%%
 ######LOADING THE TRANSACTION FILE#####
 transaction_file = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx"
 path_1 = transaction_file.replace(os.sep,'/')
@@ -122,8 +127,8 @@ df_card.set_index("date", drop = False, inplace = True)
 #%%
 #Holiday check for feature engineering
 '''
-The idea is to have it a an engieered feature to find anomalies which might be attributable to holidays or pre-holiday periods
-and improve predition results
+The idea is to have it a an engineered feature to find anomalies which might be attributable to holidays or pre-holiday periods
+and improve prediction results
 Next to the US calendar, users can import a calendar of their choice to have access to holidays from various regions
 limit adaption possible for holidays; reminders for shopping holidays about budget; specialized messages/notifications about holidays
 '''
@@ -180,6 +185,17 @@ try:
     print(spending_metrics_daily)
 except:
     print("You do not have enough transactions yet. But we are getting there...")
+#%%
+#PLOTTING OF THE ORIGINAL/ENGINEERED FEATURES
+#the figure has to be created in the same cell/section as the axes with values!!
+#fig, ax = plt.subplots(2, 2, figsize = (20, 12))
+#pick the graph from top to bottom
+#DONT PICK COORDINATES LIKE ax[row_pos][col_pos] when column arg not 2
+#picking starts from top left to bottom right
+#ax[0][0].plot(df_card.index.values, df_card['amount'])
+#ax[0][1].plot(df_card.index.values, df_card['account_score'])
+#ax[1][0].plot(df_bank.index.values, df_bank['amount'])
+#ax[1][1].plot(df_bank.index.values, df_bank['account_score'])
 #%%
 #V1
 #plan for features + prediction
@@ -285,17 +301,6 @@ print(f"Shape of the split training data set: X_train:{X_train.shape}")
 print(f"Shape of the split training data set: X_test: {X_test.shape}")
 print(f"Shape of the split training data set: y_train: {y_train.shape}")
 print(f"Shape of the split training data set: y_test: {y_test.shape}")
-#%%
-#PLOTTING OF THE ORIGINAL/ENGINEERED FEATURES
-#the figure has to be created in the same cell/section as the axes with values!!
-fig, ax = plt.subplots(2, 2, figsize = (20, 12))
-#pick the graph from top to bottom
-#DONT PICK COORDINATES LIKE ax[row_pos][col_pos] when column arg not 2
-#picking starts from top left to bottom right
-ax[0][0].plot(df_card.index.values, df_card['amount'])
-ax[0][1].plot(df_card.index.values, df_card['account_score'])
-ax[1][0].plot(df_bank.index.values, df_bank['amount'])
-ax[1][1].plot(df_bank.index.values, df_bank['account_score'])
 #%%
 #PASS TO RECURSIVE FEATURE EXTRACTION
 '''
