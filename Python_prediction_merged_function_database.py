@@ -77,7 +77,7 @@ SCRIPT WILL GET ALL XLSX SHEETS AT THIS STAGE!
 #relative_t_path = './*.csv'
 #%%
 def predict_needed_value(preprocessed_input):
-    #%%
+#%%
 df_card.info()
 df_card.describe()
 #takes 10 minutes!!
