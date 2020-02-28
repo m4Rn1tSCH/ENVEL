@@ -178,7 +178,6 @@ def preprocess_input_file(transactions):
     #iterate over and append to test list
     for x in holidays:
         test.append(x)
-
     if today in test:
         print(f"Today is {today}; have fun and enjoy your holiday :)")
 #%%
