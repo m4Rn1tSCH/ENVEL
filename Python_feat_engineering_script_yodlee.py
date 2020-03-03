@@ -102,9 +102,9 @@ df_card_rolled_7d = df_card[lag_features].rolling(window = t2, min_periods = 0)
 df_card_rolled_30d = df_card[lag_features].rolling(window = t3, min_periods = 0)
 
 #calculate the mean with a shifting time window
-df_card_mean_3d = df_card_rolled_3d.mean().shift(1).reset_index().astype(np.float32)
-df_card_mean_7d = df_card_rolled_7d.mean().shift(1).reset_index().astype(np.float32)
-df_card_mean_30d = df_card_rolled_30d.mean().shift(1).reset_index().astype(np.float32)
+df_card_mean_3d = df_card_rolled_3d.mean().shift(periods = 1).reset_index().astype(np.float32)
+df_card_mean_7d = df_card_rolled_7d.mean().shift(periods = 1).reset_index().astype(np.float32)
+df_card_mean_30d = df_card_rolled_30d.mean().shift(periods = 1).reset_index().astype(np.float32)
 
 #calculate the std dev with a shifting time window
 df_card_std_3d = df_card_rolled_3d.std().shift(periods = 1).reset_index().astype(np.float32)
@@ -270,9 +270,9 @@ except:
 print('%d columns were converted.' % le_count)
 print("--------------------------------------------")
 #for comparison of the old data frame and the new one
-print("PROCESSED DATA FRAME:")
+print("PROCESSED DATAFRAME:")
 print(df_card.head(3))
-print("new data frame ready for use")
+print("new dataframe ready for use")
 #%%
 #PICK FEATURES AND LABELS
 X = list(df_card)

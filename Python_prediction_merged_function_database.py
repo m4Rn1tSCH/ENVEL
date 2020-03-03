@@ -126,7 +126,7 @@ def predict_needed_value(preprocessed_input):
 #print(f"Shape of the split training data set: y_train: {y_train.shape}")
 #print(f"Shape of the split training data set: y_test: {y_test.shape}")
 #%%
-'''
+    '''
 #COLUMNS df_card
 Index(['unique_mem_id', 'unique_card_account_id', 'unique_card_transaction_id',
        'amount', 'currency', 'description', 'transaction_date', 'post_date',
@@ -139,7 +139,6 @@ Index(['unique_mem_id', 'unique_card_account_id', 'unique_card_transaction_id',
        'account_type', 'account_source_type', 'account_score', 'user_score',
        'lag', 'is_duplicate'],
       dtype='object')
-
 #COLUMNS df_bank
 Index(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id',
        'amount', 'currency', 'description', 'transaction_date', 'post_date',
@@ -152,13 +151,13 @@ Index(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id',
        'account_type', 'account_source_type', 'account_score', 'user_score',
        'lag', 'is_duplicate'],
       dtype='object')
-
 #COLUMNS df_demo
 Index(['unique_mem_id', 'state', 'city', 'zip_code', 'income_class',
        'file_created_date', 'yodlee_transaction_status', 'update_type',
        'panel_file_created_date'],
       dtype='object')
-'''
+    '''
+##
 #%%
 #PASS TO RECURSIVE FEATURE EXTRACTION
 '''

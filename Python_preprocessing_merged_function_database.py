@@ -6,6 +6,7 @@ Created on Wed Feb 26 10:46:28 2020
 """
 #load packages
 import pandas as pd
+import numpy as np
 import os
 import matplotlib.pyplot as plt
 from datetime import datetime as dt
@@ -97,13 +98,22 @@ def preprocess_input_file(transactions):
     print("--------------------------------------------")
 #%%
     #FEATURE ENGINEERING
-    #Add date feature columns
+    #Add date feature columns to the card_panel sheet
     #this is done to enhance the models prediction ability and accuracy
     for col in list(df_card):
         if df_card[col].dtype == 'datetime64[ns]':
             df_card[f"{col}_month"] = df_card[col].dt.month
             df_card[f"{col}_week"] = df_card[col].dt.week
             df_card[f"{col}_weekday"] = df_card[col].dt.weekday
+#%%
+    #FEATURE ENGINEERING
+    #Add date feature columns to the bank_panel sheet
+    #this is done to enhance the models prediction ability and accuracy
+    for col in list(df_bank):
+        if df_bank[col].dtype == 'datetime64[ns]':
+            df_bank[f"{col}_month"] = df_bank[col].dt.month
+            df_bank[f"{col}_week"] = df_bank[col].dt.week
+            df_bank[f"{col}_weekday"] = df_bank[col].dt.weekday
 #%%
     #FEATURE ENGINEERING II
     #typical engineered features based on lagging metrics
@@ -112,7 +122,7 @@ def preprocess_input_file(transactions):
     #pick lag features to iterate through and calculate features
     #original lag features; based on tutorial dataset
     #lag_features = ["High", "Low", "Volume", "Turnover", "Trades"]
-    #lag_features = ["1. open", "2. high", "3. low", "4. close", "5. volume"]
+    lag_features = ["amount"]
     #set up time frames; how many days/months back/forth
     t1 = 3
     t2 = 7
@@ -137,9 +147,9 @@ def preprocess_input_file(transactions):
     df_card_rolled_30d = df_card[lag_features].rolling(window = t3, min_periods = 0)
 
     #calculate the mean with a shifting time window
-    df_card_mean_3d = df_card_rolled_3d.mean().shift(1).reset_index().astype(np.float32)
-    df_card_mean_7d = df_card_rolled_7d.mean().shift(1).reset_index().astype(np.float32)
-    df_card_mean_30d = df_card_rolled_30d.mean().shift(1).reset_index().astype(np.float32)
+    df_card_mean_3d = df_card_rolled_3d.mean().shift(periods = 1).reset_index().astype(np.float32)
+    df_card_mean_7d = df_card_rolled_7d.mean().shift(periods = 1).reset_index().astype(np.float32)
+    df_card_mean_30d = df_card_rolled_30d.mean().shift(periods = 1).reset_index().astype(np.float32)
 
     #calculate the std dev with a shifting time window
     df_card_std_3d = df_card_rolled_3d.std().shift(periods = 1).reset_index().astype(np.float32)
@@ -156,13 +166,68 @@ def preprocess_input_file(transactions):
         df_card[f"{feature}_std_lag{t3}"] = df_card_std_30d[feature]
 
     #fill missing values with the mean to keep distortion very low and allow prediction
-    df_card.fillna(df.mean(), inplace = True)
+    df_card.fillna(df_card.mean(), inplace = True)
     #associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
-    df_card.set_index("date", drop = False, inplace = True)
+    df_card.set_index("transaction_date", drop = False, inplace = True)
+#%%
+        #FEATURE ENGINEERING II
+    #typical engineered features based on lagging metrics
+    #mean + stdev of past 3d/7d/30d/ + rolling volume
+    df_bank.reset_index(drop = True, inplace = True)
+    #pick lag features to iterate through and calculate features
+    #original lag features; based on tutorial dataset
+    #lag_features = ["High", "Low", "Volume", "Turnover", "Trades"]
+    lag_features = ["amount"]
+    #set up time frames; how many days/months back/forth
+    t1 = 3
+    t2 = 7
+    t3 = 30
+    #rolling values for all columns ready to be processed
+    #DataFrame.rolling(self, window, min_periods = None, center = False, win_type = None, on = None, axis = 0, closed = None)
+    #rolling method; window = size of the moving window;
+                    #min_periods = min no. of obersvations that need to have a value(otherwise result is NA)
+                    #center = set labels at the center of the window
+                    #win_type = weighting of points, "None" all points are equally weighted
+                    #on = use datetime-like column index (instead of df indices) to calculate the value
+                    #axis = 0:row-wise; 1:column-wise
+                    #closed = ['right', 'left', 'both', 'neither'] close of the interval; for offset-based windows defaults to rights;
+                    #for fixed windows defaults to both
+    #DataFrame.shift(self, periods = 1, freq = None, axis = 0, fill_value = None)
+                    #periods = pos/ neg downwards or upwards shift in periods
+                    #freq = offset/timedelta/str; index shifted but data not realigned; extend index when shifting + preserve original data
+                    #axis = shift direction (0: index 1: columns None)
+                    #fill_value = numeric: np.nan; datetime,timedelta: NaT; extension types:dtype.na_value
+    df_bank_rolled_3d = df_bank[lag_features].rolling(window = t1, min_periods = 0)
+    df_bank_rolled_7d = df_bank[lag_features].rolling(window = t2, min_periods = 0)
+    df_bank_rolled_30d = df_bank[lag_features].rolling(window = t3, min_periods = 0)
+
+    #calculate the mean with a shifting time window
+    df_bank_mean_3d = df_bank_rolled_3d.mean().shift(periods = 1).reset_index().astype(np.float32)
+    df_bank_mean_7d = df_bank_rolled_7d.mean().shift(periods = 1).reset_index().astype(np.float32)
+    df_bank_mean_30d = df_bank_rolled_30d.mean().shift(periods = 1).reset_index().astype(np.float32)
+
+    #calculate the std dev with a shifting time window
+    df_bank_std_3d = df_bank_rolled_3d.std().shift(periods = 1).reset_index().astype(np.float32)
+    df_bank_std_7d = df_bank_rolled_7d.std().shift(periods = 1).reset_index().astype(np.float32)
+    df_bank_std_30d = df_bank_rolled_30d.std().shift(periods = 1).reset_index().astype(np.float32)
+
+    for feature in lag_features:
+        df_bank[f"{feature}_mean_lag{t1}"] = df_bank_mean_3d[feature]
+        df_bank[f"{feature}_mean_lag{t2}"] = df_bank_mean_7d[feature]
+        df_bank[f"{feature}_mean_lag{t3}"] = df_bank_mean_30d[feature]
+
+        df_bank[f"{feature}_std_lag{t1}"] = df_bank_std_3d[feature]
+        df_bank[f"{feature}_std_lag{t2}"] = df_bank_std_7d[feature]
+        df_bank[f"{feature}_std_lag{t3}"] = df_bank_std_30d[feature]
+
+    #fill missing values with the mean to keep distortion very low and allow prediction
+    df_bank.fillna(df_bank.mean(), inplace = True)
+    #associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
+    df_bank.set_index("transaction_date", drop = False, inplace = True)
 #%%
     #HOLIDAY CHECK FOR FEATURE ENGINEERING
     '''
-    The idea is to have it a an engineered feature to find anomalies which might be attributable to holidays or pre-holiday periods
+    The idea is to have it as an engineered feature to find anomalies which might be attributable to holidays or pre-holiday periods
     and improve prediction results
     Next to the US calendar, users can import a calendar of their choice to have access to holidays from various regions
     limit adaption possible for holidays; reminders for shopping holidays about budget; specialized messages/notifications about holidays
@@ -272,7 +337,7 @@ def preprocess_input_file(transactions):
                 print("first prediction target found...")
                 break
 #%%
-    #LABEL ENCODER
+    #LABEL ENCODER for column card panel
     '''
     encode all non-numerical values to ready up the data set for classification and regression purposes
     '''
@@ -304,4 +369,52 @@ def preprocess_input_file(transactions):
     #for comparison of the old data frame and the new one
     print("PROCESSED DATAFRAME:")
     print(df_card.head(3))
-    print("Dataframe preprocessing finished + Ready for a report + Pass to ML models")
+    print("DF card panel preprocessing finished + Ready for a report + Pass to ML models")
+#%%
+    #LABEL ENCODER for column bank panel
+    '''
+    encode all non-numerical values to ready up the data set for classification and regression purposes
+    '''
+    #applying fit_transform yields: encoding of 22 columns but most of them remain int32 or int64
+    #applying first fit to train the data and then apply transform will encode only 11 columns and leaves the others unchanged
+    #if 2 or fewer unique categories data type changes to "object"
+    #iterate through columns and change the object (not int64)
+
+    ###ATTENTION; WHEN THE DATA FRAME IS OPEN AND THE SCRIPT IS RUN
+    ###THE DATA TYPES CHANGE TO FLOAT64 AS THE NUMBERS ARE BEING DISPLAYED
+    le = LabelEncoder()
+    le_count = 0
+    #Iterate through the columns
+    #Train on the training data
+    #Transform both training and testing
+    #Keep track of how many columns were converted
+    #fit first (dont create a column yet)
+    #transform and overwrite column or create a new one
+    try:
+        for col in list(df_bank):
+            if df_bank[col].dtype == 'object':
+                le.fit(df_bank[col])
+                df_bank[col] = le.transform(df_bank[col])
+                le_count += 1
+    except:
+        print(f"({df_bank[col]} could not be converted")
+    print('%d columns were converted.' % le_count)
+    print("--------------------------------------------")
+    #for comparison of the old data frame and the new one
+    print("PROCESSED DATAFRAME:")
+    print(df_bank.head(3))
+    print("DF bank panel preprocessing finished + Ready for a report + Pass to ML models")
+#%%
+##CONVERSION TO CSV
+#The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
+#Conversion of df to CSV or direct pass possible
+##Conversion
+raw = 'C:/Users/bill-/Desktop/'
+raw_2 = 'C:/Users/bill-/OneDrive - Education First/Documents/Docs Bill/FILES_ENVEL/'
+date_of_creation = dt.today().strftime('%m-%d-%Y')
+#os.mkdir(os.path.join(raw, converted_csv))
+csv_path = os.path.abspath(os.path.join(raw))
+#name_list = ['df_card', 'df_bank', 'df_demo']
+#for name in name_list:
+#    f"{date_of_creation}_{name}".to_csv(csv_path)
+df_card.to_csv(raw)
