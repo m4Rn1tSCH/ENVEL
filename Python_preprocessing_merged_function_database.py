@@ -259,6 +259,11 @@ def preprocess_input_file(transactions):
         print(f"Today is {today}; have fun and enjoy your holiday :)")
 #%%
     #REPORTING & ANALYSIS FEATURE FOR USERS
+    '''
+    This is supposed to be a reporting feature for users either on a daily, weekly, monthly basis.
+    We can potentially use it for reporting or analysis of the community and also to make adaptions of the ML model.
+    Even marketing or push messages could be based on this.
+    '''
     #Add feature columns for additive spending on a weekly; monthly; daily basis
     #total throughput of money
     total_throughput = df_card['amount'].sum()
@@ -267,19 +272,19 @@ def preprocess_input_file(transactions):
     avg_monthly_throughput = df_card['amount'].groupby(df_card['transaction_date_month']).mean()
     #CHECK VIABILITY OF SUCH VARIABLES
     monthly_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_week']).sum()
-    monthly_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_week']).sum()
+    #monthly_expenses = df_card['amount'][df_card['transaction_base_type'] == 'debit'].groupby(df_card['transaction_date_week']).sum()
     #weekly figures
     net_weekly_throughput = df_card['amount'].groupby(df_card['transaction_date_week']).sum()
     avg_weekly_throughput = df_card['amount'].groupby(df_card['transaction_date_week']).mean()
     #CHECK VIABILITY OF SUCH VARIABLES
     weekly_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_week']).sum()
-    weekly_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_week']).sum()
+    #weekly_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_week']).sum()
     #daily figures
     net_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).mean()
     avg_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).sum()
     #CHECK VIABILITY OF SUCH VARIABLES
     daily_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_weekday']).sum()
-    daily_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_weekday']).sum()
+    #daily_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_weekday']).sum()
     #report for users about their spending patterns, given in various intervals
     try:
         print(f"The total turnover on your account has been ${total_throughput}")
@@ -417,43 +422,74 @@ def preprocess_input_file(transactions):
     print(df_bank.head(3))
     print("DF bank panel preprocessing finished + Ready for a report + Pass to ML models")
 #%%
-##CONVERSION TO CSV FOR TESTING
-'''
-For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
-Should this be generated as csv and sit in AWS for a daily report?
-Should it be uploaded to the SQL database again?
-'''
-#The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
-#Conversion of df to CSV or direct pass possible
-##Conversion
-raw = 'C:/Users/bill-/Desktop/'
-#raw_2 = 'C:/Users/bill-/OneDrive - Education First/Documents/Docs Bill/FILES_ENVEL/'
-#working path = 'C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/yodlee_converted.csv'
-date_of_creation = dt.today().strftime('%m-%d-%Y')
-#os.mkdir(os.path.join(raw, converted_csv))
-csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL' + 'ID_' + '.csv')
-csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL' + 'ID_' + '.csv')
-csv_path_demo = os.path.join(raw, date_of_creation + '_DEMO_PANEL' + 'ID_' + '.csv')
-#name_list = ['df_card', 'df_bank', 'df_demo']
-#for name in name_list:
-#    f"{date_of_creation}_{name}".to_csv(csv_path)
-df_card.to_csv(csv_path_card)
-df_bank.to_csv(csv_path_bank)
-df_demo.to_csv(csv_path_demo)
+    '''
+            CONVERION OF THE SPENDING REPORTS
+    '''
+    ##CONVERSION TO CSV FOR TESTING
+    '''
+    For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
+    Should this be generated as csv and sit in AWS for a daily report?
+    Should it be uploaded to the SQL database again?
+    '''
+    #The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
+    #Conversion of df to CSV or direct pass possible
+    ##Conversion
+    raw = 'C:/Users/bill-/Desktop/'
+    #raw_2 = 'C:/Users/bill-/OneDrive - Education First/Documents/Docs Bill/FILES_ENVEL/'
+    #working path = 'C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/yodlee_converted.csv'
+    date_of_creation = dt.today().strftime('%m-%d-%Y')
+    #os.mkdir(os.path.join(raw, converted_csv))
+    csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL' + '.csv')
+    csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL' + '.csv')
+    csv_path_demo = os.path.join(raw, date_of_creation + '_DEMO_PANEL' + '.csv')
+    #name_list = ['df_card', 'df_bank', 'df_demo']
+    #for name in name_list:
+    #    f"{date_of_creation}_{name}".to_csv(csv_path)
+    spending_metrics_monthly.to_csv(csv_path_card)
+    spending_metrics_weekly.to_csv(csv_path_bank)
+    spending_metrics_daily.to_csv(csv_path_demo)
 #%%
-##CONVERSION TO CSV FINAL
-#The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
-#Conversion of df to CSV or direct pass possible
-
-#raw = 'C:/Users/bill-/Desktop/'
-#working directory = 'C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/yodlee_converted.csv'
-#date_of_creation = dt.today().strftime('%m-%d-%Y')
-#setting up paths
-#csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL' + 'ID_' + random_id(length = 5) + '.csv')
-#csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL' + 'ID_' + random_id(length = 5) + '.csv')
-#csv_path_demo = os.path.join(raw, date_of_creation + '_DEMO_PANEL' + 'ID_' + random_id(length = 5) + '.csv')
-#converting
-#df_card.to_csv(csv_path_card)
-#df_bank.to_csv(csv_path_bank)
-#df_demo.to_csv(csv_path_demo)
-
+    '''
+            CONVERION OF THE ENTIRE DATAFRAMES
+    '''
+    ##CONVERSION TO CSV FOR TESTING
+    '''
+    For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
+    Should this be generated as csv and sit in AWS for a daily report?
+    Should it be uploaded to the SQL database again?
+    '''
+    #The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
+    #Conversion of df to CSV or direct pass possible
+    ##Conversion
+    raw = 'C:/Users/bill-/Desktop/'
+    #raw_2 = 'C:/Users/bill-/OneDrive - Education First/Documents/Docs Bill/FILES_ENVEL/'
+    #working path = 'C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/yodlee_converted.csv'
+    date_of_creation = dt.today().strftime('%m-%d-%Y')
+    #os.mkdir(os.path.join(raw, converted_csv))
+    csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL' + '.csv')
+    csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL' + '.csv')
+    csv_path_demo = os.path.join(raw, date_of_creation + '_DEMO_PANEL' + '.csv')
+    #name_list = ['df_card', 'df_bank', 'df_demo']
+    #for name in name_list:
+    #    f"{date_of_creation}_{name}".to_csv(csv_path)
+    df_card.to_csv(csv_path_card)
+    df_bank.to_csv(csv_path_bank)
+    df_demo.to_csv(csv_path_demo)
+#%%
+    ##CONVERSION TO CSV FINAL
+    '''
+    The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
+    The dataframes of all work sheets are converted to separate CSVs and then loaded by the prediction script
+    In the future it might prove useful for weekly reporting for users or internally, even for regulatory purposes
+    '''
+    #raw = 'C:/Users/bill-/Desktop/'
+    #working directory = 'C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/yodlee_converted.csv'
+    #date_of_creation = dt.today().strftime('%m-%d-%Y')
+    #setting up paths
+    #csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL' + 'ID_' + random_id(length = 5) + '.csv')
+    #csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL' + 'ID_' + random_id(length = 5) + '.csv')
+    #csv_path_demo = os.path.join(raw, date_of_creation + '_DEMO_PANEL' + 'ID_' + random_id(length = 5) + '.csv')
+    #converting
+    #df_card.to_csv(csv_path_card)
+    #df_bank.to_csv(csv_path_bank)
+    #df_demo.to_csv(csv_path_demo)
