@@ -8,6 +8,7 @@ Created on Wed Feb 26 10:49:25 2020
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
+import glob
 
 #from datetime import datetime
 #import seaborn as sns
@@ -68,19 +69,46 @@ contains: preprocessing, splitting, training and eventually prediction
 ##############################################
 #%%
 ######LOADING THE TRANSACTION FILE#####
-transaction_file = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx"
-path_1 = transaction_file.replace(os.sep,'/')
-transactions = ''.join(('', path_1, ''))
+#transaction_file = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx"
+#path_1 = transaction_file.replace(os.sep,'/')
+#transactions = ''.join(('', path_1, ''))
 '''
-The preprocessed files are CSV; the function will load all CSVs
+The preprocessed files are CSV; the function will load all CSVs and pick label and features
+for testing purposes:
 '''
 #relative_t_path = './*.csv'
+########################
+"C:\Users\bill-\Desktop\03-04-2020_CARD_PANEL.csv"
+"C:\Users\bill-\Desktop\03-04-2020_BANK_PANEL.csv"
+"C:\Users\bill-\Desktop\03-04-2020_DEMO_PANEL.csv"
+#######################
+#%%
+#import files and append all directory paths to a list
+basepath = 'C:/Users/bill-/Desktop/Harvard_Resumes'
+path_list = []
+#Walking a directory tree and printing the names of the directories and files
+for dirpath, dirnames, filename in os.walk(basepath):
+    print(f'Found directory: {dirpath}')
+    for file in filename:
+        if os.path.isfile(file):
+            print("file found and appended")
+        path_list.append(os.path.abspath(os.path.join(dirpath, file)))
+#%%
+
+#Write the pattern as a folder or file pattern
+path_abs = os.path.abspath(os.path.join('C:/Users/bill-/Desktop/'))
+pattern = '*.csv'
+directory = os.path.join(path_abs, pattern)
+#Save all file matches: csv_files
+pdf_files = glob.glob(directory)
+#Print the file names
+#print(pdf_files)
 #%%
 def predict_needed_value(preprocessed_input):
 
-    df_card = pd.read_excel(transactions, sheet_name = "Card Panel")
-    #df_bank = pd.read_excel(transactions, sheet_name = "Bank Panel")
-    #df_demo = pd.read_excel(transactions, sheet_name = "User Demographics")
+    for file in pdf_files:
+        df_file_rdy = pd.read_csv(file)
+        print(f"dataframe {file} loaded and will be analyzed")
     #%%
     ##SELECTION OF FEATURES AND LABELS
     #first prediction loop and stop
@@ -109,7 +137,7 @@ def predict_needed_value(preprocessed_input):
     #ONLY APPLY SCALING TO X!!!
     from sklearn.preprocessing import StandardScaler
     scaler = StandardScaler()
-    fit_transform also separately callable; but this one is more time-efficient
+    #fit_transform also separately callable; but this one is more time-efficient
     for col in X:
         X_scl = scaler.fit_transform(X)
     #%%
