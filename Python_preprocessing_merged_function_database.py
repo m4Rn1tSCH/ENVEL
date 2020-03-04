@@ -8,8 +8,12 @@ Created on Wed Feb 26 10:46:28 2020
 import pandas as pd
 import numpy as np
 import os
+import random as rd
+import string
+
 import matplotlib.pyplot as plt
 from datetime import datetime as dt
+
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -75,6 +79,14 @@ transactions = ''.join(('', path_1, ''))
 SCRIPT WILL GET ALL XLSX SHEETS AT THIS STAGE!
 '''
 #relative_t_path = './*.csv'
+#%%
+def random_id(length):
+    letters = string.ascii_letters
+    numbers = string.digits
+    result_str = ''.join(rd.choice(letters) for n in range(length))
+    result_num = ''.join(rd.choice(numbers) for n in range(length))
+    unique_id = ''.join(result_str) + ''.join(result_num)
+    return unique_id
 #%%
 def preprocess_input_file(transactions):
     df_card = pd.read_excel(transactions, sheet_name = "Card Panel")
@@ -405,16 +417,43 @@ def preprocess_input_file(transactions):
     print(df_bank.head(3))
     print("DF bank panel preprocessing finished + Ready for a report + Pass to ML models")
 #%%
-##CONVERSION TO CSV
+##CONVERSION TO CSV FOR TESTING
+'''
+For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
+Should this be generated as csv and sit in AWS for a daily report?
+Should it be uploaded to the SQL database again?
+'''
 #The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
 #Conversion of df to CSV or direct pass possible
 ##Conversion
 raw = 'C:/Users/bill-/Desktop/'
-raw_2 = 'C:/Users/bill-/OneDrive - Education First/Documents/Docs Bill/FILES_ENVEL/'
+#raw_2 = 'C:/Users/bill-/OneDrive - Education First/Documents/Docs Bill/FILES_ENVEL/'
+#working path = 'C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/yodlee_converted.csv'
 date_of_creation = dt.today().strftime('%m-%d-%Y')
 #os.mkdir(os.path.join(raw, converted_csv))
-csv_path = os.path.abspath(os.path.join(raw))
+csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL' + 'ID_' + '.csv')
+csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL' + 'ID_' + '.csv')
+csv_path_demo = os.path.join(raw, date_of_creation + '_DEMO_PANEL' + 'ID_' + '.csv')
 #name_list = ['df_card', 'df_bank', 'df_demo']
 #for name in name_list:
 #    f"{date_of_creation}_{name}".to_csv(csv_path)
-df_card.to_csv(raw)
+df_card.to_csv(csv_path_card)
+df_bank.to_csv(csv_path_bank)
+df_demo.to_csv(csv_path_demo)
+#%%
+##CONVERSION TO CSV FINAL
+#The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
+#Conversion of df to CSV or direct pass possible
+
+#raw = 'C:/Users/bill-/Desktop/'
+#working directory = 'C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/yodlee_converted.csv'
+#date_of_creation = dt.today().strftime('%m-%d-%Y')
+#setting up paths
+#csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL' + 'ID_' + random_id(length = 5) + '.csv')
+#csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL' + 'ID_' + random_id(length = 5) + '.csv')
+#csv_path_demo = os.path.join(raw, date_of_creation + '_DEMO_PANEL' + 'ID_' + random_id(length = 5) + '.csv')
+#converting
+#df_card.to_csv(csv_path_card)
+#df_bank.to_csv(csv_path_bank)
+#df_demo.to_csv(csv_path_demo)
+
