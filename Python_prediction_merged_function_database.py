@@ -9,6 +9,10 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 import glob
+from sklearn.model_selection import train_test_split
+from sklearn.feature_selection import RFE
+from sklearn.feature_selection import RFECV
+from sklearn.linear_model import LogisticRegression
 
 #from datetime import datetime
 #import seaborn as sns
@@ -100,27 +104,98 @@ path_abs = os.path.abspath(os.path.join('C:/Users/bill-/Desktop/'))
 pattern = '*.csv'
 directory = os.path.join(path_abs, pattern)
 #Save all file matches: csv_files
-pdf_files = glob.glob(directory)
+csv_files = glob.glob(directory)
 #Print the file names
-#print(pdf_files)
+print(csv_files)
 #%%
 def predict_needed_value(preprocessed_input):
 
-    for file in pdf_files:
-        df_file_rdy = pd.read_csv(file)
-        print(f"dataframe {file} loaded and will be analyzed")
+    df_card_rdy = pd.read_csv(csv_files[0])
+    df_bank_rdy = pd.read_csv(csv_files[1])
+    df_demo_rdy = pd.read_csv(csv_files[2])
+    #consider a dictionary here; for key, value in dict(csv_files.items()) to allocate the names
+    #for file in csv_files:
+        #df_[f"{file}"]_rdy = pd.read_csv(file)
+        #print(f"dataframe {file} loaded and will be analyzed")
     #%%
-    ##SELECTION OF FEATURES AND LABELS
+    '''
+    Columns preprocessed card_panel
+    ['transaction_date', 'unique_mem_id', 'unique_card_account_id',
+       'unique_card_transaction_id', 'amount', 'currency', 'description',
+       'transaction_date.1', 'post_date', 'transaction_base_type',
+       'transaction_category_name', 'primary_merchant_name',
+       'secondary_merchant_name', 'city', 'state', 'zip_code',
+       'transaction_origin', 'factual_category', 'factual_id',
+       'file_created_date', 'optimized_transaction_date',
+       'yodlee_transaction_status', 'mcc_raw', 'mcc_inferred', 'swipe_date',
+       'panel_file_created_date', 'update_type', 'is_outlier', 'change_source',
+       'account_type', 'account_source_type', 'account_score', 'user_score',
+       'lag', 'is_duplicate', 'transaction_date_month',
+       'transaction_date_week', 'transaction_date_weekday', 'post_date_month',
+       'post_date_week', 'post_date_weekday', 'file_created_date_month',
+       'file_created_date_week', 'file_created_date_weekday',
+       'optimized_transaction_date_month', 'optimized_transaction_date_week',
+       'optimized_transaction_date_weekday', 'swipe_date_month',
+       'swipe_date_week', 'swipe_date_weekday',
+       'panel_file_created_date_month', 'panel_file_created_date_week',
+       'panel_file_created_date_weekday', 'amount_mean_lag3',
+       'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
+       'amount_std_lag7', 'amount_std_lag30']
+    Columns preprocesed bank_panel
+    ['transaction_date', 'unique_mem_id', 'unique_card_account_id',
+       'unique_card_transaction_id', 'amount', 'currency', 'description',
+       'transaction_date.1', 'post_date', 'transaction_base_type',
+       'transaction_category_name', 'primary_merchant_name',
+       'secondary_merchant_name', 'city', 'state', 'zip_code',
+       'transaction_origin', 'factual_category', 'factual_id',
+       'file_created_date', 'optimized_transaction_date',
+       'yodlee_transaction_status', 'mcc_raw', 'mcc_inferred', 'swipe_date',
+       'panel_file_created_date', 'update_type', 'is_outlier', 'change_source',
+       'account_type', 'account_source_type', 'account_score', 'user_score',
+       'lag', 'is_duplicate', 'transaction_date_month',
+       'transaction_date_week', 'transaction_date_weekday', 'post_date_month',
+       'post_date_week', 'post_date_weekday', 'file_created_date_month',
+       'file_created_date_week', 'file_created_date_weekday',
+       'optimized_transaction_date_month', 'optimized_transaction_date_week',
+       'optimized_transaction_date_weekday', 'swipe_date_month',
+       'swipe_date_week', 'swipe_date_weekday',
+       'panel_file_created_date_month', 'panel_file_created_date_week',
+       'panel_file_created_date_weekday', 'amount_mean_lag3',
+       'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
+       'amount_std_lag7', 'amount_std_lag30']
+    '''
+    #%%
+    ##SELECTION OF FEATURES AND LABELS FOR CARD PANEL
     #first prediction loop and stop
-    y = []
-    X = []
-    for col in list(df_card):
-        if df_card[col].isnull().any() == True:
-            print(f"{col} is target variable and will be used for prediction")
-            y.append(df_card[col])
-            if len(y) == 1:
-                print("first prediction target found...")
-                break
+    for col in df_card_rdy.columns:
+        if len(df_card_rdy[col]) != len(df_card_rdy.index):
+            df_card_rdy.drop(col)
+            print(f"{col} ha been removed")
+    y_cp = df_card_rdy['transaction_category_name']
+    X_cp = df_card_rdy
+    #for col in list(df_card):
+        #if df_card[col].isnull().any() == True:
+            #print(f"{col} is target variable and will be used for prediction")
+            #y.append(df_card[col])
+            #if len(y) == 1:
+                #print("first prediction target found...")
+                #break
+#%%
+    ##SELECTION OF FEATURES AND LABELS FOR BANK PANEL
+    #first prediction loop and stop
+    for col in df_bank_rdy.columns:
+        if len(df_bank_rdy[col]) != len(df_bank_rdy.index):
+            df_bank_rdy.drop(col)
+            print(f"{col} ha been removed")
+    y_bp = df_bank_rdy['transaction_category_name']
+    X_bp = df_bank_rdy
+    #for col in list(df_bank_rdy):
+        #if df_card[col].isnull().any() == True:
+            #print(f"{col} is target variable and will be used for prediction")
+            #y.append(df_card[col])
+            #if len(y) == 1:
+                #print("first prediction target found...")
+                #break
     #%%
     #PICK FEATURES AND LABELS
     #columns = list(df_card)
@@ -138,65 +213,45 @@ def predict_needed_value(preprocessed_input):
     from sklearn.preprocessing import StandardScaler
     scaler = StandardScaler()
     #fit_transform also separately callable; but this one is more time-efficient
-    for col in X:
-        X_scl = scaler.fit_transform(X)
+    for col in X_cp:
+        X_cp_scl = scaler.fit_transform(X_cp)
     #%%
-    #TRAIN TEST SPLIT INTO TWO DIFFERENT DATASETS
+    #TRAIN TEST SPLIT FOR CARD PANEL
     #Train Size: percentage of the data set
     #Test Size: remaining percentage
     #from sklearn.model_selection import train_test_split
 
-    X_train, X_test, y_train, y_test = train_test_split(X_scl, y, test_size = 0.3, random_state = 42)
+    X_cp_train, X_cp_test, y_cp_train, y_cp_test = train_test_split(X_cp, y_cp, test_size = 0.3, random_state = 42)
     #shape of the splits:
 
     ##features: X:[n_samples, n_features]
     ##label: y: [n_samples]
-
-    print(f"Shape of the split training data set: X_train:{X_train.shape}")
-    print(f"Shape of the split training data set: X_test: {X_test.shape}")
-    print(f"Shape of the split training data set: y_train: {y_train.shape}")
-    print(f"Shape of the split training data set: y_test: {y_test.shape}")
+    print("CARD PANEL")
+    print(f"Shape of the split training data set: X_cp_train:{X_cp_train.shape}")
+    print(f"Shape of the split training data set: X_cp_test: {X_cp_test.shape}")
+    print(f"Shape of the split training data set: y_cp_train: {y_cp_train.shape}")
+    print(f"Shape of the split training data set: y_cp_test: {y_cp_test.shape}")
     #%%
-        '''
-    #COLUMNS df_card
-    Index(['unique_mem_id', 'unique_card_account_id', 'unique_card_transaction_id',
-           'amount', 'currency', 'description', 'transaction_date', 'post_date',
-           'transaction_base_type', 'transaction_category_name',
-           'primary_merchant_name', 'secondary_merchant_name', 'city', 'state',
-           'zip_code', 'transaction_origin', 'factual_category', 'factual_id',
-           'file_created_date', 'optimized_transaction_date',
-           'yodlee_transaction_status', 'mcc_raw', 'mcc_inferred', 'swipe_date',
-           'panel_file_created_date', 'update_type', 'is_outlier', 'change_source',
-           'account_type', 'account_source_type', 'account_score', 'user_score',
-           'lag', 'is_duplicate'],
-          dtype='object')
-    #COLUMNS df_bank
-    Index(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id',
-           'amount', 'currency', 'description', 'transaction_date', 'post_date',
-           'transaction_base_type', 'transaction_category_name',
-           'primary_merchant_name', 'secondary_merchant_name', 'city', 'state',
-           'zip_code', 'transaction_origin', 'factual_category', 'factual_id',
-           'file_created_date', 'optimized_transaction_date',
-           'yodlee_transaction_status', 'mcc_raw', 'mcc_inferred', 'swipe_date',
-           'panel_file_created_date', 'update_type', 'is_outlier', 'change_source',
-           'account_type', 'account_source_type', 'account_score', 'user_score',
-           'lag', 'is_duplicate'],
-          dtype='object')
-    #COLUMNS df_demo
-    Index(['unique_mem_id', 'state', 'city', 'zip_code', 'income_class',
-           'file_created_date', 'yodlee_transaction_status', 'update_type',
-           'panel_file_created_date'],
-          dtype='object')
-        '''
-    ##
+    #TRAIN TEST SPLIT FOR BANK PANEL
+    #Train Size: percentage of the data set
+    #Test Size: remaining percentage
+    #from sklearn.model_selection import train_test_split
+
+    X_bp_train, X_bp_test, y_bp_train, y_bp_test = train_test_split(X_bp, y_bp, test_size = 0.3, random_state = 42)
+    #shape of the splits:
+    ##features: X:[n_samples, n_features]
+    ##label: y: [n_samples]
+    print("BANK PANEL")
+    print(f"Shape of the split training data set: X_:bp_train:{X_bp_train.shape}")
+    print(f"Shape of the split training data set: X_bp_test: {X_bp_test.shape}")
+    print(f"Shape of the split training data set: y_bp_train: {y_bp_train.shape}")
+    print(f"Shape of the split training data set: y_bp_test: {y_bp_test.shape}")
     #%%
     #PASS TO RECURSIVE FEATURE EXTRACTION
     '''
     all other columns are features and need to be checked for significance to be added to the feature list
     '''
-    from sklearn.feature_selection import RFE
-    from sklearn.feature_selection import RFECV
-    from sklearn.linear_model import LogisticRegression
+
 
     #Creating training and testing data
     train = df_card.sample(frac = 0.5, random_state = 12)
@@ -223,7 +278,7 @@ def predict_needed_value(preprocessed_input):
     log_reg = LogisticRegression()
     #create the RFE model and select the eight most striking attributes
     rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-    rfe = rfe.fit(X_train, y_train)
+    rfe = rfe.fit(X_cp_train, y_cp_train)
     #selected attributes
     print('Selected features: %s' % list(X_train.columns[rfe.support_]))
     print(rfe.ranking_)
@@ -231,7 +286,7 @@ def predict_needed_value(preprocessed_input):
     #Use the Cross-Validation function of the RFE module
     #accuracy describes the number of correct classifications
     rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring = 'accuracy')
-    rfecv.fit(X_train, y_train)
+    rfecv.fit(X_cp_train, y_cp_train)
 
     print("Optimal number of features: %d" % rfecv.n_features_)
     print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
