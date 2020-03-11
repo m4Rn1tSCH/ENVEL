@@ -14,10 +14,10 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-#from datetime import datetime
-#import seaborn as sns
-#plt.rcParams["figure.dpi"] = 600
-#plt.rcParams['figure.figsize'] = [12, 10]
+from datetime import datetime
+import seaborn as sns
+plt.rcParams["figure.dpi"] = 600
+plt.rcParams['figure.figsize'] = [12, 10]
 #%%
 '''
 Setup of the function to merge every single operation into one function that is then called by the flask connection/or SQL
@@ -156,17 +156,17 @@ total_throughput = df_card['amount'].sum()
 net_monthly_throughput = df_card['amount'].groupby(df_card['transaction_date_month']).sum()
 avg_monthly_throughput = df_card['amount'].groupby(df_card['transaction_date_month']).mean()
 monthly_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_week']).sum()
-monthly_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_week']).sum()
+#monthly_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_week']).sum()
 #weekly figures
 net_weekly_throughput = df_card['amount'].groupby(df_card['transaction_date_week']).sum()
 avg_weekly_throughput = df_card['amount'].groupby(df_card['transaction_date_week']).mean()
-weekly_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_week']).sum()
-weekly_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_week']).sum()
+#weekly_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_week']).sum()
+#weekly_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_week']).sum()
 #daily figures
 net_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).mean()
 avg_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).sum()
-daily_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_weekday']).sum()
-daily_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_weekday']).sum()
+#daily_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_weekday']).sum()
+#daily_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_weekday']).sum()
 #%%
 #report for users about their spending patterns, given in various intervals
 try:
