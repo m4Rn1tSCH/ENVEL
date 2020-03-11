@@ -170,7 +170,7 @@ def predict_needed_value(preprocessed_input):
     for col in df_card_rdy.columns:
         if len(df_card_rdy[col]) != len(df_card_rdy.index):
             df_card_rdy.drop(col)
-            print(f"{col} ha been removed")
+            print(f"{col} has been removed")
     y_cp = df_card_rdy['transaction_category_name']
     X_cp = df_card_rdy
     #for col in list(df_card):
@@ -186,7 +186,7 @@ def predict_needed_value(preprocessed_input):
     for col in df_bank_rdy.columns:
         if len(df_bank_rdy[col]) != len(df_bank_rdy.index):
             df_bank_rdy.drop(col)
-            print(f"{col} ha been removed")
+            print(f"{col} has been removed")
     y_bp = df_bank_rdy['transaction_category_name']
     X_bp = df_bank_rdy
     #for col in list(df_bank_rdy):
@@ -242,7 +242,7 @@ def predict_needed_value(preprocessed_input):
     ##features: X:[n_samples, n_features]
     ##label: y: [n_samples]
     print("BANK PANEL")
-    print(f"Shape of the split training data set: X_:bp_train:{X_bp_train.shape}")
+    print(f"Shape of the split training data set: X_bp_train:{X_bp_train.shape}")
     print(f"Shape of the split training data set: X_bp_test: {X_bp_test.shape}")
     print(f"Shape of the split training data set: y_bp_train: {y_bp_train.shape}")
     print(f"Shape of the split training data set: y_bp_test: {y_bp_test.shape}")
