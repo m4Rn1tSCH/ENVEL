@@ -82,9 +82,9 @@ for testing purposes:
 '''
 #relative_t_path = './*.csv'
 ########################
-"C:\Users\bill-\Desktop\03-04-2020_CARD_PANEL.csv"
-"C:\Users\bill-\Desktop\03-04-2020_BANK_PANEL.csv"
-"C:\Users\bill-\Desktop\03-04-2020_DEMO_PANEL.csv"
+#"C:\Users\bill-\Desktop\03-04-2020_CARD_PANEL.csv"
+#"C:\Users\bill-\Desktop\03-04-2020_BANK_PANEL.csv"
+#"C:\Users\bill-\Desktop\03-04-2020_DEMO_PANEL.csv"
 #######################
 #%%
 #import files and append all directory paths to a list
