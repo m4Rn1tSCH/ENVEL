@@ -72,10 +72,12 @@ plt.rcParams['figure.figsize'] = [12, 10]
 ##############################################
 #%%
 ######LOADING THE TRANSACTION FILE#####
-transaction_file = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx"
-path_1 = transaction_file.replace(os.sep,'/')
 transaction_file_win = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx"
+path_1 = transaction_file_win.replace(os.sep,'/')
 transactions_win = ''.join(('', path_1, ''))
+transaction_file_mac = "/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Working Class Sample.xlsx"
+path_2 = transaction_file_mac.replace(os.sep,'/')
+transactions_mac = ''.join(('', path_2, ''))
 '''
 SCRIPT WILL GET ALL XLSX SHEETS AT THIS STAGE!
 '''
