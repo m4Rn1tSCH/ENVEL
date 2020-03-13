@@ -124,6 +124,19 @@ def predict_needed_value(preprocessed_input):
     df_card_rdy = pd.read_csv(csv_files[0])
     df_bank_rdy = pd.read_csv(csv_files[2])
     df_demo_rdy = pd.read_csv(csv_files[1])
+    #the conversion to csv has removed the old index and left date columns as objects
+    #conversion is needed to datetime objects
+#%%
+    df_card_rdy.set_index("transaction_date", drop = False, inplace=False)
+    df_bank_rdy.set_index("transaction_date",drop = False, inplace = False)
+    date_card_col = ['transaction_date', 'post_date', 'file_created_date', 
+                'optimized_transaction_date', 'swipe_date', 'panel_file_created_date']
+    date_bank_col = ['transaction_date', 'post_date', 'file_created_date', 
+                'optimized_transaction_date', 'swipe_date', 'panel_file_created_date']
+    for elements in list(date_card_col):
+        df_card_rdy[elements] = pd.to_datetime(df_card_rdy[elements])
+    for elements in list(date_bank_col):
+        df_bank_rdy[elements] = pd.to_datetime(df_bank_rdy[elements])
     #consider a dictionary here; for key, value in dict(csv_files.items()) to allocate the names
     #for file in csv_files:
         #df_[f"{file}"]_rdy = pd.read_csv(file)
