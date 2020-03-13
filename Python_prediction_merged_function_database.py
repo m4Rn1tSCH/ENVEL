@@ -81,38 +81,49 @@ The preprocessed files are CSV; the function will load all CSVs and pick label a
 for testing purposes:
 '''
 #relative_t_path = './*.csv'
+#Windows paths fo files
 ########################
 #"C:\Users\bill-\Desktop\03-04-2020_CARD_PANEL.csv"
 #"C:\Users\bill-\Desktop\03-04-2020_BANK_PANEL.csv"
 #"C:\Users\bill-\Desktop\03-04-2020_DEMO_PANEL.csv"
 #######################
+#Mac paths to files
+#######################
+#/Users/bill/OneDrive - Envel/03-04-2020_BANK_PANEL.csv
+#/Users/bill/OneDrive - Envel/03-04-2020_CARD_PANEL.csv
+#/Users/bill/OneDrive - Envel/03-04-2020_DEMO_PANEL.csv
+#####################
+mac_walk_path = '/Users/bill/Desktop/'
+windows_walk_path = 'C:/Users/bill-/Desktop/'
 #%%
 #import files and append all directory paths to a list
-basepath = 'C:/Users/bill-/Desktop/Harvard_Resumes'
-path_list = []
+#basepath = 'C:/Users/bill-/Desktop/Harvard_Resumes'
+#path_list = []
 #Walking a directory tree and printing the names of the directories and files
-for dirpath, dirnames, filename in os.walk(basepath):
-    print(f'Found directory: {dirpath}')
-    for file in filename:
-        if os.path.isfile(file):
-            print("file found and appended")
-        path_list.append(os.path.abspath(os.path.join(dirpath, file)))
+#for dirpath, dirnames, filename in os.walk(basepath):
+#    print(f'Found directory: {dirpath}')
+#    for file in filename:
+#        if os.path.isfile(file):
+#            print("file found and appended")
+#        path_list.append(os.path.abspath(os.path.join(dirpath, file)))
 #%%
 
 #Write the pattern as a folder or file pattern
-path_abs = os.path.abspath(os.path.join('C:/Users/bill-/Desktop/'))
+path_abs = os.path.abspath(os.path.join(mac_walk_path))
 pattern = '*.csv'
 directory = os.path.join(path_abs, pattern)
 #Save all file matches: csv_files
 csv_files = glob.glob(directory)
 #Print the file names
+#list has weirdly ranked names!
+#demo occurs before bank panel on Macbook; needs to be taken care of in tests
 print(csv_files)
 #%%
 def predict_needed_value(preprocessed_input):
 
     df_card_rdy = pd.read_csv(csv_files[0])
-    df_bank_rdy = pd.read_csv(csv_files[1])
-    df_demo_rdy = pd.read_csv(csv_files[2])
+    df_bank_rdy = pd.read_csv(csv_files[2])
+    df_demo_rdy = pd.read_csv(csv_files[1])
     #consider a dictionary here; for key, value in dict(csv_files.items()) to allocate the names
     #for file in csv_files:
         #df_[f"{file}"]_rdy = pd.read_csv(file)
@@ -141,6 +152,7 @@ def predict_needed_value(preprocessed_input):
        'panel_file_created_date_weekday', 'amount_mean_lag3',
        'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
        'amount_std_lag7', 'amount_std_lag30']
+    
     Columns preprocesed bank_panel
     ['transaction_date', 'unique_mem_id', 'unique_card_account_id',
        'unique_card_transaction_id', 'amount', 'currency', 'description',
@@ -207,6 +219,7 @@ def predict_needed_value(preprocessed_input):
     #set the label
     #y = list(df_card).pop(list(df_card)('amount'))
     #%%
+    #standard scaler takes the entire column list and also 
     #APPLY THE SCALER FIRST AND THEN SPLIT INTO TEST AND TRAINING
     #PASS TO STANDARD SCALER TO PREPROCESS FOR PCA
     #ONLY APPLY SCALING TO X!!!
