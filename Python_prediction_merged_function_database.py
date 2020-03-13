@@ -126,8 +126,8 @@ def predict_needed_value(preprocessed_input):
     df_demo_rdy = pd.read_csv(csv_files[1])
     #the conversion to csv has removed the old index and left date columns as objects
     #conversion is needed to datetime objects
-    df_card_rdy.set_index("transaction_date", drop = False, inplace = True)
-    df_bank_rdy.set_index("transaction_date", drop = False, inplace = True)
+    df_card_rdy.set_index("transaction_date", drop = False, inplace = False)
+    df_bank_rdy.set_index("transaction_date", drop = False, inplace = False)
 #%%
     date_card_col = ['transaction_date', 'post_date', 'file_created_date',
                 'optimized_transaction_date', 'swipe_date', 'panel_file_created_date']
@@ -197,8 +197,7 @@ def predict_needed_value(preprocessed_input):
             df_card_rdy.drop(col)
             print(f"{col} has been removed")
     y_cp = df_card_rdy['transaction_category_name']
-    X_cp = df_card_rdy[['amount', 'post_date', 'transaction_base_type',
-       'optimized_transaction_date', 'yodlee_transaction_status', 'panel_file_created_date',
+    X_cp = df_card_rdy[['amount',
        'transaction_date_month', 'transaction_date_week',
        'transaction_date_weekday', 'post_date_month',
        'post_date_week', 'post_date_weekday', 'file_created_date_month',
@@ -226,20 +225,18 @@ def predict_needed_value(preprocessed_input):
 #        if len(df_bank_rdy[col]) != len(df_bank_rdy.index):
 #            df_bank_rdy.drop(col)
 #            print(f"{col} has been removed")
-y_bp = df_bank_rdy['transaction_category_name']
-X_bp = df_bank_rdy[['amount', 'currency', 'description',
-        'post_date', 'transaction_base_type', 'zip_code',
-       'transaction_origin', 'file_created_date', 'optimized_transaction_date',
-       'yodlee_transaction_status', 'panel_file_created_date', 'post_date_month', 'post_date_week',
-       'post_date_weekday', 'file_created_date_month',
-       'file_created_date_week', 'file_created_date_weekday',
-       'optimized_transaction_date_month', 'optimized_transaction_date_week',
-       'optimized_transaction_date_weekday', 'swipe_date_month',
-       'swipe_date_week', 'swipe_date_weekday',
-       'panel_file_created_date_month', 'panel_file_created_date_week',
-       'panel_file_created_date_weekday', 'amount_mean_lag3',
-       'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
-       'amount_std_lag7', 'amount_std_lag30']]
+    y_bp = df_bank_rdy['transaction_category_name']
+    X_bp = df_bank_rdy[['amount',
+           'post_date_month', 'post_date_week',
+           'post_date_weekday', 'file_created_date_month',
+           'file_created_date_week', 'file_created_date_weekday',
+           'optimized_transaction_date_month', 'optimized_transaction_date_week',
+           'optimized_transaction_date_weekday', 'swipe_date_month',
+           'swipe_date_week', 'swipe_date_weekday',
+           'panel_file_created_date_month', 'panel_file_created_date_week',
+           'panel_file_created_date_weekday', 'amount_mean_lag3',
+           'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
+           'amount_std_lag7', 'amount_std_lag30']]
     #for col in list(df_bank_rdy):
         #if df_card[col].isnull().any() == True:
             #print(f"{col} is target variable and will be used for prediction")
@@ -258,24 +255,28 @@ X_bp = df_bank_rdy[['amount', 'currency', 'description',
     #set the label
     #y = list(df_card).pop(list(df_card)('amount'))
     #%%
-    #standard scaler takes the entire column list and also
+    #standard scaler takes the entire column list and also converted to a df with double square brackets
     #APPLY THE SCALER FIRST AND THEN SPLIT INTO TEST AND TRAINING
     #PASS TO STANDARD SCALER TO PREPROCESS FOR PCA
     #ONLY APPLY SCALING TO X!!!
     from sklearn.preprocessing import StandardScaler
     scaler = StandardScaler()
     #fit_transform also separately callable; but this one is more time-efficient
-    for col in X_cp:
-        X_cp_scl = scaler.fit_transform(X_cp)
+    X_cp_scl = scaler.fit_transform(X_cp)
     #%%
-    #standard scaler takes the entire column list and also
+    #standard scaler takes the entire column list and also converted to a df with double square brackets
     #APPLY THE SCALER FIRST AND THEN SPLIT INTO TEST AND TRAINING
     #PASS TO STANDARD SCALER TO PREPROCESS FOR PCA
     #ONLY APPLY SCALING TO X!!!
     scaler = StandardScaler()
     #fit_transform also separately callable; but this one is more time-efficient
-    for col in X_bp:
-        X_bp_scl = scaler.fit_transform(X_bp)
+    X_bp_scl = scaler.fit_transform(X_bp)
+    #%%
+    #split into principal components for card panel
+    
+    #%%
+    #split into principla components for card panel
+    
     #%%
     #TRAIN TEST SPLIT FOR CARD PANEL
     #Train Size: percentage of the data set
