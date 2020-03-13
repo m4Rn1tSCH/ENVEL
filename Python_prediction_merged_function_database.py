@@ -8,11 +8,15 @@ Created on Wed Feb 26 10:49:25 2020
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
+
 import glob
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import RFE
 from sklearn.feature_selection import RFECV
 from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 
 #from datetime import datetime
 #import seaborn as sns
@@ -197,7 +201,7 @@ def predict_needed_value(preprocessed_input):
             df_card_rdy.drop(col)
             print(f"{col} has been removed")
     y_cp = df_card_rdy['transaction_category_name']
-    X_cp = df_card_rdy[['amount',
+    X_cp = df_card_rdy[['amount', #'city', 'state', 'zip_code',
        'transaction_date_month', 'transaction_date_week',
        'transaction_date_weekday', 'post_date_month',
        'post_date_week', 'post_date_weekday', 'file_created_date_month',
@@ -226,17 +230,17 @@ def predict_needed_value(preprocessed_input):
 #            df_bank_rdy.drop(col)
 #            print(f"{col} has been removed")
     y_bp = df_bank_rdy['transaction_category_name']
-    X_bp = df_bank_rdy[['amount',
-           'post_date_month', 'post_date_week',
-           'post_date_weekday', 'file_created_date_month',
-           'file_created_date_week', 'file_created_date_weekday',
-           'optimized_transaction_date_month', 'optimized_transaction_date_week',
-           'optimized_transaction_date_weekday', 'swipe_date_month',
-           'swipe_date_week', 'swipe_date_weekday',
-           'panel_file_created_date_month', 'panel_file_created_date_week',
-           'panel_file_created_date_weekday', 'amount_mean_lag3',
-           'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
-           'amount_std_lag7', 'amount_std_lag30']]
+    X_bp = df_bank_rdy[['amount', #'city', 'state', 'zip_code',
+       'post_date_month', 'post_date_week',
+       'post_date_weekday', 'file_created_date_month',
+       'file_created_date_week', 'file_created_date_weekday',
+       'optimized_transaction_date_month', 'optimized_transaction_date_week',
+       'optimized_transaction_date_weekday', 'swipe_date_month',
+       'swipe_date_week', 'swipe_date_weekday',
+       'panel_file_created_date_month', 'panel_file_created_date_week',
+       'panel_file_created_date_weekday', 'amount_mean_lag3',
+       'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
+       'amount_std_lag7', 'amount_std_lag30']]
     #for col in list(df_bank_rdy):
         #if df_card[col].isnull().any() == True:
             #print(f"{col} is target variable and will be used for prediction")
@@ -259,24 +263,34 @@ def predict_needed_value(preprocessed_input):
     #APPLY THE SCALER FIRST AND THEN SPLIT INTO TEST AND TRAINING
     #PASS TO STANDARD SCALER TO PREPROCESS FOR PCA
     #ONLY APPLY SCALING TO X!!!
-    from sklearn.preprocessing import StandardScaler
     scaler = StandardScaler()
     #fit_transform also separately callable; but this one is more time-efficient
     X_cp_scl = scaler.fit_transform(X_cp)
-    #%%
-    #standard scaler takes the entire column list and also converted to a df with double square brackets
-    #APPLY THE SCALER FIRST AND THEN SPLIT INTO TEST AND TRAINING
-    #PASS TO STANDARD SCALER TO PREPROCESS FOR PCA
-    #ONLY APPLY SCALING TO X!!!
-    scaler = StandardScaler()
-    #fit_transform also separately callable; but this one is more time-efficient
     X_bp_scl = scaler.fit_transform(X_bp)
     #%%
-    #split into principal components for card panel
-    
+    #Kmeans clusters to categorize budget groups
+    #5 different daily limit groups
+    kmeans = KMeans(n_clusters = 5, random_state = 10)
+    cp_clusters = kmeans.fit(X_cp_scl)
+    kmeans = KMeans(n_clusters = 5, random_state = 10)
+    bp_clusters = kmeans.fit(X_bp_scl)
     #%%
+    #split into principal components for card panel
+    pca = PCA(n_components = 2)
+    cp_components = pca.fit_transform(X_cp_scl)
     #split into principla components for card panel
-    
+    pca = PCA(n_components = 2)
+    bp_components = pca.fit_transform(X_bp_scl)
+    #%%
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10))
+    #styles for title: normal; italic; oblique
+    ax[0].scatter(cp_components[:, 0], cp_components[:, 1], c = cp_clusters.labels_)
+    ax[0].set_title('Plotted Principal Components of CARD PANEL', style = 'oblique')
+    ax[0].legend(cp_clusters.labels_)
+    ax[1].scatter(bp_components[:, 0], bp_components[:, 1], c = bp_clusters.labels_)
+    ax[1].set_title('Plotted Principal Components of BANK PANEL', style = 'oblique')
+    ax[1].legend(bp_clusters.labels_)
+    #principal components of bank panel has better results than card panel with clearer borders
     #%%
     #TRAIN TEST SPLIT FOR CARD PANEL
     #Train Size: percentage of the data set
@@ -308,12 +322,8 @@ def predict_needed_value(preprocessed_input):
     print(f"Shape of the split training data set: y_bp_train: {y_bp_train.shape}")
     print(f"Shape of the split training data set: y_bp_test: {y_bp_test.shape}")
     #%%
-    #PASS TO RECURSIVE FEATURE EXTRACTION
-
+    #PASS TO RECURSIVE FEATURE EXTRACTION CARD PANEL
 #    all other columns are features and need to be checked for significance to be added to the feature list
-
-
-
     #Creating training and testing data
 #    train = df_card.sample(frac = 0.5, random_state = 12)
 #    test = df_card.drop(train.index)
@@ -336,25 +346,55 @@ def predict_needed_value(preprocessed_input):
 #    X_test = test[cols_card]
 #    y_test = test['transaction_category_name']
     #build a logistic regression and use recursive feature elimination to exclude trivial features
-    log_reg = LogisticRegression()
+    log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
+                                   fit_intercept = True, intercept_scaling = 1,
+                                   l1_ratio = None, max_iter = 100,
+                                   multi_class = 'auto', n_jobs = None,
+                                   penalty = 'l2', random_state = None,
+                                   solver = 'lbfgs', tol = 0.0001, verbose = 0,
+                                   warm_start = False)
     #create the RFE model and select the eight most striking attributes
     rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
     rfe = rfe.fit(X_cp_train, y_cp_train)
     #selected attributes
-    print('Selected features: %s' % list(X_train.columns[rfe.support_]))
+    print('Selected features: %s' % list(X_cp_train.columns[rfe.support_]))
     print(rfe.ranking_)
 
     #Use the Cross-Validation function of the RFE module
     #accuracy describes the number of correct classifications
-    rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring = 'accuracy')
+    rfecv = RFECV(estimator = log_reg, step = 1, cv = 8, scoring = 'accuracy')
     rfecv.fit(X_cp_train, y_cp_train)
 
     print("Optimal number of features: %d" % rfecv.n_features_)
-    print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
+    print('Selected features: %s' % list(X_cp.columns[rfecv.support_]))
+    #%%
+        #PASS TO RECURSIVE FEATURE EXTRACTION BANK PANEL
+    #build a logistic regression and use recursive feature elimination to exclude trivial features
+    log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
+                                   fit_intercept = True, intercept_scaling = 1,
+                                   l1_ratio = None, max_iter = 100,
+                                   multi_class = 'auto', n_jobs = None,
+                                   penalty = 'l2', random_state = None,
+                                   solver = 'lbfgs', tol = 0.0001, verbose = 0,
+                                   warm_start = False)
+    #create the RFE model and select the eight most striking attributes
+    rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+    rfe = rfe.fit(X_bp_train, y_bp_train)
+    #selected attributes
+    print('Selected features: %s' % list(X_bp_train.columns[rfe.support_]))
+    print(rfe.ranking_)
+
+    #Use the Cross-Validation function of the RFE module
+    #accuracy describes the number of correct classifications
+    rfecv = RFECV(estimator = log_reg, step = 1, cv = 8, scoring = 'accuracy')
+    rfecv.fit(X_bp_train, y_bp_train)
+
+    print("Optimal number of features: %d" % rfecv.n_features_)
+    print('Selected features: %s' % list(X_bp.columns[rfecv.support_]))
 
     #plot number of features VS. cross-validation scores
     #plt.figure(figsize = (10,6))
     #plt.xlabel("Number of features selected")
     #plt.ylabel("Cross validation score (nb of correct classifications)")
     #plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-    #plt.show()
+    #plt.show
