@@ -74,7 +74,8 @@ plt.rcParams['figure.figsize'] = [12, 10]
 ######LOADING THE TRANSACTION FILE#####
 transaction_file = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx"
 path_1 = transaction_file.replace(os.sep,'/')
-transactions = ''.join(('', path_1, ''))
+transaction_file_win = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx"
+transactions_win = ''.join(('', path_1, ''))
 '''
 SCRIPT WILL GET ALL XLSX SHEETS AT THIS STAGE!
 '''
@@ -89,9 +90,9 @@ def random_id(length):
     return unique_id
 #%%
 def preprocess_input_file(transactions):
-    df_card = pd.read_excel(transactions, sheet_name = "Card Panel")
-    df_bank = pd.read_excel(transactions, sheet_name = "Bank Panel")
-    df_demo = pd.read_excel(transactions, sheet_name = "User Demographics")
+    df_card = pd.read_excel(transactions_mac, sheet_name = "Card Panel")
+    df_bank = pd.read_excel(transactions_mac, sheet_name = "Bank Panel")
+    df_demo = pd.read_excel(transactions_mac, sheet_name = "User Demographics")
     #info
     df_card.info()
     df_card.describe()
@@ -428,8 +429,10 @@ def preprocess_input_file(transactions):
     ##CONVERSION TO CSV FOR TESTING
     '''
     For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
-    Should this be generated as csv and sit in AWS for a daily report?
-    Should it be uploaded to the SQL database again?
+    Test the functionality and reassert some columns after CSV is generated
+    AFTER CSV IS GENERATED(in pred_func):
+        Reassert datetime objects to all date columns
+        Set Transaction date as index
     '''
     #The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
     #Conversion of df to CSV or direct pass possible
@@ -455,8 +458,9 @@ def preprocess_input_file(transactions):
     ##CONVERSION TO CSV FOR TESTING
     '''
     For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
-    Should this be generated as csv and sit in AWS for a daily report?
-    Should it be uploaded to the SQL database again?
+    AFTER CSV IS GENERATED(in pred_func):
+        Reassert datetime objects to all date columns
+        Set Transaction date as index
     '''
     #The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
     #Conversion of df to CSV or direct pass possible
