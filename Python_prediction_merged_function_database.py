@@ -131,10 +131,12 @@ def predict_needed_value(preprocessed_input):
     df_demo_rdy = pd.read_csv(csv_files[2])
     #the conversion to csv has removed the old index and left date columns as objects
     #conversion is needed to datetime objects
-    df_card_rdy.set_index("transaction_date", drop = False, inplace = False)
+    #usage of optimized transaction date is recommended
+    #dropping column unclutters the df
+    df_card_rdy.set_index("optimized_transaction_date", drop = True, inplace = False)
 #columns transaction date is empty and optimized transaction date needs to be used for analysis
 #Caroline from Yodlee was even recommending the usage of said column
-    df_bank_rdy.set_index("transaction_date", drop = False, inplace = False)
+    df_bank_rdy.set_index("optimized_transaction_date", drop = True, inplace = False)
 #%%
     date_card_col = ['transaction_date', 'post_date', 'file_created_date',
                 'optimized_transaction_date', 'swipe_date', 'panel_file_created_date']
@@ -144,10 +146,6 @@ def predict_needed_value(preprocessed_input):
         df_card_rdy[elements] = pd.to_datetime(df_card_rdy[elements])
     for elements in list(date_bank_col):
         df_bank_rdy[elements] = pd.to_datetime(df_bank_rdy[elements])
-    #consider a dictionary here; for key, value in dict(csv_files.items()) to allocate the names
-    #for file in csv_files:
-        #df_[f"{file}"]_rdy = pd.read_csv(file)
-        #print(f"dataframe {file} loaded and will be analyzed")
     #%%
     '''
     Columns preprocessed card_panel
@@ -199,10 +197,10 @@ def predict_needed_value(preprocessed_input):
     #%%
     ##SELECTION OF FEATURES AND LABELS FOR CARD PANEL
     #first prediction loop and stop
-    for col in df_card_rdy.columns:
-        if len(df_card_rdy[col]) != len(df_card_rdy.index):
-            df_card_rdy.drop(col)
-            print(f"{col} has been removed")
+#    for col in df_card_rdy.columns:
+#        if len(df_card_rdy[col]) != len(df_card_rdy.index):
+#            df_card_rdy.drop(col)
+#            print(f"{col} has been removed")
     y_cp = df_card_rdy['transaction_category_name']
     X_cp = df_card_rdy[['amount', #'city', 'state', 'zip_code',
        'transaction_date_month', 'transaction_date_week',
