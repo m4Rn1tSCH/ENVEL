@@ -124,10 +124,11 @@ csv_files = glob.glob(directory)
 print(csv_files)
 #%%
 def predict_needed_value(preprocessed_input):
-
+#fix that the order of files might be different depending on the OS!
+#use parser in list to attach right csv to right variable
     df_card_rdy = pd.read_csv(csv_files[0])
-    df_bank_rdy = pd.read_csv(csv_files[2])
-    df_demo_rdy = pd.read_csv(csv_files[1])
+    df_bank_rdy = pd.read_csv(csv_files[1])
+    df_demo_rdy = pd.read_csv(csv_files[2])
     #the conversion to csv has removed the old index and left date columns as objects
     #conversion is needed to datetime objects
     df_card_rdy.set_index("transaction_date", drop = False, inplace = False)
