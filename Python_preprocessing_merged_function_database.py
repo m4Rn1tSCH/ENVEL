@@ -15,8 +15,6 @@ import matplotlib.pyplot as plt
 from datetime import datetime as dt
 
 from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 
 import seaborn as sns
 plt.rcParams["figure.dpi"] = 600
