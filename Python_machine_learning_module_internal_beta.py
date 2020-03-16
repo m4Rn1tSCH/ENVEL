@@ -278,7 +278,7 @@ y_pred = RFR.predict(X_test)
 f"Training set accuracy: {RFR.score(X_train, y_train)}; Test set accuracy: {RFR.score(X_test, y_test)}; Test set validation: {RFR.score(X_test, y_pred)}"
 #%%
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
-#funtion of Selecr K Best is here f_classifier; determines features based on the f-values between features & labels
+#function of Select K Best is here f_classifier; determines features based on the f-values between features & labels
 #other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
 from sklearn.feature_selection import SelectKBest, f_classif
 #RandomForestClassifier is insufficient and does not provide enough splits

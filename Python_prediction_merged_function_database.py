@@ -286,7 +286,7 @@ def predict_needed_value(preprocessed_input):
     #split into principla components for card panel
     bp_components = pca.fit_transform(X_bp_scl)
     #%%
-    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10))
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 800)
     #styles for title: normal; italic; oblique
     ax[0].scatter(cp_components[:, 0], cp_components[:, 1], c = cp_clusters.labels_)
     ax[0].set_title('Plotted Principal Components of CARD PANEL', style = 'oblique')

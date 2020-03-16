@@ -143,7 +143,7 @@ print(f"Shape of the split training data set: X_test: {X_test.shape}")
 print(f"Shape of the split training data set: y_train: {y_train.shape}")
 print(f"Shape of the split training data set: y_test: {y_test.shape}")
 #%%
-#select statisitically significant features with Age as target variable
+#select statistically significant features with Age as target variable
 #chi2 for non-negative ONLY!!
 #other score_functions : f_classif; f_regression; mutual_info_regressiom
 #all features but one that becomes the label
@@ -154,7 +154,7 @@ k_best.fit(df, df['Age'])
 k_best.scores_
 k_best.pvalues_
 #%%
-#select statisitically significant features with Student as target variable
+#select statistically significant features with Student as target variable
 #deduct 10 features from all available ones (20 left here)
 #only the 20 best ones with the strongest correlation will be picked
 features = len(df.columns) - 10
