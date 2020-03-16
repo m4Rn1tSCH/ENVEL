@@ -132,6 +132,8 @@ def predict_needed_value(preprocessed_input):
     #the conversion to csv has removed the old index and left date columns as objects
     #conversion is needed to datetime objects
     df_card_rdy.set_index("transaction_date", drop = False, inplace = False)
+#columns transaction date is empty and optimized transaction date needs to be used for analysis
+#Caroline from Yodlee was even recommending the usage of said column
     df_bank_rdy.set_index("transaction_date", drop = False, inplace = False)
 #%%
     date_card_col = ['transaction_date', 'post_date', 'file_created_date',
@@ -249,7 +251,7 @@ def predict_needed_value(preprocessed_input):
             #if len(y) == 1:
                 #print("first prediction target found...")
                 #break
-    #%%
+11    #%%
     #PICK FEATURES AND LABELS
     #columns = list(df_card)
     #print("enter the label that is to be predicted...; all other columns will remain and picked later as features ranked by prediction importance")
