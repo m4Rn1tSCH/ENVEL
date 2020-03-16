@@ -113,7 +113,7 @@ windows_walk_path = 'C:/Users/bill-/Desktop/'
 #%%
 
 #Write the pattern as a folder or file pattern
-path_abs = os.path.abspath(os.path.join(mac_walk_path))
+path_abs = os.path.abspath(os.path.join(windows_walk_path))
 pattern = '*.csv'
 directory = os.path.join(path_abs, pattern)
 #Save all file matches: csv_files
