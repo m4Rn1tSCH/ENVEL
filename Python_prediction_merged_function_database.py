@@ -133,11 +133,15 @@ def predict_needed_value(preprocessed_input):
     #conversion is needed to datetime objects
     #usage of optimized transaction date is recommended
     #dropping column unclutters the df
-    df_card_rdy.set_index("optimized_transaction_date", drop = True, inplace = False)
-#columns transaction date is empty and optimized transaction date needs to be used for analysis
-#Caroline from Yodlee was even recommending the usage of said column
-    df_bank_rdy.set_index("optimized_transaction_date", drop = True, inplace = False)
+#UNSOLVED CONSPICUITIES IN DF_CARD
+    #transaction_date is duplicated and contains only 0; leave for testing now
+    #but drop in the final if optimized trans date is being used
+    df_card_rdy.set_index("optimized_transaction_date", drop = False, inplace = False)
+#UNSOLVED CONSPICUITIES IN DF_BANK
+#columns transaction date is available here and can be normally used;
+    df_bank_rdy.set_index("optimized_transaction_date", drop = False, inplace = False)
 #%%
+#remove column transaction_date temporarily;
     date_card_col = ['transaction_date', 'post_date', 'file_created_date',
                 'optimized_transaction_date', 'swipe_date', 'panel_file_created_date']
     date_bank_col = ['transaction_date', 'post_date', 'file_created_date',
@@ -203,9 +207,8 @@ def predict_needed_value(preprocessed_input):
 #            print(f"{col} has been removed")
     y_cp = df_card_rdy['transaction_category_name']
     X_cp = df_card_rdy[['amount', #'city', 'state', 'zip_code',
-       'transaction_date_month', 'transaction_date_week',
-       'transaction_date_weekday', 'post_date_month',
-       'post_date_week', 'post_date_weekday', 'file_created_date_month',
+        'post_date_month', 'post_date_week', 'post_date_weekday',
+        'file_created_date_month',
        'file_created_date_week', 'file_created_date_weekday',
        'optimized_transaction_date_month', 'optimized_transaction_date_week',
        'optimized_transaction_date_weekday', 'swipe_date_month',
@@ -223,6 +226,7 @@ def predict_needed_value(preprocessed_input):
                 #break
 #%%
     ##SELECTION OF FEATURES AND LABELS FOR BANK PANEL
+    #drop transaction and lagging columns as it disappears in card panel CSV
     #first prediction loop and stop
     #ALTERNATIVE
     #df[['col_1', 'col_2', 'col_3', 'col_4']]
@@ -249,7 +253,7 @@ def predict_needed_value(preprocessed_input):
             #if len(y) == 1:
                 #print("first prediction target found...")
                 #break
-11    #%%
+    #%%
     #PICK FEATURES AND LABELS
     #columns = list(df_card)
     #print("enter the label that is to be predicted...; all other columns will remain and picked later as features ranked by prediction importance")
@@ -280,7 +284,6 @@ def predict_needed_value(preprocessed_input):
     pca = PCA(n_components = 2)
     cp_components = pca.fit_transform(X_cp_scl)
     #split into principla components for card panel
-    pca = PCA(n_components = 2)
     bp_components = pca.fit_transform(X_bp_scl)
     #%%
     fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10))
