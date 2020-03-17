@@ -58,14 +58,16 @@ bank_exp = ['Service Charges/Fees',
             'Subscriptions/Renewals', 'Rent', 'Office Expenses', 'Mortgage']
 #%%
 #iterate through rows and create a new columns with a note that it is either an expense or income
-#df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = "")
-df_card['transaction_class'].
-for row in iter(df_card.transaction_category_name):
-    print(row)
-    if row in card_inc:
-        df_card['transaction_class'] == "income"
-    elif row in card_exp:
-        df_card['transaction_class'] == "expense"
+
+#df_card['transaction_class']
+#for row in iter(df_card.transaction_category_name):
+transaction_class = pd.Series([], dtype = 'object')
+for i in range(len(df_card)):
+    if df_card["transaction_category_name"][i] in bank_inc:
+        transaction_class[i] = "income"
+    elif df_card["transaction_category_name"][i] in bank_exp:
+        transaction_class[i] = "expense"
+df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class)
 #%%
 #Datetime engineering
 for col in list(df_bank):
