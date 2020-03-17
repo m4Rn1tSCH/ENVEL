@@ -62,8 +62,8 @@ for row in iter(df_card.transaction_category_name):
     print(row)
     if row in card_inc:
         df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = "income")
-    if row in card_exp:
-        df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = "expense")
+    else:
+        row.append("expense")
 #%%
 #Datetime engineering
 for col in list(df_bank):
