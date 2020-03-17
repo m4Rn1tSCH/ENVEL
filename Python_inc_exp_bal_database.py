@@ -36,10 +36,34 @@ demo_members = df_card['unique_mem_id'].unique()
 trans_cat_card = df_card['transaction_category_name'].unique()
 trans_cat_bank = df_bank['transaction_category_name'].unique()
 #append these unique to dictionaries measuring expenses or income with their respective categories
-card_inc = list()
-card_exp = list()
-bank_inc = list()
-bank_exp = list()
+card_inc = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts']
+card_exp = ['Groceries' 'Automotive/Fuel' 'Home Improvement' 'Travel' 'Restaurants'
+ 'Healthcare/Medical' 'Credit Card Payments'
+ 'Electronics/General Merchandise' 'Entertainment/Recreation'
+ 'Postage/Shipping' 'Other Expenses' 'Personal/Family'
+ 'Service Charges/Fees'  'Services/Supplies', 'Utilities'
+ 'Office Expenses' 'Cable/Satellite/Telecom',
+ 'Subscriptions/Renewals', 'Insurance']
+bank_inc = ['Deposits', 'Salary/Regular Income', 'Transfers',
+            'Investment/Retirement Income', 'Rewards', 'Other Income',
+            'Refunds/Adjustments', 'Interest Income', 'Gifts', 'Expense Reimbursement']
+bank_exp = ['Service Charges/Fees',
+            'Credit Card Payments', 'Utilities', 'Healthcare/Medical', 'Loans',
+            'Check Payment', 'Electronics/General Merchandise', 'Groceries',
+            'Automotive/Fuel', 'Restaurants', 'Personal/Family',
+            'Entertainment/Recreation', 'Services/Supplies', 'Other Expenses',
+            'ATM/Cash Withdrawals', 'Cable/Satellite/Telecom',
+            'Postage/Shipping', 'Insurance', 'Travel', 'Taxes',
+            'Home Improvement', 'Education', 'Charitable Giving',
+            'Subscriptions/Renewals', 'Rent', 'Office Expenses', 'Mortgage']
+#%%
+#iterate through rows and create a new columns with a note that it is either an expense or income
+for rows in iter(df_card.transaction_category_name):
+    if row in card_inc:
+        df_card['transaction_class'] = df_card['transaction_class'].insert("income")
+    if row in card_exp:
+        df_card['transaction_class'] = df_card['transaction_class'].insert("expense")
+
 #%%
 #Datetime engineering
 for col in list(df_bank):
