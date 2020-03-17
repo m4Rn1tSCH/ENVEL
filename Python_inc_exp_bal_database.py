@@ -40,21 +40,23 @@ demo_members = df_card['unique_mem_id'].unique()
 #Create an empty dictionary: names
 income_dict = {}
 
-#Loop over the girl names
-for card_members, income in df_card.items():
+#Loop over dataframe for card transactions
+#tuple indices have to be numbers!!
+for row in df_card.items():
     #Add each name to the names dictionary using rank as the key
     #Dict[Key] = Value
-    income_dict[card_members] = income
+    income_dict[row[0]] = row[3]
 #Sort the names list by rank in descending order and slice the first 10 items
-for rank in sorted(card_members, reverse = False)[:10]:
+for row in sorted(row, reverse = False)[:10]:
     #Print each item
     print(income_dict[card_members])
 #%%
+#either convert to a csv and read that or iterate over the dataframe
 #Import the python CSV module
-import csv
+#import csv
 
 #Create a python file object in read mode for the baby_names.csv file: csvfile
-csvfile = open('baby_names.csv', 'r')
+#csvfile = open('baby_names.csv', 'r')
 
 #Loop over a csv reader on the file object
 for row in csv.reader(csvfile):
