@@ -33,8 +33,34 @@ card_members = df_card['unique_mem_id'].unique()
 bank_members = df_bank['unique_mem_id'].unique()
 demo_members = df_card['unique_mem_id'].unique()
 #append these unique to dictionaries measuring expenses or income with their respective categories
-income_category = list(df_card[].unique())
-expense_category = list()
+#income_category = list(df_card[].unique())
+#expense_category = list()
 #%%
 #append to lists whether it is income or expense
-for element in df_card['transaction category']iterrows():
+#Create an empty dictionary: names
+income_dict = {}
+
+#Loop over the girl names
+for card_members, income in df_card.items():
+    #Add each name to the names dictionary using rank as the key
+    #Dict[Key] = Value
+    income_dict[card_members] = income
+#Sort the names list by rank in descending order and slice the first 10 items
+for rank in sorted(card_members, reverse = False)[:10]:
+    #Print each item
+    print(income_dict[card_members])
+#%%
+#Import the python CSV module
+import csv
+
+#Create a python file object in read mode for the baby_names.csv file: csvfile
+csvfile = open('baby_names.csv', 'r')
+
+#Loop over a csv reader on the file object
+for row in csv.reader(csvfile):
+    #Print each row
+    print(row)
+    #Add the rank and name to the dictionary
+    baby_names[row[5]] = row[3]
+#Print the dictionary keys
+print(baby_names.keys())
