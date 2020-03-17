@@ -24,14 +24,17 @@ path_win = os.path.relpath(r'C:\Users\bill-\OneDrive - Education First\Documents
 #path_mac =
 #read the original XLSX file and then split it up in 3 different dataframes
 #no preprocessing here or encoding
-df_card = pd.read_excel(path_win, work_sheet = "Card Panel")
-df_bank = pd.read_excel(path_win, work_sheet = "Bank Panel")
-df_demo = pd.read_excel(path_win, work_sheet = "User Demographics")
+df_card = pd.read_excel(path_win, sheet_name = "Card Panel")
+df_bank = pd.read_excel(path_win, sheet_name = "Bank Panel")
+df_demo = pd.read_excel(path_win, sheet_name = "User Demographics")
 #in the non-encoded verion all columns still have correct types
 #extract unique numbers from all panels to find out unique users;
 card_members = df_card['unique_mem_id'].unique()
 bank_members = df_bank['unique_mem_id'].unique()
 demo_members = df_card['unique_mem_id'].unique()
 #append these unique to dictionaries measuring expenses or income with their respective categories
-income_category = list()
+income_category = list(df_card[].unique())
 expense_category = list()
+#%%
+#append to lists whether it is income or expense
+for element in df_card['transaction category']iterrows():
