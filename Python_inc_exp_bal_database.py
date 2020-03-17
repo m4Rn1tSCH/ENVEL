@@ -32,3 +32,6 @@ df_demo = pd.read_excel(path_win, work_sheet = "User Demographics")
 card_members = df_card['unique_mem_id'].unique()
 bank_members = df_bank['unique_mem_id'].unique()
 demo_members = df_card['unique_mem_id'].unique()
+#append these unique to dictionaries measuring expenses or income with their respective categories
+income_category = list()
+expense_category = list()
