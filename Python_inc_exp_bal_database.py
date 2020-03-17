@@ -45,24 +45,14 @@ income_dict = {}
 for row in df_card.items():
     #Add each name to the names dictionary using rank as the key
     #Dict[Key] = Value
-    income_dict[row[0]] = row[3]
+    income_dict[row[1]] = row[4]
+print(income_dict.keys())
+
 #Sort the names list by rank in descending order and slice the first 10 items
-for row in sorted(row, reverse = False)[:10]:
-    #Print each item
-    print(income_dict[card_members])
+#for row in sorted(row, reverse = False)[:10]:
+#    #Print each item
+#    print(income_dict[card_members])
 #%%
-#either convert to a csv and read that or iterate over the dataframe
-#Import the python CSV module
-#import csv
-
-#Create a python file object in read mode for the baby_names.csv file: csvfile
-#csvfile = open('baby_names.csv', 'r')
-
-#Loop over a csv reader on the file object
-for row in csv.reader(csvfile):
-    #Print each row
-    print(row)
-    #Add the rank and name to the dictionary
-    baby_names[row[5]] = row[3]
-#Print the dictionary keys
-print(baby_names.keys())
+#to_dict method
+df_income = df_card[['unique_mem_id', 'amount']]
+df_income.to_dict()
