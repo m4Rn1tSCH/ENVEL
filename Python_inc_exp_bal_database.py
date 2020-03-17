@@ -16,7 +16,8 @@ with unique IDs and corresponding income and expenses in separate dictionaries
 #load needed packages
 import pandas as pd
 import numpy as np
-#import regex
+from datetime import datetime as dt
+import regex
 import os
 #%%
 #determine the path of the files
@@ -32,9 +33,157 @@ df_demo = pd.read_excel(path_win, sheet_name = "User Demographics")
 card_members = df_card['unique_mem_id'].unique()
 bank_members = df_bank['unique_mem_id'].unique()
 demo_members = df_card['unique_mem_id'].unique()
+trans_cat_card = df_card['transaction_category_name'].unique()
+trans_cat_bank = df_bank['transaction_category_name'].unique()
 #append these unique to dictionaries measuring expenses or income with their respective categories
-#income_category = list(df_card[].unique())
-#expense_category = list()
+card_inc = list()
+card_exp = list()
+bank_inc = list()
+bank_exp = list()
+#%%
+#Datetime engineering
+for col in list(df_bank):
+    if df_bank[col].dtype == 'datetime64[ns]':
+        df_bank[f"{col}_month"] = df_bank[col].dt.month
+        df_bank[f"{col}_week"] = df_bank[col].dt.week
+        df_bank[f"{col}_weekday"] = df_bank[col].dt.weekday
+#%%
+#DATETIME ENGINEERING
+#typical engineered features based on lagging metrics
+#mean + stdev of past 3d/7d/30d/ + rolling volume
+df_card.reset_index(drop = True, inplace = True)
+#pick lag features to iterate through and calculate features
+#original lag features; based on tutorial dataset
+#lag_features = ["High", "Low", "Volume", "Turnover", "Trades"]
+lag_features = ["amount"]
+#set up time frames; how many days/months back/forth
+t1 = 3
+t2 = 7
+t3 = 30
+#rolling values for all columns ready to be processed
+#DataFrame.rolling(self, window, min_periods = None, center = False, win_type = None, on = None, axis = 0, closed = None)
+#DataFrame.shift(self, periods = 1, freq = None, axis = 0, fill_value = None)
+df_card_rolled_3d = df_card[lag_features].rolling(window = t1, min_periods = 0)
+df_card_rolled_7d = df_card[lag_features].rolling(window = t2, min_periods = 0)
+df_card_rolled_30d = df_card[lag_features].rolling(window = t3, min_periods = 0)
+
+#calculate the mean with a shifting time window
+df_card_mean_3d = df_card_rolled_3d.mean().shift(periods = 1).reset_index().astype(np.float32)
+df_card_mean_7d = df_card_rolled_7d.mean().shift(periods = 1).reset_index().astype(np.float32)
+df_card_mean_30d = df_card_rolled_30d.mean().shift(periods = 1).reset_index().astype(np.float32)
+
+#calculate the std dev with a shifting time window
+df_card_std_3d = df_card_rolled_3d.std().shift(periods = 1).reset_index().astype(np.float32)
+df_card_std_7d = df_card_rolled_7d.std().shift(periods = 1).reset_index().astype(np.float32)
+df_card_std_30d = df_card_rolled_30d.std().shift(periods = 1).reset_index().astype(np.float32)
+
+for feature in lag_features:
+    df_card[f"{feature}_mean_lag{t1}"] = df_card_mean_3d[feature]
+    df_card[f"{feature}_mean_lag{t2}"] = df_card_mean_7d[feature]
+    df_card[f"{feature}_mean_lag{t3}"] = df_card_mean_30d[feature]
+
+    df_card[f"{feature}_std_lag{t1}"] = df_card_std_3d[feature]
+    df_card[f"{feature}_std_lag{t2}"] = df_card_std_7d[feature]
+    df_card[f"{feature}_std_lag{t3}"] = df_card_std_30d[feature]
+
+#fill missing values with the mean to keep distortion very low and allow prediction
+df_card.fillna(df_card.mean(), inplace = True)
+#associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
+df_card.set_index("transaction_date", drop = False, inplace = True)
+#%%
+#DATETIME ENGINEERING
+df_bank.reset_index(drop = True, inplace = True)
+#pick lag features to iterate through and calculate features
+#original lag features; based on tutorial dataset
+#lag_features = ["High", "Low", "Volume", "Turnover", "Trades"]
+lag_features = ["amount"]
+#set up time frames; how many days/months back/forth
+t1 = 3
+t2 = 7
+t3 = 30
+#rolling values for all columns ready to be processed
+#DataFrame.rolling(self, window, min_periods = None, center = False, win_type = None, on = None, axis = 0, closed = None)
+#rolling method; window = size of the moving window;
+                #min_periods = min no. of obersvations that need to have a value(otherwise result is NA)
+                #center = set labels at the center of the window
+                #win_type = weighting of points, "None" all points are equally weighted
+                #on = use datetime-like column index (instead of df indices) to calculate the value
+                #axis = 0:row-wise; 1:column-wise
+                #closed = ['right', 'left', 'both', 'neither'] close of the interval; for offset-based windows defaults to rights;
+                #for fixed windows defaults to both
+#DataFrame.shift(self, periods = 1, freq = None, axis = 0, fill_value = None)
+                #periods = pos/ neg downwards or upwards shift in periods
+                #freq = offset/timedelta/str; index shifted but data not realigned; extend index when shifting + preserve original data
+                #axis = shift direction (0: index 1: columns None)
+                #fill_value = numeric: np.nan; datetime,timedelta: NaT; extension types:dtype.na_value
+df_bank_rolled_3d = df_bank[lag_features].rolling(window = t1, min_periods = 0)
+df_bank_rolled_7d = df_bank[lag_features].rolling(window = t2, min_periods = 0)
+df_bank_rolled_30d = df_bank[lag_features].rolling(window = t3, min_periods = 0)
+
+#calculate the mean with a shifting time window
+df_bank_mean_3d = df_bank_rolled_3d.mean().shift(periods = 1).reset_index().astype(np.float32)
+df_bank_mean_7d = df_bank_rolled_7d.mean().shift(periods = 1).reset_index().astype(np.float32)
+df_bank_mean_30d = df_bank_rolled_30d.mean().shift(periods = 1).reset_index().astype(np.float32)
+
+#calculate the std dev with a shifting time window
+df_bank_std_3d = df_bank_rolled_3d.std().shift(periods = 1).reset_index().astype(np.float32)
+df_bank_std_7d = df_bank_rolled_7d.std().shift(periods = 1).reset_index().astype(np.float32)
+df_bank_std_30d = df_bank_rolled_30d.std().shift(periods = 1).reset_index().astype(np.float32)
+
+for feature in lag_features:
+    df_bank[f"{feature}_mean_lag{t1}"] = df_bank_mean_3d[feature]
+    df_bank[f"{feature}_mean_lag{t2}"] = df_bank_mean_7d[feature]
+    df_bank[f"{feature}_mean_lag{t3}"] = df_bank_mean_30d[feature]
+
+    df_bank[f"{feature}_std_lag{t1}"] = df_bank_std_3d[feature]
+    df_bank[f"{feature}_std_lag{t2}"] = df_bank_std_7d[feature]
+    df_bank[f"{feature}_std_lag{t3}"] = df_bank_std_30d[feature]
+
+#fill missing values with the mean to keep distortion very low and allow prediction
+df_bank.fillna(df_bank.mean(), inplace = True)
+#associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
+df_bank.set_index("transaction_date", drop = False, inplace = True)
+#%%
+#Add feature columns for additive spending on a weekly; monthly; daily basis
+#total throughput of money
+total_throughput = df_card['amount'].sum()
+#monthly figures
+net_monthly_throughput = df_card['amount'].groupby(df_card['transaction_date_month']).sum()
+avg_monthly_throughput = df_card['amount'].groupby(df_card['transaction_date_month']).mean()
+#CHECK VIABILITY OF SUCH VARIABLES
+monthly_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_week']).sum()
+#monthly_expenses = df_card['amount'][df_card['transaction_base_type'] == 'debit'].groupby(df_card['transaction_date_week']).sum()
+#weekly figures
+net_weekly_throughput = df_card['amount'].groupby(df_card['transaction_date_week']).sum()
+avg_weekly_throughput = df_card['amount'].groupby(df_card['transaction_date_week']).mean()
+#CHECK VIABILITY OF SUCH VARIABLES
+weekly_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_week']).sum()
+#weekly_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_week']).sum()
+#daily figures
+net_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).mean()
+avg_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).sum()
+#CHECK VIABILITY OF SUCH VARIABLES
+daily_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_weekday']).sum()
+#daily_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_weekday']).sum()
+#report for users about their spending patterns, given in various intervals
+try:
+    print(f"The total turnover on your account has been ${total_throughput}")
+    print("................................................................")
+    spending_metrics_monthly = pd.DataFrame(data = {'Average Monthly Spending':avg_monthly_throughput,
+                                                    'Monthly Turnover':net_monthly_throughput})
+    print(spending_metrics_monthly)
+    print(".................................................................")
+    spending_metrics_weekly = pd.DataFrame(data = {'Average Weekly Spending':avg_weekly_throughput,
+                                                   'Weekly Turnover':net_weekly_throughput})
+    print(spending_metrics_weekly)
+    print(".................................................................")
+    spending_metrics_daily = pd.DataFrame(data = {'Average Daily Spending':avg_daily_spending,
+                                                  'Daily Turnover':net_daily_spending})
+    print(spending_metrics_daily)
+except:
+    print("You do not have enough transactions yet. But we are getting there...")
+#%%
+for col in df_card.category
 #%%
 #append to lists whether it is income or expense
 #Create an empty dictionary: names
