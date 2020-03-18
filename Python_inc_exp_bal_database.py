@@ -58,16 +58,37 @@ bank_exp = ['Service Charges/Fees',
             'Subscriptions/Renewals', 'Rent', 'Office Expenses', 'Mortgage']
 #%%
 #iterate through rows and create a new columns with a note that it is either an expense or income
-
-#df_card['transaction_class']
-#for row in iter(df_card.transaction_category_name):
-transaction_class = pd.Series([], dtype = 'object')
-for i in range(len(df_card)):
-    if df_card["transaction_category_name"][i] in bank_inc:
-        transaction_class[i] = "income"
-    elif df_card["transaction_category_name"][i] in bank_exp:
-        transaction_class[i] = "expense"
-df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class)
+#DF_CARD
+try:
+    transaction_class_card = pd.Series([], dtype = 'object')
+    for i in range(len(df_card)):
+        if df_card["transaction_category_name"][i] in bank_inc:
+            transaction_class_card[i] = "income"
+        elif df_card["transaction_category_name"][i] in bank_exp:
+            transaction_class_card[i] = "expense"
+        else:
+            transaction_class_card[i] = "NOT CLASSIFIED"
+    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
+except:
+    print("column is already existing, canot be added again")
+#    df_card.drop(['transaction_class'], axis = 1)
+#    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
+#%%
+#DF_CARD
+try:
+    transaction_class_bank = pd.Series([], dtype = 'object')
+    for i in range(len(df_bank)):
+        if df_bank["transaction_category_name"][i] in bank_inc:
+            transaction_class_bank[i] = "income"
+        elif df_bank["transaction_category_name"][i] in bank_exp:
+            transaction_class_bank[i] = "expense"
+        else:
+            transaction_class_bank[i] = "NOT CLASSIFIED"
+    df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = transaction_class_bank)
+except:
+    print("column is already existing and cannot be appnded again")
+#    df_card.drop(['transaction_class'], axis = 1)
+#    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
 #%%
 #Datetime engineering DF_CARD
 for col in list(df_card):
