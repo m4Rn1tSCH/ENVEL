@@ -86,7 +86,7 @@ try:
             transaction_class_bank[i] = "NOT CLASSIFIED"
     df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = transaction_class_bank)
 except:
-    print("column is already existing and cannot be appnded again")
+    print("column is already existing and cannot be appended again")
 #    df_card.drop(['transaction_class'], axis = 1)
 #    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
 #%%
@@ -241,6 +241,8 @@ except:
 #%%
 #append to lists whether it is income or expense
 #Create an empty dictionary: names
+print(df_card.iloc[np.where(df_card['transaction_class'] == "expense")])
+print(df_card.iloc[np.where(df_card['transaction_class'] == "income")])
 income_dict = {}
 
 #Loop over dataframe for card transactions
