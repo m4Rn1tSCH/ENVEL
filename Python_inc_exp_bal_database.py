@@ -248,8 +248,7 @@ bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")
 bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 #%%
 for mem_id in df_card['unique_mem_id'].unique():
-    card_transactions = df_card.iloc[np.where(df_bank['amount'] == mem_id)]
-
+    id_transactions = df_card.iloc[np.where(df_bank['unique_mem_id'] == mem_id)]
 #%%
 #Create an empty dictionary: income and expenses
 income_dict = {}
