@@ -22,7 +22,7 @@ import os
 #%%
 #determine the path of the files
 path_win = os.path.relpath(r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx')
-#path_mac =
+path_mac = os.path.relpath('/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Working Class Sample.xlsx')
 #read the original XLSX file and then split it up in 3 different dataframes
 #no preprocessing here or encoding
 df_card = pd.read_excel(path_win, sheet_name = "Card Panel")
