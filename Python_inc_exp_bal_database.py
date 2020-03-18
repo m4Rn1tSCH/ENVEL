@@ -25,9 +25,10 @@ path_win = os.path.relpath(r'C:\Users\bill-\OneDrive - Education First\Documents
 path_mac = os.path.relpath('/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Working Class Sample.xlsx')
 #read the original XLSX file and then split it up in 3 different dataframes
 #no preprocessing here or encoding
-df_card = pd.read_excel(path_win, sheet_name = "Card Panel")
-df_bank = pd.read_excel(path_win, sheet_name = "Bank Panel")
-df_demo = pd.read_excel(path_win, sheet_name = "User Demographics")
+df_card = pd.read_excel(path_mac, sheet_name = "Card Panel")
+df_bank = pd.read_excel(path_mac, sheet_name = "Bank Panel")
+df_demo = pd.read_excel(path_mac, sheet_name = "User Demographics")
+#%%
 #in the non-encoded verion all columns still have correct types
 #extract unique numbers from all panels to find out unique users;
 card_members = df_card['unique_mem_id'].unique()
@@ -251,10 +252,10 @@ income_dict = {}
 
 #Loop over dataframe for card transactions
 #tuple indices have to be numbers!!
-for row in df_card.items():
-    #Add each name to the names dictionary using rank as the key
+for mem_id, amount, amount_mean_lag30 in df_card.items():
+    #Add the unique member ID as key and one or several columns as values
     #Dict[Key] = Value
-    income_dict[row[1]] = row[4]
+    income_dict[mem_id] = state, amount, amount_mean_lag30
 print(income_dict.keys())
 
 #Sort the names list by rank in descending order and slice the first 10 items
