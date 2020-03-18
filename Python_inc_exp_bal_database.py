@@ -62,9 +62,9 @@ bank_exp = ['Service Charges/Fees',
 try:
     transaction_class_card = pd.Series([], dtype = 'object')
     for i in range(len(df_card)):
-        if df_card["transaction_category_name"][i] in bank_inc:
+        if df_card["transaction_category_name"][i] in card_inc:
             transaction_class_card[i] = "income"
-        elif df_card["transaction_category_name"][i] in bank_exp:
+        elif df_card["transaction_category_name"][i] in card_exp:
             transaction_class_card[i] = "expense"
         else:
             transaction_class_card[i] = "NOT CLASSIFIED"
@@ -74,7 +74,7 @@ except:
 #    df_card.drop(['transaction_class'], axis = 1)
 #    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
 #%%
-#DF_CARD
+#DF_BANK
 try:
     transaction_class_bank = pd.Series([], dtype = 'object')
     for i in range(len(df_bank)):
@@ -240,9 +240,13 @@ except:
     print("You do not have enough transactions yet. But we are getting there...")
 #%%
 #append to lists whether it is income or expense
-#Create an empty dictionary: names
-print(df_card.iloc[np.where(df_card['transaction_class'] == "expense")])
-print(df_card.iloc[np.where(df_card['transaction_class'] == "income")])
+#filter with ilocation and show expenses and income as spearate dataframe
+card_expenses = df_card.iloc[np.where(df_card['transaction_class'] == "expense")]
+card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]
+bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
+bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
+
+#Create an empty dictionary: income and expenses
 income_dict = {}
 
 #Loop over dataframe for card transactions
