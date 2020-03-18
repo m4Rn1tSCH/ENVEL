@@ -246,7 +246,11 @@ card_expenses = df_card.iloc[np.where(df_card['transaction_class'] == "expense")
 card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]
 bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
+#%%
+for mem_id in df_card['unique_mem_id'].unique():
+    card_transactions = df_card.iloc[np.where(df_bank['amount'] == mem_id)]
 
+#%%
 #Create an empty dictionary: income and expenses
 income_dict = {}
 
@@ -265,7 +269,7 @@ print(income_dict.keys())
 #%%
 #to_dict method
 df_income = df_card[['unique_mem_id', 'amount']]
-df_income.to_dict()
+test_dict = df_income.to_dict()
 #%%
 #df = pd.read_csv("file")
 #d= dict([(i,[a,b,c ]) for i, a,b,c in zip(df.ID, df.A,df.B,df.C)])
