@@ -252,10 +252,10 @@ income_dict = {}
 
 #Loop over dataframe for card transactions
 #tuple indices have to be numbers!!
-for mem_id, amount, amount_mean_lag30 in df_card.items():
+for mem_id, amount in df_card.items():
     #Add the unique member ID as key and one or several columns as values
     #Dict[Key] = Value
-    income_dict[mem_id] = state, amount, amount_mean_lag30
+    income_dict[mem_id] =  amount, #amount_mean_lag30
 print(income_dict.keys())
 
 #Sort the names list by rank in descending order and slice the first 10 items
