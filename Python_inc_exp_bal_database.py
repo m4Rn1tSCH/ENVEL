@@ -269,7 +269,7 @@ print(income_dict.keys())
 #%%
 #to_dict method
 df_income = df_card[['unique_mem_id', 'amount']]
-test_dict = df_income.to_dict()
+test_dict = df_income.T.to_dict()
 #%%
 #df = pd.read_csv("file")
 #d= dict([(i,[a,b,c ]) for i, a,b,c in zip(df.ID, df.A,df.B,df.C)])
@@ -277,3 +277,6 @@ test_dict = df_income.to_dict()
 
 for ids, money in zip(df_card.unique_mem_id, df_card.amount):
     print(ids, money)
+#%%
+df.set_index('ID').T.to_dict('list')
+{'p': [1, 3, 2], 'q': [4, 3, 2], 'r': [4, 0, 9]}
