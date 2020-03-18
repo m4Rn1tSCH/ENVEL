@@ -69,7 +69,14 @@ for i in range(len(df_card)):
         transaction_class[i] = "expense"
 df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class)
 #%%
-#Datetime engineering
+#Datetime engineering DF_CARD
+for col in list(df_card):
+    if df_card[col].dtype == 'datetime64[ns]':
+        df_card[f"{col}_month"] = df_card[col].dt.month
+        df_card[f"{col}_week"] = df_card[col].dt.week
+        df_card[f"{col}_weekday"] = df_card[col].dt.weekday
+#%%
+#Datetime engineering DF_BANK
 for col in list(df_bank):
     if df_bank[col].dtype == 'datetime64[ns]':
         df_bank[f"{col}_month"] = df_bank[col].dt.month
@@ -210,8 +217,6 @@ try:
     print(spending_metrics_daily)
 except:
     print("You do not have enough transactions yet. But we are getting there...")
-#%%
-for col in df_card.category
 #%%
 #append to lists whether it is income or expense
 #Create an empty dictionary: names
