@@ -273,7 +273,7 @@ test_dict = df_income.to_dict()
 #%%
 #df = pd.read_csv("file")
 #d= dict([(i,[a,b,c ]) for i, a,b,c in zip(df.ID, df.A,df.B,df.C)])
-test_dictionary = {}
-for i, income in zip(df_card.unique_mem_id, df_card.amount):
-    print(set(zip(df_card.unique_mem_id, df_card.amount))
-    test_dictionary[i] = income
+#test_dictionary = {}
+
+for ids, money in zip(df_card.unique_mem_id, df_card.amount):
+    print(ids, money)
