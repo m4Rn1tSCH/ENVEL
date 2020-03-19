@@ -16,6 +16,7 @@ with unique IDs and corresponding income and expenses in separate dictionaries
 #load needed packages
 import pandas as pd
 import numpy as np
+from collections import defaultdict
 from datetime import datetime as dt
 import regex
 import os
@@ -25,9 +26,9 @@ path_win = os.path.relpath(r'C:\Users\bill-\OneDrive - Education First\Documents
 path_mac = os.path.relpath('/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Working Class Sample.xlsx')
 #read the original XLSX file and then split it up in 3 different dataframes
 #no preprocessing here or encoding
-df_card = pd.read_excel(path_mac, sheet_name = "Card Panel")
-df_bank = pd.read_excel(path_mac, sheet_name = "Bank Panel")
-df_demo = pd.read_excel(path_mac, sheet_name = "User Demographics")
+df_card = pd.read_excel(path_win, sheet_name = "Card Panel")
+df_bank = pd.read_excel(path_win, sheet_name = "Bank Panel")
+df_demo = pd.read_excel(path_win, sheet_name = "User Demographics")
 #%%
 #in the non-encoded verion all columns still have correct types
 #extract unique numbers from all panels to find out unique users;
@@ -248,7 +249,6 @@ bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")
 bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 #%%
 #FIX
-
 id_transactions = df_card.iloc[np.where(df_bank['unique_mem_id'] == 70850441974905670928446)]
 #%%
 #Create an empty dictionary: income and expenses
@@ -278,6 +278,7 @@ for i, income in zip(df_card.unique_mem_id, df_card.amount):
     print(set(zip(df_card.unique_mem_id, df_card.amount))
     test_dictionary[i] = income
 #%%
+#try with csv here
 from collections import defaultdict
 
 d = defaultdict(int)
@@ -293,3 +294,16 @@ with open("data.txt") as f:
         d[sid] += mark
 
 print d
+#%%
+#try directly here
+d = defaultdict(list)
+
+for row in df_card:
+    try:
+        key = card_members
+        value = df_card['amount']
+    except ValueError:
+        value = str('not classified')
+        continue
+    d[key] += value
+print(d)
