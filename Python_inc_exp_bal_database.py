@@ -346,3 +346,5 @@ for row in df_card.items():
     trans_dict[key] += value
 
 print(trans_dict)
+#%%
+filter(lambda line: line != '!', open('something.txt'))

@@ -57,6 +57,8 @@ contains: preprocessing, splitting, training and eventually prediction
 ####for production use##
 #$ flask run --host=0.0.0.0
 ############################################
+
+
 #INSERT SQL CONNECTION HERE
 ############################################
 ###SQL-CONNECTION TO QUERY THE VENDOR FILE
@@ -334,7 +336,6 @@ def predict_needed_value(preprocessed_input):
 
 #    #pick feature columns to predict the label
 #    #y_train/test is the target label that is to be predicted
-#    #PICKED LABEL = FICO numeric
 #    cols_card = ['unique_mem_id', 'unique_card_account_id', 'unique_card_transaction_id',
 #           'amount', 'currency', 'description', 'transaction_date', 'post_date',
 #           'transaction_base_type',# 'transaction_category_name',#
@@ -372,7 +373,178 @@ def predict_needed_value(preprocessed_input):
     print("Optimal number of features: %d" % rfecv.n_features_)
     print('Selected features: %s' % list(X_cp.columns[rfecv.support_]))
     #%%
-        #PASS TO RECURSIVE FEATURE EXTRACTION BANK PANEL
+    #PASS TO RECURSIVE FEATURE EXTRACTION BANK PANEL
+    #build a logistic regression and use recursive feature elimination to exclude trivial features
+    log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
+                                   fit_intercept = True, intercept_scaling = 1,
+                                   l1_ratio = None, max_iter = 100,
+                                   multi_class = 'auto', n_jobs = None,
+                                   penalty = 'l2', random_state = None,
+                                   solver = 'lbfgs', tol = 0.0001, verbose = 0,
+                                   warm_start = False)
+    #create the RFE model and select the eight most striking attributes
+    rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+    rfe = rfe.fit(X_bp_train, y_bp_train)
+    #selected attributes
+    print('Selected features: %s' % list(X_bp_train.columns[rfe.support_]))
+    print(rfe.ranking_)
+
+    #Use the Cross-Validation function of the RFE module
+    #accuracy describes the number of correct classifications
+    rfecv = RFECV(estimator = log_reg, step = 1, cv = 8, scoring = 'accuracy')
+    rfecv.fit(X_bp_train, y_bp_train)
+
+    print("Optimal number of features: %d" % rfecv.n_features_)
+    print('Selected features: %s' % list(X_bp.columns[rfecv.support_]))
+
+    #plot number of features VS. cross-validation scores
+    #plt.figure(figsize = (10,6))
+    #plt.xlabel("Number of features selected")
+    #plt.ylabel("Cross validation score (nb of correct classifications)")
+    #plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+    #plt.show
+#%%
+'''
+function to predict if the customer is a student or not
+if the certainty is above 70% then more weight is given to these students
+data is unlabeled and requires unsupervised learning algorithm
+var set
+x_cp
+y_cp
+x_bp
+y_bp
+split up values
+'''
+#use local outlier frequency
+#append more weights in another column?
+def predict_student():
+    y_cp = df_card_rdy['transaction_category_name']
+    X_cp = df_card_rdy[['amount', #'city', 'state', 'zip_code',
+        'post_date_month', 'post_date_week', 'post_date_weekday',
+        'file_created_date_month',
+       'file_created_date_week', 'file_created_date_weekday',
+       'optimized_transaction_date_month', 'optimized_transaction_date_week',
+       'optimized_transaction_date_weekday', 'swipe_date_month',
+       'swipe_date_week', 'swipe_date_weekday',
+       'panel_file_created_date_month', 'panel_file_created_date_week',
+       'panel_file_created_date_weekday', 'amount_mean_lag3',
+       'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
+       'amount_std_lag7', 'amount_std_lag30']]
+
+    y_bp = df_bank_rdy['transaction_category_name']
+    X_bp = df_bank_rdy[['amount', #'city', 'state', 'zip_code',
+       'post_date_month', 'post_date_week',
+       'post_date_weekday', 'file_created_date_month',
+       'file_created_date_week', 'file_created_date_weekday',
+       'optimized_transaction_date_month', 'optimized_transaction_date_week',
+       'optimized_transaction_date_weekday', 'swipe_date_month',
+       'swipe_date_week', 'swipe_date_weekday',
+       'panel_file_created_date_month', 'panel_file_created_date_week',
+       'panel_file_created_date_weekday', 'amount_mean_lag3',
+       'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
+       'amount_std_lag7', 'amount_std_lag30']]
+
+    log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
+                               fit_intercept = True, intercept_scaling = 1,
+                               l1_ratio = None, max_iter = 100,
+                               multi_class = 'auto', n_jobs = None,
+                               solver = 'lbfgs', tol = 0.0001, verbose = 0,
+                               warm_start = False)
+    #create the RFE model and select the eight most striking attributes
+    rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+    rfe = rfe.fit(X_cp_train, y_cp_train)
+    #selected attributes
+    print('Selected features: %s' % list(X_cp_train.columns[rfe.support_]))
+    print(rfe.ranking_)
+
+    #Use the Cross-Validation function of the RFE module
+    #accuracy describes the number of correct classifications
+    rfecv = RFECV(estimator = log_reg, step = 1, cv = 8, scoring = 'accuracy')
+    rfecv.fit(X_cp_train, y_cp_train)
+
+    print("Optimal number of features: %d" % rfecv.n_features_)
+    print('Selected features: %s' % list(X_cp.columns[rfecv.support_]))
+#%%
+    #PASS TO RECURSIVE FEATURE EXTRACTION BANK PANEL
+    #build a logistic regression and use recursive feature elimination to exclude trivial features
+    log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
+                                   fit_intercept = True, intercept_scaling = 1,
+                                   l1_ratio = None, max_iter = 100,
+                                   multi_class = 'auto', n_jobs = None,
+                                   penalty = 'l2', random_state = None,
+                                   solver = 'lbfgs', tol = 0.0001, verbose = 0,
+                                   warm_start = False)
+    #create the RFE model and select the eight most striking attributes
+    rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+    rfe = rfe.fit(X_bp_train, y_bp_train)
+    #selected attributes
+    print('Selected features: %s' % list(X_bp_train.columns[rfe.support_]))
+    print(rfe.ranking_)
+
+    #Use the Cross-Validation function of the RFE module
+    #accuracy describes the number of correct classifications
+    rfecv = RFECV(estimator = log_reg, step = 1, cv = 8, scoring = 'accuracy')
+    rfecv.fit(X_bp_train, y_bp_train)
+
+    print("Optimal number of features: %d" % rfecv.n_features_)
+    print('Selected features: %s' % list(X_bp.columns[rfecv.support_]))
+
+    #plot number of features VS. cross-validation scores
+    #plt.figure(figsize = (10,6))
+    #plt.xlabel("Number of features selected")
+    #plt.ylabel("Cross validation score (nb of correct classifications)")
+    #plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+    #plt.show
+#%%
+def predict_amount():
+    y_cp = df_card_rdy['transaction_category_name']
+    X_cp = df_card_rdy[['amount', #'city', 'state', 'zip_code',
+        'post_date_month', 'post_date_week', 'post_date_weekday',
+        'file_created_date_month',
+       'file_created_date_week', 'file_created_date_weekday',
+       'optimized_transaction_date_month', 'optimized_transaction_date_week',
+       'optimized_transaction_date_weekday', 'swipe_date_month',
+       'swipe_date_week', 'swipe_date_weekday',
+       'panel_file_created_date_month', 'panel_file_created_date_week',
+       'panel_file_created_date_weekday', 'amount_mean_lag3',
+       'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
+       'amount_std_lag7', 'amount_std_lag30']]
+
+    y_bp = df_bank_rdy['transaction_category_name']
+    X_bp = df_bank_rdy[['amount', #'city', 'state', 'zip_code',
+       'post_date_month', 'post_date_week',
+       'post_date_weekday', 'file_created_date_month',
+       'file_created_date_week', 'file_created_date_weekday',
+       'optimized_transaction_date_month', 'optimized_transaction_date_week',
+       'optimized_transaction_date_weekday', 'swipe_date_month',
+       'swipe_date_week', 'swipe_date_weekday',
+       'panel_file_created_date_month', 'panel_file_created_date_week',
+       'panel_file_created_date_weekday', 'amount_mean_lag3',
+       'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
+       'amount_std_lag7', 'amount_std_lag30']]
+
+    log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
+                               fit_intercept = True, intercept_scaling = 1,
+                               l1_ratio = None, max_iter = 100,
+                               multi_class = 'auto', n_jobs = None,
+                               solver = 'lbfgs', tol = 0.0001, verbose = 0,
+                               warm_start = False)
+    #create the RFE model and select the eight most striking attributes
+    rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+    rfe = rfe.fit(X_cp_train, y_cp_train)
+    #selected attributes
+    print('Selected features: %s' % list(X_cp_train.columns[rfe.support_]))
+    print(rfe.ranking_)
+
+    #Use the Cross-Validation function of the RFE module
+    #accuracy describes the number of correct classifications
+    rfecv = RFECV(estimator = log_reg, step = 1, cv = 8, scoring = 'accuracy')
+    rfecv.fit(X_cp_train, y_cp_train)
+
+    print("Optimal number of features: %d" % rfecv.n_features_)
+    print('Selected features: %s' % list(X_cp.columns[rfecv.support_]))
+#%%
+    #PASS TO RECURSIVE FEATURE EXTRACTION BANK PANEL
     #build a logistic regression and use recursive feature elimination to exclude trivial features
     log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
                                    fit_intercept = True, intercept_scaling = 1,
