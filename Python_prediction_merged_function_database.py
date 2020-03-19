@@ -574,3 +574,11 @@ def predict_amount():
     #plt.ylabel("Cross validation score (nb of correct classifications)")
     #plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
     #plt.show
+#%%
+#local outlier frequency
+#anti-fraud system + labeling
+#pick parameters to spot outliers in
+
+#while loop to stop as soon s first income is hit and add upp income/expense
+
+#pass this to flask and app to inject this initial balance
