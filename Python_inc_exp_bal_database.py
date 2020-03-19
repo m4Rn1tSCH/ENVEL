@@ -337,7 +337,7 @@ print d
 from collections import defaultdict
 trans_dict = defaultdict(list)
 
-for row in df_card:
+for row in df_card.items():
     try:
         key = card_members
         value = df_card.amount
