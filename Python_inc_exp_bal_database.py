@@ -367,3 +367,13 @@ for mem_id in card_members:
     value = df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum()
     dictionary[key] = value
 print(dictionary.keys())
+#%%
+dictionary = {}
+for mem_id in card_members:
+    for row in df_card[df_card['transaction_class'] == 'expense']:
+        key = mem_id
+        value = df_card[df_card['unique_mem_id'] == mem_id]['amount']
+        dictionary[key] += value
+    else:
+        break
+print(dictionary.keys())
