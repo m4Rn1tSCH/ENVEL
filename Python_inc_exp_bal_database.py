@@ -316,5 +316,33 @@ for ids, money in zip(df_card.unique_mem_id, df_card.amount):
 #%%
 #df.set_index('ID').T.to_dict('list')
 #{s'p': [1, 3, 2], 'q': [4, 3, 2], 'r': [4, 0, 9]}
-#tests line to resolve chnages
->>>>>>> c7647de82de51f34b305a4ba5b1fc868d08094bb
+#%%
+#tst with csv
+from collections import defaultdict
+
+d = defaultdict(int)
+
+with open("data.txt") as f:
+    for line in f:
+        tokens = [t.strip() for t in line.split(",")]
+        try:
+            key = int(tokens[3])
+            value = int(tokens[4])
+        except ValueError:
+            continue
+        d[key] += value
+print d
+#%%
+#test directly
+from collections import defaultdict
+trans_dict = defaultdict(list)
+
+for row in df_card:
+    try:
+        key = card_members
+        value = df_card.amount
+    except ValueError:
+        continue
+    trans_dict[key] += value
+
+print(trans_dict)
