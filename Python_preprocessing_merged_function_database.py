@@ -90,9 +90,9 @@ def random_id(length):
     return unique_id
 #%%
 def preprocess_input_file(transactions):
-    df_card = pd.read_excel(transactions_mac, sheet_name = "Card Panel")
-    df_bank = pd.read_excel(transactions_mac, sheet_name = "Bank Panel")
-    df_demo = pd.read_excel(transactions_mac, sheet_name = "User Demographics")
+    df_card = pd.read_excel(transactions_win, sheet_name = "Card Panel")
+    df_bank = pd.read_excel(transactions_win, sheet_name = "Bank Panel")
+    df_demo = pd.read_excel(transactions_win, sheet_name = "User Demographics")
     #info
     df_card.info()
     df_card.describe()

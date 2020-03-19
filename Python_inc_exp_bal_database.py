@@ -318,33 +318,52 @@ for ids, money in zip(df_card.unique_mem_id, df_card.amount):
 #{s'p': [1, 3, 2], 'q': [4, 3, 2], 'r': [4, 0, 9]}
 #%%
 #tst with csv
-from collections import defaultdict
+#from collections import defaultdict
 
-d = defaultdict(int)
+#d = defaultdict(int)
 
-with open("data.txt") as f:
-    for line in f:
-        tokens = [t.strip() for t in line.split(",")]
-        try:
-            key = int(tokens[3])
-            value = int(tokens[4])
-        except ValueError:
-            continue
-        d[key] += value
-print d
+#with open("data.txt") as f:
+#    for line in f:
+#        tokens = [t.strip() for t in line.split(",")]
+#        try:
+#            key = int(tokens[3])
+#            value = int(tokens[4])
+#        except ValueError:
+#            continue
+#        d[key] += value
+#print d
 #%%
 #test directly
-from collections import defaultdict
-trans_dict = defaultdict(list)
+#from collections import defaultdict
+#trans_dict = defaultdict(list)
 
-for row in df_card.items():
-    try:
-        key = card_members
-        value = df_card.amount
-    except ValueError:
-        continue
-    trans_dict[key] += value
+#for row in df_card.items():
+#    try:
+#        key = card_members
+#        value = df_card.amount
+#    except ValueError:
+#        continue
+#    trans_dict[key] += value
 
-print(trans_dict)
+#print(trans_dict)
 #%%
 filter(lambda line: line != '!', open('something.txt'))
+#%%
+for mem_id in card_members:
+    print(mem_id)
+    print(df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum())
+#%%
+#dictionary displays mem_id with transaction sum ( no split up between exp/inc)
+turnover_dictionary= {}
+for mem_id in card_members:
+    key = mem_id
+    value = df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum()
+    turnover_dictionary[key] = value
+print(turnover_dictionary.keys())
+#%%
+dictionary= {}
+for mem_id in card_members:
+    key = mem_id
+    value = df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum()
+    dictionary[key] = value
+print(dictionary.keys())
