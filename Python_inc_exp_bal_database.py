@@ -278,5 +278,6 @@ test_dict = df_income.T.to_dict()
 for ids, money in zip(df_card.unique_mem_id, df_card.amount):
     print(ids, money)
 #%%
-df.set_index('ID').T.to_dict('list')
-{'p': [1, 3, 2], 'q': [4, 3, 2], 'r': [4, 0, 9]}
+#df.set_index('ID').T.to_dict('list')
+#{s'p': [1, 3, 2], 'q': [4, 3, 2], 'r': [4, 0, 9]}
+#tests line to resolve chnages
