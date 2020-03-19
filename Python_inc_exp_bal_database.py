@@ -248,9 +248,6 @@ card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]
 bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 #%%
-#FIX
-id_transactions = df_card.iloc[np.where(df_bank['unique_mem_id'] == 70850441974905670928446)]
-#%%
 #Create an empty dictionary: income and expenses
 income_dict = {}
 
@@ -273,28 +270,26 @@ test_dict = df_income.T.to_dict()
 #%%
 #df = pd.read_csv("file")
 #d= dict([(i,[a,b,c ]) for i, a,b,c in zip(df.ID, df.A,df.B,df.C)])
-<<<<<<< HEAD
-test_dictionary = {}
-for i, income in zip(df_card.unique_mem_id, df_card.amount):
-    print(set(zip(df_card.unique_mem_id, df_card.amount))
-    test_dictionary[i] = income
+#test_dictionary = {}
+#for i, income in zip(df_card.unique_mem_id, df_card.amount):
+#    print(set(zip(df_card.unique_mem_id, df_card.amount))
+#    test_dictionary[i] = income
 #%%
 #try with csv here
-from collections import defaultdict
+#from collections import defaultdict
 
-d = defaultdict(int)
+#d = defaultdict(int)
 
-with open("data.txt") as f:
-    for line in f:
-        tokens = [t.strip() for t in line.split(",")]
-        try:
-            sid = int(tokens[3])
-            mark = int(tokens[4])
-        except ValueError:
-            continue
-        d[sid] += mark
-
-print d
+#with open("data.txt") as f:
+#    for line in f:
+#        tokens = [t.strip() for t in line.split(",")]
+#        try:
+#            sid = int(tokens[3])
+#            mark = int(tokens[4])
+#        except ValueError:
+#            continue
+#        d[sid] += mark
+#print(d)
 #%%
 #try directly here
 d = defaultdict(list)
