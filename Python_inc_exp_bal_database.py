@@ -277,3 +277,19 @@ test_dictionary = {}
 for i, income in zip(df_card.unique_mem_id, df_card.amount):
     print(set(zip(df_card.unique_mem_id, df_card.amount))
     test_dictionary[i] = income
+#%%
+from collections import defaultdict
+
+d = defaultdict(int)
+
+with open("data.txt") as f:
+    for line in f:
+        tokens = [t.strip() for t in line.split(",")]
+        try:
+            sid = int(tokens[3])
+            mark = int(tokens[4])
+        except ValueError:
+            continue
+        d[sid] += mark
+
+print d
