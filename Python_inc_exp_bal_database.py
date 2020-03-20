@@ -26,9 +26,9 @@ path_win = os.path.relpath(r'C:\Users\bill-\OneDrive - Education First\Documents
 path_mac = os.path.relpath('/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Working Class Sample.xlsx')
 #read the original XLSX file and then split it up in 3 different dataframes
 #no preprocessing here or encoding
-df_card = pd.read_excel(path_mac, sheet_name = "Card Panel")
-df_bank = pd.read_excel(path_mac, sheet_name = "Bank Panel")
-df_demo = pd.read_excel(path_mac, sheet_name = "User Demographics")
+df_card = pd.read_excel(path_win, sheet_name = "Card Panel")
+df_bank = pd.read_excel(path_win, sheet_name = "Bank Panel")
+df_demo = pd.read_excel(path_win, sheet_name = "User Demographics")
 #%%
 #in the non-encoded verion all columns still have correct types
 #extract unique numbers from all panels to find out unique users;
@@ -248,6 +248,10 @@ card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]
 bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 #%%
+#convert it to csv
+df_card_csv = df_card.to_csv('C:/Users/bill-/Desktop/df_card_edited.csv')
+df_bank_csv = df_bank.to_csv('C:\/Users/bill-/Desktop/df_bank_edited.csv')
+#%%
 #Create an empty dictionary: income and expenses
 income_dict = {}
 
@@ -387,4 +391,4 @@ for unique_mem_id, amount in expenses_only.items():
     transaction_dict[unique_mem_id[0]] = amount[3]
 #%%
 while df_card[df_card['transaction_class'] != 'income']:
-    
+
