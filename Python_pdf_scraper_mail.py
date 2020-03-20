@@ -4,12 +4,13 @@ Created on Tue Mar 17 13:39:28 2020
 
 @author: bill-
 """
-
+#installed is pdfminer.six but is loaded as pdfminer
+#internal pakcages seems to be the same
 from io import StringIO
-from pdfminer3.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer3.converter import TextConverter
-from pdfminer3.layout import LAParams
-from pdfminer3.pdfpage import PDFPage
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfpage import PDFPage
 import re
 import os
 #%%
@@ -41,7 +42,7 @@ for dirpath, dirnames, filename in os.walk(basepath):
     print(f'Found directory: {dirpath}')
     for file in filename:
         path_list.append(os.path.abspath(os.path.join(dirpath, file)))
-
+#%%
 def get_cv_email(self, cv_path):
     pagenums = set()
     output = StringIO()
