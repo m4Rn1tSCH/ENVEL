@@ -26,9 +26,9 @@ path_win = os.path.relpath(r'C:\Users\bill-\OneDrive - Education First\Documents
 path_mac = os.path.relpath('/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Working Class Sample.xlsx')
 #read the original XLSX file and then split it up in 3 different dataframes
 #no preprocessing here or encoding
-df_card = pd.read_excel(path_win, sheet_name = "Card Panel")
-df_bank = pd.read_excel(path_win, sheet_name = "Bank Panel")
-df_demo = pd.read_excel(path_win, sheet_name = "User Demographics")
+df_card = pd.read_excel(path_mac, sheet_name = "Card Panel")
+df_bank = pd.read_excel(path_mac, sheet_name = "Bank Panel")
+df_demo = pd.read_excel(path_mac, sheet_name = "User Demographics")
 #%%
 #in the non-encoded verion all columns still have correct types
 #extract unique numbers from all panels to find out unique users;
@@ -265,8 +265,8 @@ print(income_dict.keys())
 #    print(income_dict[card_members])
 #%%
 #to_dict method
-df_income = df_card[['unique_mem_id', 'amount']]
-test_dict = df_income.T.to_dict()
+#df_income = df_card[['unique_mem_id', 'amount']]
+#test_dict = df_income.T.to_dict()
 #%%
 #df = pd.read_csv("file")
 #d= dict([(i,[a,b,c ]) for i, a,b,c in zip(df.ID, df.A,df.B,df.C)])
@@ -329,16 +329,16 @@ for ids, money in zip(df_card.unique_mem_id, df_card.amount):
 #print d
 #%%
 #test directly
-#from collections import defaultdict
-#trans_dict = defaultdict(list)
+from collections import defaultdict
+trans_dict = defaultdict(list)
 
-#for row in df_card.items():
-#    try:
-#        key = card_members
-#        value = df_card.amount
-#    except ValueError:
-#        continue
-#    trans_dict[key] += value
+for row in df_card.items():
+    try:
+        key = row[0]
+        value = row[3]
+    except ValueError:
+        continue
+    trans_dict[key] += value
 
 #print(trans_dict)
 #%%
@@ -356,7 +356,7 @@ for mem_id in card_members:
     turnover_dictionary[key] = value
 print(turnover_dictionary.keys())
 #%%
-dictionary= {}
+dictionary = {}
 for mem_id in card_members:
     key = mem_id
     value = df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum()
@@ -372,3 +372,19 @@ for mem_id in card_members:
     else:
         break
 print(dictionary.keys())
+#%%
+mem_id_df = df_card[['unique_mem_id', 'amount']].groupby('unique_mem_id').apply(lambda x: x['unique_mem_id'].unique())
+#%%
+mem_id_df_2 = df_card[['unique_mem_id', 'amount']].groupby('unique_mem_id')
+print(pd.DataFrame(mem_id_df_2))
+#%%
+mem_id_d = dict(zip(df_card.unique_mem_id, df_card.amount))
+#%%
+transaction_dict = {}
+expenses_only = df_card[df_card['transaction_class'] == 'expense']
+zip(expenses_only)
+for unique_mem_id, amount in expenses_only.items():
+    transaction_dict[unique_mem_id[0]] = amount[3]
+#%%
+while df_card[df_card['transaction_class'] != 'income']:
+    
