@@ -19,10 +19,11 @@ import shutil
 #%%
 #set csv_path
 basepath = 'C:/Users/bill-/Desktop/Harvard_Resumes'
+basepath_non_hvd = 'C:/Users/bill-/Desktop/Non-Harvard_Resumes'
 path_list = []
 #error_list = []
 #Walking a directory tree and printing the names of the directories and files
-for dirpath, dirnames, filename in os.walk(basepath):
+for dirpath, dirnames, filename in os.walk(basepath_non_hvd):
     print(f'Found directory: {dirpath}')
     for file in filename:
         path_list.append(os.path.abspath(os.path.join(dirpath, file)))
@@ -88,5 +89,5 @@ for link in path_list:
 print("Following motherfuckers were too fucking dumb to create a properly readable PDF...")
 print("-------------------------------------------------------------------------------")
 print(error_list)
-pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/Harvard_mail_list.csv')
-pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/Harvard_fail_list.csv')
+pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_mail_list.csv')
+pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_fail_list.csv')

@@ -303,7 +303,7 @@ for row in df_card:
         continue
     d[key] += value
 print(d)
-=======
+#%%
 #test_dictionary = {}
 
 for ids, money in zip(df_card.unique_mem_id, df_card.amount):
