@@ -249,8 +249,25 @@ bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")
 bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 #%%
 #convert it to csv
-df_card_csv = df_card.to_csv('C:/Users/bill-/Desktop/df_card_edited.csv')
-df_bank_csv = df_bank.to_csv('C:\/Users/bill-/Desktop/df_bank_edited.csv')
+df_card_csv = df_card[['unique_mem_id', 'amount']].to_csv('C:/Users/bill-/Desktop/df_card_edited.csv')
+df_bank_csv = df_bank[['unique_mem_id', 'amount']].to_csv('C:\/Users/bill-/Desktop/df_bank_edited.csv')
+#%%
+#Import the python CSV module
+import csv
+
+#Create a python file object in read mode for the `baby_names.csv` file: csvfile
+csvfile = open('C:/Users/bill-/Desktop/df_card_edited.csv', 'r')
+
+#Loop over a DictReader on the file
+for row in csv.DictReader(csvfile):
+    #Print each row
+    print(row)
+    #Add the rank and name to the dictionary: baby_names
+    trans_dict[row['unique_mem_id']] += row['amount']
+
+#Print the dictionary keys
+print(trans_dict.keys())
+
 #%%
 #Create an empty dictionary: income and expenses
 income_dict = {}
@@ -338,11 +355,11 @@ trans_dict = defaultdict(list)
 
 for row in df_card.items():
     try:
-        key = row[0]
-        value = row[3]
+        key = card_members
+        value = df_card.amount
     except ValueError:
         continue
-    trans_dict[key] += value
+    trans_dict[row[key]] += row[value]
 
 #print(trans_dict)
 #%%
