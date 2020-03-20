@@ -4,8 +4,8 @@ Created on Tue Mar 17 13:39:28 2020
 
 @author: bill-
 """
-#installed is pdfminer.six but is loaded as pdfminer
-#internal pakcages seems to be the same
+#installed as pdfminer.six but is loaded as pdfminer
+#internal packages seem to be the same
 from io import StringIO
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
@@ -17,25 +17,6 @@ import csv
 import pandas as pd
 import shutil
 #%%
-#def get_cv_email(self, cv_path):
-#    pagenums = set()
-#    output = StringIO()
-#    manager = PDFResourceManager()
-#    converter = TextConverter(manager, output, laparams=LAParams())
-#    interpreter = PDFPageInterpreter(manager, converter)
-#    infile = open(cv_path, 'rb')
-#    for page in PDFPage.get_pages(infile, pagenums):
-#        interpreter.process_page(page)
-#    infile.close()
-#    converter.close()
-#    text = output.getvalue()
-#    output.close()
-#    match = re.search(r'[\w\.-]+@[\w\.-]+', text)
-#    email = match.group(0)
-#    return email
-
-#\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)
-#%%
 #set csv_path
 basepath = 'C:/Users/bill-/Desktop/Harvard_Resumes'
 path_list = []
@@ -46,6 +27,7 @@ for dirpath, dirnames, filename in os.walk(basepath):
     for file in filename:
         path_list.append(os.path.abspath(os.path.join(dirpath, file)))
 #%%
+#complete the move to folders when exception occurs
 def get_cv_email(self, cv_path):
     pagenums = set()
     output = StringIO()
@@ -65,7 +47,7 @@ def get_cv_email(self, cv_path):
 
 #\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)
 #%%
-#this one extracts 29 mails successfully
+#works
 #one bugged PDF
 pure_email_list = []
 error_list = []
@@ -103,17 +85,8 @@ for link in path_list:
         error_list.append(link)
         #shutil.move(source_folder,destination_failed)
         pass
-print("Following motherfuckers were to fucking dumb to create a properly readable PDF...")
+print("Following motherfuckers were too fucking dumb to create a properly readable PDF...")
 print("-------------------------------------------------------------------------------")
 print(error_list)
 pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/Harvard_mail_list.csv')
 pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/Harvard_fail_list.csv')
-#%%
-#error_list = []
-#pure_mail_list = []
-#try:
-#    for link in path_list:
-#        link.get_cv_email()
-#        pure_mail_list.append(link)
-#except:
-#    error_list.append(link)
