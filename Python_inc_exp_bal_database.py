@@ -295,18 +295,26 @@ print(income_dict.keys())
 #d= dict([(i,[a,b,c ]) for i, a,b,c in zip(df.ID, df.A,df.B,df.C)])
 test_dictionary = {}
 additive_dict = {}
-transaction = df_card['transaction_class']
+#iterrows() goes row-wise over indices and corresponding columns; returns one row element at a time
+#iterator object for transaction classifications
+#in 35th column of the df_card that is unedited
+#transactions = next(df_card['transaction_class'].iterrows())
+#iterator now in tuple format
+transactions = next(df_card.itertuples())
+#iterator object for monetary amounts
+#in 4th column of df_card
+amounts = next(df_card.itertuples())
 string = 'expense'
-for i,expense,transaction in zip(card_members, df_card.amount, df_card.transaction_class):
+for i, amount, transaction in zip(card_members, amounts, transactions):
+    print(i, amount, transaction)
     while transaction == string:
-        print(list(zip(i, expense, transaction)))
-        test_dictionary[i].append(expense)
-        additive_dict += transaction
+        test_dictionary[i].append(amount[4])
+        additive_dict[i] += amount
 #%%
 #try with csv here
-from collections import defaultdict
+#from collections import defaultdict
 
-d = defaultdict(int)
+#d = defaultdict(int)
 
 with open("data.txt") as f:
     for line in f:
