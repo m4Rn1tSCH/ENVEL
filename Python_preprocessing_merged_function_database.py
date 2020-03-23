@@ -452,7 +452,6 @@ for col in list(df_card):
         spending_metrics_weekly.to_csv(csv_path_bank)
         spending_metrics_daily.to_csv(csv_path_demo)
     else:
-        df.to_csv('my_csv.csv', mode='a', header=False)
         spending_metrics_monthly.to_csv(csv_path_card, mode = 'a', header = False)
         spending_metrics_weekly.to_csv(csv_path_bank, mode = 'a', header = False)
         spending_metrics_daily.to_csv(csv_path_demo, mode = 'a', header = False)
