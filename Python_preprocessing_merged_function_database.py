@@ -70,16 +70,8 @@ plt.rcParams['figure.figsize'] = [12, 10]
 ##############################################
 #%%
 ######LOADING THE TRANSACTION FILE#####
-transaction_file_win = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx"
-path_1 = transaction_file_win.replace(os.sep,'/')
-transactions_win = ''.join(('', path_1, ''))
-transaction_file_mac = "/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Working Class Sample.xlsx"
-path_2 = transaction_file_mac.replace(os.sep,'/')
-transactions_mac = ''.join(('', path_2, ''))
-'''
-SCRIPT WILL GET ALL XLSX SHEETS AT THIS STAGE!
-'''
-#relative_t_path = './*.csv'
+transactions_win = os.path.abspath(r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx')
+transactions_mac = os.path.abspath('/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Working Class Sample.xlsx')
 #%%
 def random_id(length):
     letters = string.ascii_letters
@@ -319,45 +311,48 @@ def preprocess_input_file(transactions):
     #conversion of df_card; df_bank; df_demo
 #%%
     #CHECK FOR MISSING VALUES
-    '''
-    find missing values and mark the corresponding column as target that is to be predicted
-    '''
-    #iterate over all columns and search for missing values
-    #find such missing values and declare it the target value
-    #df in use is pandas datafame, use .iloc[]
-    #df is a dictionary, .get()
-    #iterate over columns first to find missing targets
-    #iterate over rows of the specific column that has missing values
-    #fill the missing values with a value
-    y = []
-    X = []
-    for col in list(df_card):
-        if df_card[col].isnull().any() == True:
-            print(f"{col} is target variable and will be used for prediction")
-            y.append(df_card[col])
-            for index, row in df_card.iterrows():
-                if row.isnull().any() == True:
-                    print(f"Value missing in row {index}")
-                    #df_card.loc[row].drop_duplicates(method = bfill)
-                else:
-                    print("Data set contains no missing values; specify the label manually")
-                    pass
+'''
+find missing values and mark the corresponding column as target that is to be predicted
+'''
+#iterate over all columns and search for missing values
+#find such missing values and declare it the target value
+#df in use is pandas datafame, use .iloc[]
+#df is a dictionary, .get()
+#iterate over columns first to find missing targets
+#iterate over rows of the specific column that has missing values
+#fill the missing values with a value
+y = []
+X = []
+for col in list(df_card):
+    if df_card[col].isnull().any() == True:
+        df_card.fillna(value = 'unknown', axis = 0, inplace = True)
+#        y.append(df_card[col])
+#        for index, row in df_card.iterrows():
+#            if row.isnull().any() == True:
+#                print(f"Value missing in row {index}")
+#                #df_card.loc[row].drop_duplicates(method = bfill)
+#            else:
+#               print("Data set contains no missing values; specify the label manually")
+#               pass
 #%%
-    #V2
-    #first prediction loop and stop
-    y = []
-    X = []
-    for col in list(df_card):
-        if df_card[col].isnull().any() == True:
-            print(f"{col} is target variable and will be used for prediction")
-            y.append(df_card[col])
-            if len(y) == 1:
-                print("first prediction target found...")
-                break
+y = []
+X = []
+for col in list(df_card):
+    if df_card[col].isnull().any() == True:
+        df_card.fillna(value = 'unknown', axis = 0, inplace = True)
+#        y.append(df_card[col])
+#        for index, row in df_card.iterrows():
+#            if row.isnull().any() == True:
+#                print(f"Value missing in row {index}")
+#                #df_card.loc[row].drop_duplicates(method = bfill)
+#            else:
+#               print("Data set contains no missing values; specify the label manually")
+#               pass
 #%%
     #LABEL ENCODER for column card panel
     '''
     encode all non-numerical values to ready up the data set for classification and regression purposes
+    removing all NAs (replacing with "unknown") allows the Label Encoder to convert more columns which in turn allows more labels for prediction
     '''
     #applying fit_transform yields: encoding of 22 columns but most of them remain int32 or int64
     #applying first fit to train the data and then apply transform will encode only 11 columns and leaves the others unchanged
@@ -422,6 +417,9 @@ def preprocess_input_file(transactions):
     print("PROCESSED DATAFRAME:")
     print(df_bank.head(3))
     print("DF bank panel preprocessing finished + Ready for a report + Pass to ML models")
+    #city and state are to be manually converted; potential label for first tests
+    df_bank['state'].fillna(value = 'unknown', axis = 0)
+    df_bank['city'].fillna(value = 'unknown', axis = 0)
 #%%
     '''
             CONVERION OF THE SPENDING REPORTS
@@ -445,12 +443,19 @@ def preprocess_input_file(transactions):
     csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL' + '.csv')
     csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL' + '.csv')
     csv_path_demo = os.path.join(raw, date_of_creation + '_DEMO_PANEL' + '.csv')
+
     #name_list = ['df_card', 'df_bank', 'df_demo']
     #for name in name_list:
     #    f"{date_of_creation}_{name}".to_csv(csv_path)
-    spending_metrics_monthly.to_csv(csv_path_card)
-    spending_metrics_weekly.to_csv(csv_path_bank)
-    spending_metrics_daily.to_csv(csv_path_demo)
+    if os.path.exists(os.path.join(raw, date_of_creation + '_CARD_PANEL' + '.csv')) = False:
+        spending_metrics_monthly.to_csv(csv_path_card)
+        spending_metrics_weekly.to_csv(csv_path_bank)
+        spending_metrics_daily.to_csv(csv_path_demo)
+    else:
+        df.to_csv('my_csv.csv', mode='a', header=False)
+        spending_metrics_monthly.to_csv(csv_path_card, mode = 'a', header = False)
+        spending_metrics_weekly.to_csv(csv_path_bank, mode = 'a', header = False)
+        spending_metrics_daily.to_csv(csv_path_demo, mode = 'a', header = False)
 #%%
     '''
             CONVERION OF THE ENTIRE DATAFRAMES
