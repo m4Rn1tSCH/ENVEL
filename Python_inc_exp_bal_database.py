@@ -380,16 +380,18 @@ for row in df_card.items():
 #%%
 filter(lambda line: line != '!', open('something.txt'))
 #%%
+#good
 for mem_id in card_members:
     print(mem_id)
     print(df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum())
 #%%
+#almost works
 #dictionary displays mem_id with transaction sum ( no split up between exp/inc)
 turnover_dictionary= {}
 for mem_id in card_members:
     key = mem_id
     value = df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum()
-    turnover_dictionary[key] = value
+    turnover_dictionary[key] += value
 print(turnover_dictionary.keys())
 #%%
 dictionary = {}

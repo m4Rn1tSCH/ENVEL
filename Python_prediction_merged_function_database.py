@@ -17,6 +17,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import LabelEncoder
 
 #from datetime import datetime
 #import seaborn as sns
@@ -115,7 +116,7 @@ windows_walk_path = 'C:/Users/bill-/Desktop/'
 #%%
 
 #Write the pattern as a folder or file pattern
-path_abs = os.path.abspath(os.path.join(mac_walk_path))
+path_abs = os.path.abspath(os.path.join(windows_walk_path))
 pattern = '*.csv'
 directory = os.path.join(path_abs, pattern)
 #Save all file matches: csv_files
@@ -128,9 +129,9 @@ print(csv_files)
 def predict_needed_value(preprocessed_input):
 #fix that the order of files might be different depending on the OS!
 #use parser in list to attach right csv to right variable
-    df_card_rdy = pd.read_csv(csv_files[0])
-    df_bank_rdy = pd.read_csv(csv_files[2])
-    df_demo_rdy = pd.read_csv(csv_files[1])
+    df_card_rdy = pd.read_csv(csv_files[1])
+    df_bank_rdy = pd.read_csv(csv_files[0])
+    df_demo_rdy = pd.read_csv(csv_files[2])
     #the conversion to csv has removed the old index and left date columns as objects
     #conversion is needed to datetime objects
     #usage of optimized transaction date is recommended
@@ -419,9 +420,8 @@ split up values
 #append more weights in another column?
 def predict_student():
     y_cp_student = df_card_rdy['student']
-    X_cp_student = df_card_rdy[['amount', #'city', 'state', 'zip_code',
-        'post_date_month', 'post_date_week', 'post_date_weekday',
-        'file_created_date_month', 'transaction_category_name',
+    X_cp_student = df_card_rdy[['amount', 'post_date_month', 'post_date_week',
+        'post_date_weekday', 'file_created_date_month', 'transaction_category_name',
        'file_created_date_week', 'file_created_date_weekday',
        'optimized_transaction_date_month', 'optimized_transaction_date_week',
        'optimized_transaction_date_weekday', 'swipe_date_month',
@@ -432,8 +432,8 @@ def predict_student():
        'amount_std_lag7', 'amount_std_lag30']]
 
     y_bp_student = df_bank_rdy['student']
-    X_bp_student = df_bank_rdy[['amount', #'city', 'state', 'zip_code',
-       'post_date_month', 'post_date_week', 'transaction_category_name'
+    X_bp_student = df_bank_rdy[['amount', 'post_date_month', 'post_date_week',
+        'transaction_category_name'
        'post_date_weekday', 'file_created_date_month',
        'file_created_date_week', 'file_created_date_weekday',
        'optimized_transaction_date_month', 'optimized_transaction_date_week',
@@ -516,9 +516,20 @@ END Prediction for transaction_category_name and RFE for significant features
 '''
 ------------------------------------------------------------------------------
 Prediction for amount and RFE for significant features
+predicting continuous values is impossible; so the amount will be encoded in brackets and
+will form the label
 '''
 def predict_amount():
-    y_cp_amount = df_card_rdy['amount']
+        le = LabelEncoder()
+try:
+    if df_card_rdy['amount'].dtype == 'float64' or df_card_rdy['amount'].dtype == 'int64':
+        df_card_rdy['amount_brackets'] = le.fit_transform(df_card_rdy['amount'])
+    if df_bank_rdy['amount'].dtype == 'float64' or df_bank_rdy['amount'].dtype == 'int64':
+            df_bank_rdy['amount_brackets'] = le.fit_transform(df_bank_rdy['amount'])
+except:
+    raise Warning('column amount has not been converted to brackets!')
+
+    y_cp_amount = df_card_rdy['amount_brackets']
     X_cp_amount = df_card_rdy[['post_date_month', 'post_date_week',
        'post_date_weekday',  'optimized_transaction_date_week',
        'file_created_date_month', 'transaction_category_name',
@@ -531,9 +542,9 @@ def predict_amount():
        'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
        'amount_std_lag7', 'amount_std_lag30']]
 
-    y_bp_amount = df_bank_rdy['amount']
+    y_bp_amount = df_bank_rdy['amount_brackets']
     X_bp_amount = df_bank_rdy[['post_date_month', 'post_date_week',
-       'post_date_weekday', 'file_created_date_month', 'transaction_category_name', 
+       'post_date_weekday', 'file_created_date_month', 'transaction_category_name',
        'file_created_date_week', 'file_created_date_weekday',
        'optimized_transaction_date_month', 'optimized_transaction_date_week',
        'optimized_transaction_date_weekday', 'swipe_date_month',
