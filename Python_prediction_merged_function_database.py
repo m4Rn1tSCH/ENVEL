@@ -628,6 +628,115 @@ except:
     #plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
     #plt.show
 #%%
+def predict_city():
+        le = LabelEncoder()
+try:
+    if df_card_rdy['city'].dtype == 'object':
+        df_card_rdy['city'] = le.fit_transform(df_card_rdy['city'])
+    if df_bank_rdy['city'].dtype == 'object':
+            df_bank_rdy['city'] = le.fit_transform(df_bank_rdy['city'])
+except:
+    raise Warning('column city has not been converted to brackets! or is already converted')
+
+    y_cp_city = df_card_rdy['city']
+    X_cp_city = df_card_rdy[['post_date_month', 'post_date_week',
+       'post_date_weekday',  'optimized_transaction_date_week',
+       'file_created_date_month', 'transaction_category_name',
+       'file_created_date_week', 'file_created_date_weekday',
+       'optimized_transaction_date_month',
+       'optimized_transaction_date_weekday', 'swipe_date_month',
+       'swipe_date_week', 'swipe_date_weekday',
+       'panel_file_created_date_month', 'panel_file_created_date_week',
+       'panel_file_created_date_weekday', 'amount_mean_lag3',
+       'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
+       'amount_std_lag7', 'amount_std_lag30']]
+
+    y_bp_city = df_bank_rdy['city']
+    X_bp_city = df_bank_rdy[['post_date_month', 'post_date_week',
+       'post_date_weekday', 'file_created_date_month', 'transaction_category_name',
+       'file_created_date_week', 'file_created_date_weekday',
+       'optimized_transaction_date_month', 'optimized_transaction_date_week',
+       'optimized_transaction_date_weekday', 'swipe_date_month',
+       'swipe_date_week', 'swipe_date_weekday',
+       'panel_file_created_date_month', 'panel_file_created_date_week',
+       'panel_file_created_date_weekday', 'amount_mean_lag3',
+       'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
+       'amount_std_lag7', 'amount_std_lag30']]
+
+    X_cp_city_train, X_cp_city_test, y_cp_city_train, y_cp_city_test = train_test_split(X_cp_city, y_cp_city, test_size = 0.3, random_state = 42)
+    #shape of the splits:
+    ##features: X:[n_samples, n_features]
+    ##label: y: [n_samples]
+    print("CARD PANEL-city")
+    print(f"Shape of the split training data set: X_cp_train:{X_cp_city_train.shape}")
+    print(f"Shape of the split training data set: X_cp_test: {X_cp_city_test.shape}")
+    print(f"Shape of the split training data set: y_cp_train: {y_cp_city_train.shape}")
+    print(f"Shape of the split training data set: y_cp_test: {y_cp_city_test.shape}")
+    #%%
+    #TRAIN TEST SPLIT FOR BANK PANEL
+    #from sklearn.model_selection import train_test_split
+    X_bp_city_train, X_bp_city_test, y_bp_city_train, y_bp_city_test = train_test_split(X_bp_city, y_bp_city, test_size = 0.3, random_state = 42)
+    #shape of the splits:
+    ##features: X:[n_samples, n_features]
+    ##label: y: [n_samples]
+    print("BANK PANEL-city")
+    print(f"Shape of the split training data set: X_bp_train:{X_bp_city_train.shape}")
+    print(f"Shape of the split training data set: X_bp_test: {X_bp_city_test.shape}")
+    print(f"Shape of the split training data set: y_bp_train: {y_bp_city_train.shape}")
+    print(f"Shape of the split training data set: y_bp_test: {y_bp_city_test.shape}")
+
+    log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
+                               fit_intercept = True, intercept_scaling = 1,
+                               l1_ratio = None, max_iter = 100,
+                               multi_class = 'auto', n_jobs = None,
+                               solver = 'lbfgs', tol = 0.0001, verbose = 0,
+                               warm_start = False)
+    #create the RFE model and select the eight most striking attributes
+    rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+    rfe = rfe.fit(X_cp_city_train, y_cp_city_train)
+    #selected attributes
+    print('Selected features: %s' % list(X_cp_city_train.columns[rfe.support_]))
+    print(rfe.ranking_)
+
+    #Use the Cross-Validation function of the RFE module
+    #accuracy describes the number of correct classifications
+    rfecv = RFECV(estimator = log_reg, step = 1, cv = 8, scoring = 'accuracy')
+    rfecv.fit(X_cp_city_train, y_cp_city_train)
+
+    print("Optimal number of features: %d" % rfecv.n_features_)
+    print('Selected features: %s' % list(X_cp.columns[rfecv.support_]))
+#%%
+    #PASS TO RECURSIVE FEATURE EXTRACTION BANK PANEL
+    #build a logistic regression and use recursive feature elimination to exclude trivial features
+    log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
+                                   fit_intercept = True, intercept_scaling = 1,
+                                   l1_ratio = None, max_iter = 100,
+                                   multi_class = 'auto', n_jobs = None,
+                                   penalty = 'l2', random_state = None,
+                                   solver = 'lbfgs', tol = 0.0001, verbose = 0,
+                                   warm_start = False)
+    #create the RFE model and select the eight most striking attributes
+    rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+    rfe = rfe.fit(X_bp_city_train, y_bp_city_train)
+    #selected attributes
+    print('Selected features: %s' % list(X_bp_city_train.columns[rfe.support_]))
+    print(rfe.ranking_)
+
+    #Use the Cross-Validation function of the RFE module
+    #accuracy describes the number of correct classifications
+    rfecv = RFECV(estimator = log_reg, step = 1, cv = 8, scoring = 'accuracy')
+    rfecv.fit(X_bp_city_train, y_bp_city_train)
+
+    print("Optimal number of features: %d" % rfecv.n_features_)
+    print('Selected features: %s' % list(X_bp.columns[rfecv.support_]))
+
+    #plot number of features VS. cross-validation scores
+    #plt.figure(figsize = (10,6))
+    #plt.xlabel("Number of features selected")
+    #plt.ylabel("Cross validation score (nb of correct classifications)")
+    #plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+    #plt.show
+#%%
 #local outlier frequency
 #anti-fraud system + labeling
 #pick parameters to spot outliers in
