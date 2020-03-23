@@ -39,13 +39,13 @@ trans_cat_card = df_card['transaction_category_name'].unique()
 trans_cat_bank = df_bank['transaction_category_name'].unique()
 #append these unique to dictionaries measuring expenses or income with their respective categories
 card_inc = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts']
-card_exp = ['Groceries' 'Automotive/Fuel' 'Home Improvement' 'Travel' 'Restaurants'
- 'Healthcare/Medical' 'Credit Card Payments'
- 'Electronics/General Merchandise' 'Entertainment/Recreation'
- 'Postage/Shipping' 'Other Expenses' 'Personal/Family'
- 'Service Charges/Fees'  'Services/Supplies', 'Utilities'
- 'Office Expenses' 'Cable/Satellite/Telecom',
- 'Subscriptions/Renewals', 'Insurance']
+card_exp = ['Groceries', 'Automotive/Fuel', 'Home Improvement', 'Travel',
+            'Restaurants', 'Healthcare/Medical', 'Credit Card Payments',
+            'Electronics/General Merchandise', 'Entertainment/Recreation',
+            'Postage/Shipping', 'Other Expenses', 'Personal/Family',
+            'Service Charges/Fees', 'Services/Supplies', 'Utilities',
+            'Office Expenses', 'Cable/Satellite/Telecom',
+            'Subscriptions/Renewals', 'Insurance']
 bank_inc = ['Deposits', 'Salary/Regular Income', 'Transfers',
             'Investment/Retirement Income', 'Rewards', 'Other Income',
             'Refunds/Adjustments', 'Interest Income', 'Gifts', 'Expense Reimbursement']
@@ -254,7 +254,7 @@ df_bank_csv = df_bank[['unique_mem_id', 'amount']].to_csv('C:\/Users/bill-/Deskt
 #%%
 #Import the python CSV module
 import csv
-
+transaction_dict = {}
 #Create a python file object in read mode for the `baby_names.csv` file: csvfile
 csvfile = open('C:/Users/bill-/Desktop/df_card_edited.csv', 'r')
 
@@ -263,10 +263,10 @@ for row in csv.DictReader(csvfile):
     #Print each row
     print(row)
     #Add the rank and name to the dictionary: baby_names
-    trans_dict[row['unique_mem_id']] += row['amount']
+    transaction_dict[row['unique_mem_id']].append(row['amount'])
 
 #Print the dictionary keys
-print(trans_dict.keys())
+print(transaction_dict.keys())
 
 #%%
 #Create an empty dictionary: income and expenses
@@ -277,7 +277,7 @@ income_dict = {}
 for mem_id, amount in df_card.items():
     #Add the unique member ID as key and one or several columns as values
     #Dict[Key] = Value
-    income_dict[mem_id] =  amount, #amount_mean_lag30
+    income_dict[mem_id].append(amount)#amount_mean_lag30
 print(income_dict.keys())
 
 #Sort the names list by rank in descending order and slice the first 10 items
@@ -286,31 +286,38 @@ print(income_dict.keys())
 #    print(income_dict[card_members])
 #%%
 #to_dict method
+#nested dict; does not work
 #df_income = df_card[['unique_mem_id', 'amount']]
 #test_dict = df_income.T.to_dict()
 #%%
+#produces syntax error; regarding one single user_id
 #df = pd.read_csv("file")
 #d= dict([(i,[a,b,c ]) for i, a,b,c in zip(df.ID, df.A,df.B,df.C)])
-#test_dictionary = {}
-#for i, income in zip(df_card.unique_mem_id, df_card.amount):
-#    print(set(zip(df_card.unique_mem_id, df_card.amount))
-#    test_dictionary[i] = income
+test_dictionary = {}
+additive_dict = {}
+transaction = df_card['transaction_class']
+string = 'expense'
+for i,expense,transaction in zip(card_members, df_card.amount, df_card.transaction_class):
+    while transaction == string:
+        print(list(zip(i, expense, transaction)))
+        test_dictionary[i].append(expense)
+        additive_dict += transaction
 #%%
 #try with csv here
-#from collections import defaultdict
+from collections import defaultdict
 
-#d = defaultdict(int)
+d = defaultdict(int)
 
-#with open("data.txt") as f:
-#    for line in f:
-#        tokens = [t.strip() for t in line.split(",")]
-#        try:
-#            sid = int(tokens[3])
-#            mark = int(tokens[4])
-#        except ValueError:
-#            continue
-#        d[sid] += mark
-#print(d)
+with open("data.txt") as f:
+    for line in f:
+        tokens = [t.strip() for t in line.split(",")]
+        try:
+            sid = int(tokens[3])
+            mark = int(tokens[4])
+        except ValueError:
+            continue
+        d[sid] += mark
+print(d)
 #%%
 #try directly here
 d = defaultdict(list)
@@ -407,5 +414,18 @@ zip(expenses_only)
 for unique_mem_id, amount in expenses_only.items():
     transaction_dict[unique_mem_id[0]] = amount[3]
 #%%
-while df_card[df_card['transaction_class'] != 'income']:
+#while df_card[df_card['transaction_class'] != 'income']:
+#%%
+#Import defaultdict
+from collections import defaultdict
 
+#Create a defaultdict with a default type of list: ridership
+ridership = defaultdict(list)
+
+#Iterate over the entries
+for date, stop, riders in entries:
+    #Use the stop as the key of ridership and append the riders to its value
+    ridership[stop].append(riders)
+
+#Print the first 10 items of the ridership dictionary
+print(list(ridership.items())[:10])
