@@ -85,7 +85,7 @@ try:
         elif df_bank["transaction_category_name"][i] in bank_exp:
             transaction_class_bank[i] = "expense"
         else:
-            transaction_class_bank[i] = "NOT CLASSIFIED"
+            transaction_class_bank[i] = "NOT_CLASSIFIED"
     df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = transaction_class_bank)
 except:
     print("column is already existing and cannot be appended again")
@@ -384,6 +384,29 @@ filter(lambda line: line != '!', open('something.txt'))
 for mem_id in card_members:
     print(mem_id)
     print(df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum())
+#%%
+#CLOSE SOLUTION
+#df["Amount"][df["Amount"] >= 0].groupby(df.Month).sum()
+#df[column][condition =<> x].sum()
+
+ID_exp_df = df_card[['amount', 'transaction_class']][df_card['transaction_class'] == "expense"].groupby(df_card['unique_mem_id'])
+ID_exp_df.describe()
+#%%
+amount_df = df_card[['amount', 'unique_mem_id']][df_card['transaction_class'] == "expense"].groupby(df_card['unique_mem_id'])
+#%%
+bug_df = df_card[['amount', 'transaction_class']][df_card['unique_mem_id'] == "70850441974905670928446"].groupby(df_card['unique_mem_id'])
+#%%
+#prints all transactions by unique member id
+#always same error; might be bugged
+dict_1 = {}
+try:
+    for i in card_members:
+        for amount, trans in df_card.iterrows():
+            while trans[34] == 'expense':
+                dict_1[i].append(amount[3])
+except:
+    pass
+    raise Warning(f"following ID has not been added: {i}")
 #%%
 #almost works
 #dictionary displays mem_id with transaction sum ( no split up between exp/inc)

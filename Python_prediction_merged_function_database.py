@@ -18,6 +18,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error
 
 #from datetime import datetime
 #import seaborn as sns
@@ -736,6 +740,35 @@ except:
     #plt.ylabel("Cross validation score (nb of correct classifications)")
     #plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
     #plt.show
+#%%
+
+RFR = RandomForestRegressor()
+parameters = {'n_estimators': [5, 10, 100],
+              #'criterion': ['mse'],
+              #'max_depth': [5, 10, 15],
+              #'min_samples_split': [2, 5, 10],
+              'min_samples_leaf': [1,5]
+             }
+# Run the grid search
+grid_obj = GridSearchCV(RFR, parameters,
+                        cv=5, #Determines the cross-validation splitting strategy /to specify the number of folds in a (Stratified)KFold
+                        n_jobs=-1,
+                        verbose=1)
+grid_obj = grid_obj.fit(X, y)
+# Set the clf to the best combination of parameters
+RFR = grid_obj.best_estimator_
+# Fit the best algorithm to the data.
+RFR.fit(X, y)
+
+
+predictions = RFR.predict(X_test)
+#if we want to Re-scale, use this lines of code :
+#predictions = predictions * (max_train - min_train) + min_train
+#y_validation_RF = y_validation * (max_train - min_train) + min_train
+#if not, keep this one:
+y_validation_RF = y_test
+print('R2 score = ',r2_score(y_validation_RF, predictions), '/ 1.0')
+print('MSE score = ',mean_squared_error(y_validation_RF, predictions), '/ 0.0')
 #%%
 #local outlier frequency
 #anti-fraud system + labeling
