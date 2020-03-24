@@ -641,9 +641,11 @@ def predict_city():
 #            df_bank_rdy['city'] = le.fit_transform(df_bank_rdy['city'])
 #except:
 #    raise Warning('column city has not been converted to brackets! or is already converted')
-
+    #handle missing values in the bank and card panel df or the search grid fails
     df_bank_rdy['state'].fillna(value = 'unknown', axis = 0)
     df_bank_rdy['city'].fillna(value = 'unknown', axis = 0)
+    df_card_rdy['state'].fillna(value = 'unknown', axis = 0)
+    df_card_rdy['city'].fillna(value = 'unknown', axis = 0)
     y_cp_city = df_card_rdy['city']
     X_cp_city = df_card_rdy[['post_date_month', 'post_date_week',
        'post_date_weekday',  'optimized_transaction_date_week',
