@@ -667,6 +667,7 @@ except:
        'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
        'amount_std_lag7', 'amount_std_lag30']]
 
+    #TRAIN SPLIT FOR THE CARD PANEL
     X_cp_city_train, X_cp_city_test, y_cp_city_train, y_cp_city_test = train_test_split(X_cp_city, y_cp_city, test_size = 0.3, random_state = 42)
     #shape of the splits:
     ##features: X:[n_samples, n_features]
@@ -678,7 +679,6 @@ except:
     print(f"Shape of the split training data set: y_cp_test: {y_cp_city_test.shape}")
     #%%
     #TRAIN TEST SPLIT FOR BANK PANEL
-    #from sklearn.model_selection import train_test_split
     X_bp_city_train, X_bp_city_test, y_bp_city_train, y_bp_city_test = train_test_split(X_bp_city, y_bp_city, test_size = 0.3, random_state = 42)
     #shape of the splits:
     ##features: X:[n_samples, n_features]
@@ -688,85 +688,36 @@ except:
     print(f"Shape of the split training data set: X_bp_test: {X_bp_city_test.shape}")
     print(f"Shape of the split training data set: y_bp_train: {y_bp_city_train.shape}")
     print(f"Shape of the split training data set: y_bp_test: {y_bp_city_test.shape}")
-
-    log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
-                               fit_intercept = True, intercept_scaling = 1,
-                               l1_ratio = None, max_iter = 100,
-                               multi_class = 'auto', n_jobs = None,
-                               solver = 'lbfgs', tol = 0.0001, verbose = 0,
-                               warm_start = False)
-    #create the RFE model and select the eight most striking attributes
-    rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-    rfe = rfe.fit(X_cp_city_train, y_cp_city_train)
-    #selected attributes
-    print('Selected features: %s' % list(X_cp_city_train.columns[rfe.support_]))
-    print(rfe.ranking_)
-
-    #Use the Cross-Validation function of the RFE module
-    #accuracy describes the number of correct classifications
-    rfecv = RFECV(estimator = log_reg, step = 1, cv = 8, scoring = 'accuracy')
-    rfecv.fit(X_cp_city_train, y_cp_city_train)
-
-    print("Optimal number of features: %d" % rfecv.n_features_)
-    print('Selected features: %s' % list(X_cp.columns[rfecv.support_]))
 #%%
-    #PASS TO RECURSIVE FEATURE EXTRACTION BANK PANEL
-    #build a logistic regression and use recursive feature elimination to exclude trivial features
-    log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
-                                   fit_intercept = True, intercept_scaling = 1,
-                                   l1_ratio = None, max_iter = 100,
-                                   multi_class = 'auto', n_jobs = None,
-                                   penalty = 'l2', random_state = None,
-                                   solver = 'lbfgs', tol = 0.0001, verbose = 0,
-                                   warm_start = False)
-    #create the RFE model and select the eight most striking attributes
-    rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-    rfe = rfe.fit(X_bp_city_train, y_bp_city_train)
-    #selected attributes
-    print('Selected features: %s' % list(X_bp_city_train.columns[rfe.support_]))
-    print(rfe.ranking_)
-
-    #Use the Cross-Validation function of the RFE module
-    #accuracy describes the number of correct classifications
-    rfecv = RFECV(estimator = log_reg, step = 1, cv = 8, scoring = 'accuracy')
-    rfecv.fit(X_bp_city_train, y_bp_city_train)
-
-    print("Optimal number of features: %d" % rfecv.n_features_)
-    print('Selected features: %s' % list(X_bp.columns[rfecv.support_]))
-
-    #plot number of features VS. cross-validation scores
-    #plt.figure(figsize = (10,6))
-    #plt.xlabel("Number of features selected")
-    #plt.ylabel("Cross validation score (nb of correct classifications)")
-    #plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-    #plt.show
-#%%
-
+'''
+Predict the city with a Random Forest Regressor grid
+'''
 RFR = RandomForestRegressor()
-parameters = {'n_estimators': [5, 10, 100],
+parameters = {'n_estimators': [5, 10, 100, 250, 300],
+              'max_depth': [5, 10, 15, 25],
               #'criterion': ['mse'],
-              #'max_depth': [5, 10, 15],
               #'min_samples_split': [2, 5, 10],
-              'min_samples_leaf': [1,5]
+              'min_samples_leaf': [1, 5, 7]
              }
-# Run the grid search
+#Run the grid search
 grid_obj = GridSearchCV(RFR, parameters,
-                        cv=5, #Determines the cross-validation splitting strategy /to specify the number of folds in a (Stratified)KFold
-                        n_jobs=-1,
-                        verbose=1)
-grid_obj = grid_obj.fit(X, y)
-# Set the clf to the best combination of parameters
+#Determines the cross-validation splitting strategy /to specify the number of folds in a (Stratified)KFold
+                        cv = 5,
+                        n_jobs = -1,
+                        verbose = 1)
+grid_obj = grid_obj.fit(X_cp_city_train, y_bp_city_train)
+#Set the clf to the best combination of parameters
 RFR = grid_obj.best_estimator_
-# Fit the best algorithm to the data.
-RFR.fit(X, y)
+#Fit the best algorithm to the regular data
+RFR.fit(X_cp, y_cp)
 
 
-predictions = RFR.predict(X_test)
-#if we want to Re-scale, use this lines of code :
+predictions = RFR.predict(X_cp_city_test)
+#if we want to re-scale, use these lines of code :
 #predictions = predictions * (max_train - min_train) + min_train
 #y_validation_RF = y_validation * (max_train - min_train) + min_train
 #if not, keep this one:
-y_validation_RF = y_test
+y_validation_RF = y_cp_test
 print('R2 score = ',r2_score(y_validation_RF, predictions), '/ 1.0')
 print('MSE score = ',mean_squared_error(y_validation_RF, predictions), '/ 0.0')
 #%%
