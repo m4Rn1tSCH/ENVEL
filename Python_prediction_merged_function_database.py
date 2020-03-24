@@ -144,9 +144,13 @@ def predict_needed_value(preprocessed_input):
     #transaction_date is duplicated and contains only 0; leave for testing now
     #but drop in the final if optimized trans date is being used
     df_card_rdy.set_index("optimized_transaction_date", drop = False, inplace = False)
+    df_card_rdy['state'].fillna(value = 'unknown')
+    df_card_rdy['city'].fillna(value = 'unknown')
 #UNSOLVED CONSPICUITIES IN DF_BANK
 #columns transaction date is available here and can be normally used;
     df_bank_rdy.set_index("optimized_transaction_date", drop = False, inplace = False)
+    df_bank_rdy['state'].fillna(value = 'unknown')
+    df_bank_rdy['city'].fillna(value = 'unknown')
 #%%
 #remove column transaction_date temporarily;
     date_card_col = ['transaction_date', 'post_date', 'file_created_date',
@@ -642,10 +646,6 @@ def predict_city():
 #except:
 #    raise Warning('column city has not been converted to brackets! or is already converted')
     #handle missing values in the bank and card panel df or the search grid fails
-    df_bank_rdy['state'].fillna(value = 'unknown', axis = 0)
-    df_bank_rdy['city'].fillna(value = 'unknown', axis = 0)
-    df_card_rdy['state'].fillna(value = 'unknown', axis = 0)
-    df_card_rdy['city'].fillna(value = 'unknown', axis = 0)
     y_cp_city = df_card_rdy['city']
     X_cp_city = df_card_rdy[['post_date_month', 'post_date_week',
        'post_date_weekday',  'optimized_transaction_date_week',
