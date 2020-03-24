@@ -417,6 +417,7 @@ for col in list(df_card):
     print("PROCESSED DATAFRAME:")
     print(df_bank.head(3))
     print("DF bank panel preprocessing finished + Ready for a report + Pass to ML models")
+
     #city and state are to be manually converted; potential label for first tests
     df_bank['state'].fillna(value = 'unknown', axis = 0)
     df_bank['city'].fillna(value = 'unknown', axis = 0)

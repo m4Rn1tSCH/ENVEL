@@ -634,14 +634,16 @@ except:
 #%%
 def predict_city():
         le = LabelEncoder()
-try:
-    if df_card_rdy['city'].dtype == 'object':
-        df_card_rdy['city'] = le.fit_transform(df_card_rdy['city'])
-    if df_bank_rdy['city'].dtype == 'object':
-            df_bank_rdy['city'] = le.fit_transform(df_bank_rdy['city'])
-except:
-    raise Warning('column city has not been converted to brackets! or is already converted')
+#try:
+#    if df_card_rdy['city'].dtype == 'object':
+#        df_card_rdy['city'] = le.fit_transform(df_card_rdy['city'])
+#    if df_bank_rdy['city'].dtype == 'object':
+#            df_bank_rdy['city'] = le.fit_transform(df_bank_rdy['city'])
+#except:
+#    raise Warning('column city has not been converted to brackets! or is already converted')
 
+    df_bank_rdy['state'].fillna(value = 'unknown', axis = 0)
+    df_bank_rdy['city'].fillna(value = 'unknown', axis = 0)
     y_cp_city = df_card_rdy['city']
     X_cp_city = df_card_rdy[['post_date_month', 'post_date_week',
        'post_date_weekday',  'optimized_transaction_date_week',
@@ -690,14 +692,14 @@ except:
     print(f"Shape of the split training data set: y_bp_test: {y_bp_city_test.shape}")
 #%%
 '''
-Predict the city with a Random Forest Regressor grid
+Predict the city with a Random Forest Regressor grid CARD PANEL
 '''
 RFR = RandomForestRegressor()
 parameters = {'n_estimators': [5, 10, 100, 250, 300],
-              'max_depth': [5, 10, 15, 25],
+              'max_depth': [5, 10, 15, 25, 30],
               #'criterion': ['mse'],
               #'min_samples_split': [2, 5, 10],
-              'min_samples_leaf': [1, 5, 7]
+              'min_samples_leaf': [1, 5, 7,9 ,12 ]
              }
 #Run the grid search
 grid_obj = GridSearchCV(RFR, parameters,
@@ -705,7 +707,7 @@ grid_obj = GridSearchCV(RFR, parameters,
                         cv = 5,
                         n_jobs = -1,
                         verbose = 1)
-grid_obj = grid_obj.fit(X_cp_city_train, y_bp_city_train)
+grid_obj = grid_obj.fit(X_cp_city_train, y_cp_city_train)
 #Set the clf to the best combination of parameters
 RFR = grid_obj.best_estimator_
 #Fit the best algorithm to the regular data
@@ -722,6 +724,12 @@ print('R2 score = ',r2_score(y_validation_RF, predictions), '/ 1.0')
 print('MSE score = ',mean_squared_error(y_validation_RF, predictions), '/ 0.0')
 #%%
 #local outlier frequency
+#Contamination to match outlier frequency in ground_truth
+preds = lof(
+  contamination=np.mean(ground_truth == -1.0)).fit_predict(X_cp)
+#Print the confusion matrix
+print(confusion_matrix(ground_truth, preds))
+
 #anti-fraud system + labeling
 #pick parameters to spot outliers in
 
