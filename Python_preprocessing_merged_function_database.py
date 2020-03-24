@@ -354,6 +354,8 @@ for col in list(df_card):
     encode all non-numerical values to ready up the data set for classification and regression purposes
     removing all NAs (replacing with "unknown") allows the Label Encoder to convert more columns which in turn allows more labels for prediction
     '''
+    df_card['state'].fillna(value = 'unknown')
+    df_card['city'].fillna(value = 'unknown')
     #applying fit_transform yields: encoding of 22 columns but most of them remain int32 or int64
     #applying first fit to train the data and then apply transform will encode only 11 columns and leaves the others unchanged
     #if 2 or fewer unique categories data type changes to "object"
@@ -388,6 +390,8 @@ for col in list(df_card):
     '''
     encode all non-numerical values to ready up the data set for classification and regression purposes
     '''
+    df_bank['state'].fillna(value = 'unknown')
+    df_bank['city'].fillna(value = 'unknown')
     #applying fit_transform yields: encoding of 22 columns but most of them remain int32 or int64
     #applying first fit to train the data and then apply transform will encode only 11 columns and leaves the others unchanged
     #if 2 or fewer unique categories data type changes to "object"
@@ -419,8 +423,7 @@ for col in list(df_card):
     print("DF bank panel preprocessing finished + Ready for a report + Pass to ML models")
 
     #city and state are to be manually converted; potential label for first tests
-    df_bank['state'].fillna(value = 'unknown', axis = 0)
-    df_bank['city'].fillna(value = 'unknown', axis = 0)
+
 #%%
     '''
             CONVERION OF THE SPENDING REPORTS
