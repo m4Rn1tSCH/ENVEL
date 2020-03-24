@@ -17,6 +17,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import LabelEncoder
 
 #from datetime import datetime
 #import seaborn as sns
@@ -518,10 +519,25 @@ END Prediction for transaction_category_name and RFE for significant features
 Prediction for amount and RFE for significant features
 '''
 def predict_amount():
-    y_cp_amount = df_card_rdy['amount']
+    
+    le = LabelEncoder()
+    le_count = 0
+    #           V1
+    #Iterate through the columns
+    #Train on the training data
+    #Transform both training and testing
+    #Keep track of how many columns were converted
+    for col in df:
+        if df_card['amount'].dtype == 'object':
+            le.fit(df_card['amount'])
+            df_card['amount_brackets'] = le.transform(df[amount])
+            le_count += 1
+    print('%d columns were converted.' % le_count)
+#%%
+    y_cp_amount = df_card_rdy['amount_brackets']
     X_cp_amount = df_card_rdy[['post_date_month', 'post_date_week',
        'post_date_weekday',  'optimized_transaction_date_week',
-       'file_created_date_month', 'transaction_category_name',
+       'fŒile_created_date_month', 'transaction_category_name',
        'file_created_date_week', 'file_created_date_weekday',
        'optimized_transaction_date_month',
        'optimized_transaction_date_weekday', 'swipe_date_month',
@@ -531,7 +547,7 @@ def predict_amount():
        'amount_mean_lag7', 'amount_mean_lag30', 'amount_std_lag3',
        'amount_std_lag7', 'amount_std_lag30']]
 
-    y_bp_amount = df_bank_rdy['amount']
+    y_bp_amount = df_bank_rdy['amount_brackets']
     X_bp_amount = df_bank_rdy[['post_date_month', 'post_date_week',
        'post_date_weekday', 'file_created_date_month', 'transaction_category_name', 
        'file_created_date_week', 'file_created_date_weekday',
@@ -544,7 +560,7 @@ def predict_amount():
        'amount_std_lag7', 'amount_std_lag30']]
 
     X_cp_amount_train, X_cp_amount_test, y_cp_amount_train, y_cp_amount_test = train_test_split(X_cp_amount, y_cp_amount, test_size = 0.3, random_state = 42)
-    #shape of the splits:
+Œ    #shape of the splits:
     ##features: X:[n_samples, n_features]
     ##label: y: [n_samples]
     print("CARD PANEL-AMOUNT")
@@ -564,7 +580,7 @@ def predict_amount():
     print(f"Shape of the split training data set: X_bp_test: {X_bp_amount_test.shape}")
     print(f"Shape of the split training data set: y_bp_train: {y_bp_amount_train.shape}")
     print(f"Shape of the split training data set: y_bp_test: {y_bp_amount_test.shape}")
-
+#%%
     log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
                                fit_intercept = True, intercept_scaling = 1,
                                l1_ratio = None, max_iter = 100,
