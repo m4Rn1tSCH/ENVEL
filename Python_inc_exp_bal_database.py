@@ -16,9 +16,9 @@ with unique IDs and corresponding income and expenses in separate dictionaries
 #load needed packages
 import pandas as pd
 import numpy as np
-from collections import defaultdict
-from datetime import datetime as dt
-import regex
+#from collections import defaultdict
+#from datetime import datetime as dt
+#import regex
 import os
 #%%
 #determine the path of the files
@@ -68,7 +68,7 @@ bank_exp = ['Service Charges/Fees',
 #DF_CARD
 try:
     transaction_class_card = pd.Series([], dtype = 'object')
-    for i in range(len(df_card)):
+    for i in enumerate(df_card):
         if df_card["transaction_category_name"][i] in card_inc:
             transaction_class_card[i] = "income"
         elif df_card["transaction_category_name"][i] in card_exp:
@@ -84,7 +84,7 @@ except:
 #DF_BANK
 try:
     transaction_class_bank = pd.Series([], dtype = 'object')
-    for i in range(len(df_bank)):
+    for i in enumerate(df_bank):
         if df_bank["transaction_category_name"][i] in bank_inc:
             transaction_class_bank[i] = "income"
         elif df_bank["transaction_category_name"][i] in bank_exp:
@@ -129,7 +129,7 @@ bill_env_bank = ['Service Charges/Fees', 'Credit Card Payments',
 #DF_CARD
 try:
     envelope_cat_card = pd.Series([], dtype = 'object')
-    for i in range(len(df_card)):
+    for i in enumerate(df_card):
         if df_card["transaction_category_name"][i] in cash_env_card:
             envelope_cat_card[i] = "cash"
         elif df_card["transaction_category_name"][i] in bill_env_card:
@@ -143,7 +143,7 @@ except:
 #DF_BANK
 try:
     envelope_cat_bank = pd.Series([], dtype = 'object')
-    for i in range(len(df_bank)):
+    for i in enumerate(df_bank):
         if df_bank["transaction_category_name"][i] in cash_env_bank:
             envelope_cat_bank[i] = "cash"
         elif df_bank["transaction_category_name"][i] in bill_env_bank:
@@ -312,59 +312,14 @@ card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]
 bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 #%%
-#Create an empty dictionary: income and expenses
-income_dict = {}
-
-#Loop over dataframe for card transactions
-#tuple indices have to be numbers!!
-for mem_id, amount in df_card.items():
-    #Add the unique member ID as key and one or several columns as values
-    #Dict[Key] = Value
-    income_dict[mem_id].append(amount)#amount_mean_lag30
-print(income_dict.keys())
 
 #Sort the names list by rank in descending order and slice the first 10 items
 #for row in sorted(row, reverse = False)[:10]:
 #    #Print each item
 #    print(income_dict[card_members])
 #%%
-#to_dict method
-#nested dict; does not work
-#df_income = df_card[['unique_mem_id', 'amount']]
-#test_dict = df_income.T.to_dict()
-#%%
-#produces syntax error; regarding one single user_id
 #df = pd.read_csv("file")
 #d= dict([(i,[a,b,c ]) for i, a,b,c in zip(df.ID, df.A,df.B,df.C)])
-#%%
-#try with csv here
-#from collections import defaultdict
-
-#d = defaultdict(int)
-
-with open("data.txt") as f:
-    for line in f:
-        tokens = [t.strip() for t in line.split(",")]
-        try:
-            sid = int(tokens[3])
-            mark = int(tokens[4])
-        except ValueError:
-            continue
-        d[sid] += mark
-print(d)
-#%%
-#try directly here
-d = defaultdict(list)
-
-for row in df_card:
-    try:
-        key = card_members
-        value = df_card['amount']
-    except ValueError:
-        value = str('not classified')
-        continue
-    d[key] += value
-print(d)
 #%%
 #test_dictionary = {}
 
@@ -404,20 +359,21 @@ for member in card_members:
              #df_[f"{member}"] = pd.DataFrame({'Member_ID': member,
              #                                 'Cumulative_Sum': np.cumsum(row['amount'], axis = 0)}, index = None)
 #%%
+#ALMOST WORKS
 amount_list = []
 for member in card_members:
     for index, row in df_card.iterrows():
          # access data using column names
          if row['transaction_class'] != "expense":
-             #print(index, row.unique_mem_id, row.amount, row.transaction_class)
+             #print(index, row['unique_mem_id'], row['amount'], row['transaction_class'])
              amount_list.append(row['amount'])
              cumulative_amount = np.cumsum(amount_list, axis = 0)
-             print(index, row['unique_mem_id'], cumulative_amount)
+             print(f"TIMESTAMP:{index}, USER_ID:{row['unique_mem_id']}, \n {cumulative_amount}")
          #else:
           #   print("stopped at {row['index']}, user_ID: {row['unique_mem_id']}, cumulative sum injected: {cumulative amount}")
            #  break
 #%%
-#ALMOST WORKS
+#THIS MOFO WORKS
 #for row in flights.head().itertuples():
 #    print(row.Index, row.date, row.delay)
 amount_list = []
@@ -430,10 +386,10 @@ for member in card_members:
              cumulative_amount = np.cumsum(amount_list, axis = 0)
              print(row.unique_mem_id, cumulative_amount)
          else:
-             #print(row.unique_mem_id, cumulative_amount)
-             print("stoppes at {row.index}, user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative amount}")
+             print(row.unique_mem_id, cumulative_amount)
+             #print("stoppes at {row.index}, user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative amount}")
              break
-
+    #print(f"unique_member_ID: {member}; {cumulative_amount[-1]}")
 #%%
 #for row in flights.head().itertuples():
 #    print(row.Index, row.date, row.delay)
