@@ -37,6 +37,9 @@ bank_members = df_bank['unique_mem_id'].unique()
 demo_members = df_card['unique_mem_id'].unique()
 trans_cat_card = df_card['transaction_category_name'].unique()
 trans_cat_bank = df_bank['transaction_category_name'].unique()
+'''
+ADD DESCRIPTION
+'''
 #append these unique to dictionaries measuring expenses or income with their respective categories
 card_inc = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts']
 card_exp = ['Groceries', 'Automotive/Fuel', 'Home Improvement', 'Travel',
@@ -77,7 +80,7 @@ except:
     print("column is already existing, cannot be added again")
 #    df_card.drop(['transaction_class'], axis = 1)
 #    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
-#%%
+###################################
 #DF_BANK
 try:
     transaction_class_bank = pd.Series([], dtype = 'object')
@@ -93,36 +96,63 @@ except:
     print("column is already existing and cannot be appended again")
 #%%
 '''
-ADD DESCRIPTION
+POSTGRE-SQL COLUMNS
+This section adds a classification of transaction categories to allow a proper allocation to either the cash or the bills envelope
+Bills describes as of 3/26/2020 all kinds of payment whose occurrence is beyond one's control,
+that comes due and for which non-compliance has evere consequences
+All other kinds of payments that are of optional nature and can be avoided are classifed as cash
 '''
+cash_env_card = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts',
+                 'Restaurants', 'Electronics/General Merchandise',
+                 'Entertainment/Recreation', 'Postage/Shipping', 'Other Expenses',
+                 'Personal/Family','Groceries', 'Automotive/Fuel',  'Travel']
+
+bill_env_card = ['Home Improvement', 'Healthcare/Medical', 'Credit Card Payments'
+                 'Service Charges/Fees', 'Services/Supplies', 'Utilities',
+                 'Office Expenses', 'Cable/Satellite/Telecom',
+                 'Subscriptions/Renewals', 'Insurance']
+
+cash_env_bank = ['Deposits', 'Salary/Regular Income', 'Transfers',
+                 'Investment/Retirement Income', 'Rewards', 'Other Income',
+                 'Refunds/Adjustments', 'Interest Income', 'Gifts', 'Expense Reimbursement',
+                 'Electronics/General Merchandise', 'Groceries', 'Automotive/Fuel',
+                 'Restaurants', 'Personal/Family', 'Entertainment/Recreation',
+                 'Services/Supplies', 'Other Expenses', 'ATM/Cash Withdrawals',
+                 'Postage/Shipping', 'Travel', 'Education', 'Charitable Giving',
+                 'Office Expenses']
+
+bill_env_bank = ['Service Charges/Fees', 'Credit Card Payments',
+                 'Utilities', 'Healthcare/Medical', 'Loans', 'Check Payment',
+                 'Cable/Satellite/Telecom', 'Insurance', 'Taxes', 'Home Improvement',
+                 'Subscriptions/Renewals', 'Rent', 'Mortgage']
 #iterate through rows and create a new columns with a note that it is either an expense or income
 #DF_CARD
 try:
     envelope_cat_card = pd.Series([], dtype = 'object')
     for i in range(len(df_card)):
-        if df_card["transaction_category_name"][i] in card_inc:
-            envelope_cat_card[i] = "income"
-        elif df_card["transaction_category_name"][i] in card_exp:
-            envelope_cat_card[i] = "expense"
+        if df_card["transaction_category_name"][i] in cash_env_card:
+            envelope_cat_card[i] = "cash"
+        elif df_card["transaction_category_name"][i] in bill_env_card:
+            envelope_cat_card[i] = "bill"
         else:
             envelope_cat_card[i] = "NOT_CLASSIFIED"
-    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = envelope_cat_card)
+    df_card.insert(loc = len(df_card.columns), column = "envelope_category", value = envelope_cat_card)
 except:
-    print("column is already existing, cannot be added again")
-#%%
+    print("CASH/BILL column is already existing, cannot be added again")
+##############################
 #DF_BANK
 try:
     envelope_cat_bank = pd.Series([], dtype = 'object')
     for i in range(len(df_bank)):
-        if df_bank["transaction_category_name"][i] in bank_inc:
-            envelope_cat_bank[i] = "income"
-        elif df_bank["transaction_category_name"][i] in bank_exp:
-            envelope_cat_bank[i] = "expense"
+        if df_bank["transaction_category_name"][i] in cash_env_bank:
+            envelope_cat_bank[i] = "cash"
+        elif df_bank["transaction_category_name"][i] in bill_env_bank:
+            envelope_cat_bank[i] = "bill"
         else:
             envelope_cat_bank[i] = "NOT_CLASSIFIED"
-    df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = envelope_cat_bank)
+    df_bank.insert(loc = len(df_bank.columns), column = "envelope_category", value = envelope_cat_bank)
 except:
-    print("column is already existing and cannot be appended again")
+    print("CASH/BILL column is already existing and cannot be appended again")
 #%%
 '''
 #Datetime engineering DF_CARD
