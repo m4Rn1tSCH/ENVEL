@@ -59,7 +59,9 @@ bank_exp = ['Service Charges/Fees',
             'Home Improvement', 'Education', 'Charitable Giving',
             'Subscriptions/Renewals', 'Rent', 'Office Expenses', 'Mortgage']
 #%%
+'''
 #iterate through rows and create a new columns with a note that it is either an expense or income
+'''
 #DF_CARD
 try:
     transaction_class_card = pd.Series([], dtype = 'object')
@@ -69,7 +71,7 @@ try:
         elif df_card["transaction_category_name"][i] in card_exp:
             transaction_class_card[i] = "expense"
         else:
-            transaction_class_card[i] = "NOT CLASSIFIED"
+            transaction_class_card[i] = "NOT_CLASSIFIED"
     df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
 except:
     print("column is already existing, cannot be added again")
@@ -89,10 +91,42 @@ try:
     df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = transaction_class_bank)
 except:
     print("column is already existing and cannot be appended again")
-#    df_card.drop(['transaction_class'], axis = 1)
-#    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
 #%%
+'''
+ADD DESCRIPTION
+'''
+#iterate through rows and create a new columns with a note that it is either an expense or income
+#DF_CARD
+try:
+    envelope_cat_card = pd.Series([], dtype = 'object')
+    for i in range(len(df_card)):
+        if df_card["transaction_category_name"][i] in card_inc:
+            envelope_cat_card[i] = "income"
+        elif df_card["transaction_category_name"][i] in card_exp:
+            envelope_cat_card[i] = "expense"
+        else:
+            envelope_cat_card[i] = "NOT_CLASSIFIED"
+    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = envelope_cat_card)
+except:
+    print("column is already existing, cannot be added again")
+#%%
+#DF_BANK
+try:
+    envelope_cat_bank = pd.Series([], dtype = 'object')
+    for i in range(len(df_bank)):
+        if df_bank["transaction_category_name"][i] in bank_inc:
+            envelope_cat_bank[i] = "income"
+        elif df_bank["transaction_category_name"][i] in bank_exp:
+            envelope_cat_bank[i] = "expense"
+        else:
+            envelope_cat_bank[i] = "NOT_CLASSIFIED"
+    df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = envelope_cat_bank)
+except:
+    print("column is already existing and cannot be appended again")
+#%%
+'''
 #Datetime engineering DF_CARD
+'''
 for col in list(df_card):
     if df_card[col].dtype == 'datetime64[ns]':
         df_card[f"{col}_month"] = df_card[col].dt.month
