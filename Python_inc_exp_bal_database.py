@@ -72,7 +72,7 @@ try:
             transaction_class_card[i] = "NOT CLASSIFIED"
     df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
 except:
-    print("column is already existing, canot be added again")
+    print("column is already existing, cannot be added again")
 #    df_card.drop(['transaction_class'], axis = 1)
 #    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
 #%%
@@ -248,27 +248,6 @@ card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]
 bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 #%%
-#convert it to csv
-df_card_csv = df_card[['unique_mem_id', 'amount', 'transaction_class']].to_csv('C:/Users/bill-/Desktop/df_card_edited.csv')
-df_bank_csv = df_bank[['unique_mem_id', 'amount', 'transaction_class']].to_csv('C:\/Users/bill-/Desktop/df_bank_edited.csv')
-#%%
-#Import the python CSV module
-import csv
-transaction_dict = {}
-#Create a python file object in read mode for the `baby_names.csv` file: csvfile
-csvfile = open('C:/Users/bill-/Desktop/df_card_edited.csv', 'r')
-
-#Loop over a DictReader on the file
-for row in csv.DictReader(csvfile):
-    #Print each row
-    print(row)
-    #Add the rank and name to the dictionary: baby_names
-    transaction_dict[row['unique_mem_id']].append(row['amount'])
-
-#Print the dictionary keys
-print(transaction_dict.keys())
-
-#%%
 #Create an empty dictionary: income and expenses
 income_dict = {}
 
@@ -293,23 +272,6 @@ print(income_dict.keys())
 #produces syntax error; regarding one single user_id
 #df = pd.read_csv("file")
 #d= dict([(i,[a,b,c ]) for i, a,b,c in zip(df.ID, df.A,df.B,df.C)])
-test_dictionary = {}
-additive_dict = {}
-#iterrows() goes row-wise over indices and corresponding columns; returns one row element at a time
-#iterator object for transaction classifications
-#in 35th column of the df_card that is unedited
-#transactions = next(df_card['transaction_class'].iterrows())
-#iterator now in tuple format
-transactions = next(df_card.itertuples())
-#iterator object for monetary amounts
-#in 4th column of df_card
-amounts = next(df_card.itertuples())
-string = 'expense'
-for i, amount, transaction in zip(card_members, amounts, transactions):
-    print(i, amount, transaction)
-    while transaction == string:
-        test_dictionary[i].append(amount[4])
-        additive_dict[i] += amount
 #%%
 #try with csv here
 #from collections import defaultdict
@@ -364,109 +326,71 @@ for ids, money in zip(df_card.unique_mem_id, df_card.amount):
 #        d[key] += value
 #print d
 #%%
-#test directly
-from collections import defaultdict
-trans_dict = defaultdict(list)
+#get content of the entire row with the second element of the tuple that is being generated
+#row = next(df_card.iterrows())[1]
+# iterate over rows with iterrows()
+#df_ = pd.DataFrame()
+for member in card_members:
+    for index, row in df_card.iterrows():
+         # access data using column names
+         if row['transaction_class'] == "expense":
+             print(index, row['unique_mem_id'], row['amount'], row['transaction_class'])
+             cumulative_amount = np.cumsum(row['amount'],axis = 0)
+             print(row['unique_mem_id'], cumulative_amount)
+             #df_[f"{member}"] = pd.DataFrame({'Member_ID': member,
+             #                                 'Cumulative_Sum': np.cumsum(row['amount'], axis = 0)}, index = None)
+#%%
+amount_list = []
+for member in card_members:
+    for index, row in df_card.iterrows():
+         # access data using column names
+         if row['transaction_class'] != "expense":
+             #print(index, row.unique_mem_id, row.amount, row.transaction_class)
+             amount_list.append(row['amount'])
+             cumulative_amount = np.cumsum(amount_list, axis = 0)
+             print(index, row['unique_mem_id'], cumulative_amount)
+         #else:
+          #   print("stopped at {row['index']}, user_ID: {row['unique_mem_id']}, cumulative sum injected: {cumulative amount}")
+           #  break
+#%%
+#ALMOST WORKS
+#for row in flights.head().itertuples():
+#    print(row.Index, row.date, row.delay)
+amount_list = []
+for member in card_members:
+    for row in df_card.itertuples():
+         # access data using column names
+         if row.transaction_class == "expense":
+             #print(index, row.unique_mem_id, row.amount, row.transaction_class)
+             amount_list.append(row.amount)
+             cumulative_amount = np.cumsum(amount_list, axis = 0)
+             print(row.unique_mem_id, cumulative_amount)
+         else:
+             #print(row.unique_mem_id, cumulative_amount)
+             print("stoppes at {row.index}, user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative amount}")
+             break
 
-for row in df_card.items():
-    try:
-        key = card_members
-        value = df_card.amount
-    except ValueError:
-        continue
-    trans_dict[row[key]] += row[value]
-
-#print(trans_dict)
 #%%
-filter(lambda line: line != '!', open('something.txt'))
-#%%
-#good
-for mem_id in card_members:
-    print(mem_id)
-    print(df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum())
-#%%
-#CLOSE SOLUTION
-#df["Amount"][df["Amount"] >= 0].groupby(df.Month).sum()
-#df[column][condition =<> x].sum()
-
-ID_exp_df = df_card[['amount', 'transaction_class']][df_card['transaction_class'] == "expense"].groupby(df_card['unique_mem_id'])
-ID_exp_df.describe()
-#%%
-amount_df = df_card[['amount', 'unique_mem_id']][df_card['transaction_class'] == "expense"].groupby(df_card['unique_mem_id'])
-#%%
-#CLOSE
-for mem_id in card_members:
-    for i in range(len(df_card)):
-        row = df_card[['amount', 'transaction_class']].iloc[i]['transaction_class']
-    #    print(row)
-        if regex.search("expense", row):
-            row[1].cumsum()
-#%%
-df_card.iloc[]
-#%%
-#prints all transactions by unique member id
-#always same error; might be bugged
-dict_1 = {}
-try:
-    for i in card_members:
-        for amount, trans in df_card.iterrows():
-            while trans[34] == 'expense':
-                dict_1[i].append(amount[3])
-except:
-    pass
-    raise Warning(f"following ID has not been added: {i}")
+#for row in flights.head().itertuples():
+#    print(row.Index, row.date, row.delay)
+amount_list = []
+for member in card_members:
+    for row in df_card.itertuples():
+         # access data using column names
+         if row.transaction_class != "expense":
+             #print(index, row.unique_mem_id, row.amount, row.transaction_class)
+             amount_list.append(row.amount)
+             cumulative_amount = np.cumsum(amount_list, axis = 0)
+             print(row.unique_mem_id, cumulative_amount)
+         else:
+             print(row.unique_mem_id, cumulative_amount)
+             break
 #%%
 #almost works
 #dictionary displays mem_id with transaction sum ( no split up between exp/inc)
-turnover_dictionary= {}
-for mem_id in card_members:
-    key = mem_id
-    value = df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum()
-    turnover_dictionary[key] += value
-print(turnover_dictionary.keys())
-#%%
-dictionary = {}
-for mem_id in card_members:
-    key = mem_id
-    value = df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum()
-    dictionary[key] = value
-print(dictionary.keys())
-#%%
-dictionary = {}
-for mem_id in card_members:
-    for row in df_card[df_card['transaction_class'] == 'expense']:
-        key = mem_id
-        value = df_card[df_card['unique_mem_id'] == mem_id]['amount']
-        dictionary[key] += value
-    else:
-        break
-print(dictionary.keys())
-#%%
-mem_id_df = df_card[['unique_mem_id', 'amount']].groupby('unique_mem_id').apply(lambda x: x['unique_mem_id'].unique())
-#%%
-mem_id_df_2 = df_card[['unique_mem_id', 'amount']].groupby('unique_mem_id')
-print(pd.DataFrame(mem_id_df_2))
-#%%
-mem_id_d = dict(zip(df_card.unique_mem_id, df_card.amount))
-#%%
-transaction_dict = {}
-expenses_only = df_card[df_card['transaction_class'] == 'expense']
-zip(expenses_only)
-for unique_mem_id, amount in expenses_only.items():
-    transaction_dict[unique_mem_id[0]] = amount[3]
-#%%
-#while df_card[df_card['transaction_class'] != 'income']:
-#%%
-#Import defaultdict
-from collections import defaultdict
-
-#Create a defaultdict with a default type of list: ridership
-ridership = defaultdict(list)
-
-#Iterate over the entries
-for date, stop, riders in entries:
-    #Use the stop as the key of ridership and append the riders to its value
-    ridership[stop].append(riders)
-
-#Print the first 10 items of the ridership dictionary
-print(list(ridership.items())[:10])
+#turnover_dictionary= {}
+#for mem_id in card_members:
+#    key = mem_id
+#    value = df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum()
+#    turnover_dictionary[key] += value
+#print(turnover_dictionary.keys())
