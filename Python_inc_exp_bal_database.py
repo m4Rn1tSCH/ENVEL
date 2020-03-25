@@ -377,7 +377,9 @@ for member in card_members:
 #for row in flights.head().itertuples():
 #    print(row.Index, row.date, row.delay)
 amount_list = []
+
 for member in card_members:
+    #cumulative_amount = []
     for row in df_card.itertuples():
          # access data using column names
          if row.transaction_class == "expense":
@@ -389,7 +391,9 @@ for member in card_members:
              print(row.unique_mem_id, cumulative_amount)
              #print("stoppes at {row.index}, user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative amount}")
              break
-    #print(f"unique_member_ID: {member}; {cumulative_amount[-1]}")
+    #print out the member id as part of the for-loop and and the last element of the list
+    print(f"unique_member_ID: {member}; {cumulative_amount[-1]}")
+    cumulative_amount = []
 #%%
 #for row in flights.head().itertuples():
 #    print(row.Index, row.date, row.delay)
