@@ -57,10 +57,14 @@ error_list = []
 '''
 try control has to be inside the for loop; while iterating the attempt shall be made
 and if an exception occurs, it shall be appended to the list and the loop is to be continued
-pattern_1 = r'[\w\.-]+@[\w\.-]+'
-pattern_2 = r'\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)'
-pattern_3 = r'\d{1,9}+\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)'
 '''
+#works
+pattern_1 = r'[\w\.-]+@[\w\.-]+'
+#works the best for student mail
+pattern_2 = r'\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)'
+#produces worse results than pattern 2
+pattern_3 = r'\d+|\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)\b)'
+pattern_list = [pattern_1, pattern_2, pattern_3]
 for link in path_list:
     try:
         pagenums = set()
@@ -75,12 +79,10 @@ for link in path_list:
         converter.close()
         text = output.getvalue()
         output.close()
-        match = re.search(r'\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)', text)
-        #match_2 = re.search(r'\d{1,9}+\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)', text)
+        for x in pattern_list:
+            match = re.search(x, text)
         email = match.group(0)
-        #email_2 = match_2.group(0)
         pure_email_list.append(email)
-        #pure_email_list.append(email_2)
         #shutil.move(source_folder, destination)
         #with open('C:/Users/bill-/Desktop/Harvard_mail_list.csv','a') as newFile:
             #newFileWriter=csv.writer(newFile)
@@ -113,10 +115,13 @@ error_list = []
 '''
 try control has to be inside the for loop; while iterating the attempt shall be made
 and if an exception occurs, it shall be appended to the list and the loop is to be continued
-pattern_1 = r'[\w\.-]+@[\w\.-]+'
-pattern_2 = r'\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)'
-pattern_3 = r'\d{1,9}+\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)'
 '''
+#works
+pattern_1 = r'[\w\.-]+@[\w\.-]+'
+#works the best for student mail
+pattern_2 = r'\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)'
+#produces worse results than pattern 2
+pattern_3 = r'\d+|\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)\b)'
 for link in path_list:
     try:
         pagenums = set()
@@ -131,12 +136,9 @@ for link in path_list:
         converter.close()
         text = output.getvalue()
         output.close()
-        #match = re.search(r'\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)', text)
-        match_2 = re.search(r'\d{1,9}+\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)', text)
+        match = re.search(pattern_3, text)
         email = match.group(0)
-        #email_2 = match_2.group(0)
         pure_email_list.append(email)
-        #pure_email_list.append(email_2)
         #shutil.move(source_folder, destination)
         #with open('C:/Users/bill-/Desktop/Harvard_mail_list.csv','a') as newFile:
             #newFileWriter=csv.writer(newFile)
