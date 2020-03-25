@@ -81,8 +81,8 @@ for link in path_list:
         output.close()
         for x in pattern_list:
             match = re.search(x, text)
-        email = match.group(0)
-        pure_email_list.append(email)
+            email = match.group(0)
+            pure_email_list.append(email)
         #shutil.move(source_folder, destination)
         #with open('C:/Users/bill-/Desktop/Harvard_mail_list.csv','a') as newFile:
             #newFileWriter=csv.writer(newFile)
