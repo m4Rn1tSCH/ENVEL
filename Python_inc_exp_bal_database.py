@@ -250,7 +250,7 @@ bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 #%%
 #convert it to csv
 df_card_csv = df_card[['unique_mem_id', 'amount', 'transaction_class']].to_csv('C:/Users/bill-/Desktop/df_card_edited.csv')
-df_bank_csv = df_bank[['unique_mem_id', 'amount', ]].to_csv('C:\/Users/bill-/Desktop/df_bank_edited.csv')
+df_bank_csv = df_bank[['unique_mem_id', 'amount', 'transaction_class']].to_csv('C:\/Users/bill-/Desktop/df_bank_edited.csv')
 #%%
 #Import the python CSV module
 import csv
@@ -394,7 +394,15 @@ ID_exp_df.describe()
 #%%
 amount_df = df_card[['amount', 'unique_mem_id']][df_card['transaction_class'] == "expense"].groupby(df_card['unique_mem_id'])
 #%%
-bug_df = df_card[['amount', 'transaction_class']][df_card['unique_mem_id'] == "70850441974905670928446"].groupby(df_card['unique_mem_id'])
+#CLOSE
+for mem_id in card_members:
+    for i in range(len(df_card)):
+        row = df_card[['amount', 'transaction_class']].iloc[i]['transaction_class']
+    #    print(row)
+        if regex.search("expense", row):
+            row[1].cumsum()
+#%%
+df_card.iloc[]
 #%%
 #prints all transactions by unique member id
 #always same error; might be bugged
