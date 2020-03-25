@@ -249,8 +249,8 @@ bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")
 bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 #%%
 #convert it to csv
-df_card_csv = df_card[['unique_mem_id', 'amount']].to_csv('C:/Users/bill-/Desktop/df_card_edited.csv')
-df_bank_csv = df_bank[['unique_mem_id', 'amount']].to_csv('C:\/Users/bill-/Desktop/df_bank_edited.csv')
+df_card_csv = df_card[['unique_mem_id', 'amount', 'transaction_class']].to_csv('C:/Users/bill-/Desktop/df_card_edited.csv')
+df_bank_csv = df_bank[['unique_mem_id', 'amount', ]].to_csv('C:\/Users/bill-/Desktop/df_bank_edited.csv')
 #%%
 #Import the python CSV module
 import csv
