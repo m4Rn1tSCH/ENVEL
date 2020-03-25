@@ -18,12 +18,12 @@ import pandas as pd
 import shutil
 #%%
 #set csv_path
-basepath = 'C:/Users/bill-/Desktop/Harvard_Resumes'
+basepath = 'C:/Users/bill-/Desktop/Resumes'
 basepath_non_hvd = 'C:/Users/bill-/Desktop/Non-Harvard_Resumes'
 path_list = []
 #error_list = []
 #Walking a directory tree and printing the names of the directories and files
-for dirpath, dirnames, filename in os.walk(basepath_non_hvd):
+for dirpath, dirnames, filename in os.walk(basepath):
     print(f'Found directory: {dirpath}')
     for file in filename:
         path_list.append(os.path.abspath(os.path.join(dirpath, file)))
@@ -76,11 +76,11 @@ for link in path_list:
         text = output.getvalue()
         output.close()
         match = re.search(r'\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)', text)
-        match_2 = re.search(r'\d{1,9}+\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)', text)
+        #match_2 = re.search(r'\d{1,9}+\w+(?:[.-]\w+)*@\w+(?:[.-]\w+)+[.-][a-z_0-9]+(?=[A-Z]|(?!=[.-])\b)', text)
         email = match.group(0)
-        email_2 = match_2.group(0)
+        #email_2 = match_2.group(0)
         pure_email_list.append(email)
-        pure_email_list.append(email_2)
+        #pure_email_list.append(email_2)
         #shutil.move(source_folder, destination)
         #with open('C:/Users/bill-/Desktop/Harvard_mail_list.csv','a') as newFile:
             #newFileWriter=csv.writer(newFile)
@@ -94,8 +94,16 @@ for link in path_list:
 print("Following motherfuckers were too fucking dumb to create a properly readable PDF...")
 print("-------------------------------------------------------------------------------")
 print(error_list)
-pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_mail_list.csv')
-pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_fail_list.csv')
+try:
+    pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/WECODE_mail_list.csv')
+    pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/WECODE_fail_list.csv')
+#if the file is existing catch the error and print it; append the existing file instead creating a new one
+except FileExistsError as exc:
+    print(exc)
+    print("existing file will be appended")
+    pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/WECODE_mail_list.csv', mode = 'a', header = False)
+    pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/WECODE_fail_list.csv', mode = 'a', header = False)
+
 #%%
 pure_email_list = []
 error_list = []
@@ -142,5 +150,10 @@ for link in path_list:
 print("Following motherfuckers were too fucking dumb to create a properly readable PDF...")
 print("-------------------------------------------------------------------------------")
 print(error_list)
-pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_mail_list_2.csv')
-pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_fail_list_2.csv')
+try:
+    pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_mail_list_2.csv')
+    pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_fail_list_2.csv')
+#if the file is existing catch the error and print it; append the existing file instead creating a new one
+except:
+    pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_mail_list_2.csv', mode = 'a', header = False)
+    pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_fail_list_2.csv', mode = 'a', header = False)
