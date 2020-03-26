@@ -120,6 +120,20 @@ def preprocess_input_file(transactions):
             df_bank[f"{col}_week"] = df_bank[col].dt.week
             df_bank[f"{col}_weekday"] = df_bank[col].dt.weekday
 #%%
+'''
+ADD DESCRIPTION
+My idea would be to add longitude and latitude data for shops but that needs to
+be done manually for each transaction counterparty of a customer
+PROBLEM: data would sit in vanilla state in the db, then gets pulled and then gets preprocessed and uploaded
+'''
+#from geopy.geocoders import Nominatim
+#geolocator = Nominatim()
+#location = geolocator.geocode("175 5th Avenue NYC")
+#print(location.address)
+#Flatiron Building, 175, 5th Avenue, Flatiron, New York, NYC, New York, ...
+#print((location.latitude, location.longitude))
+#(40.7410861, -73.9896297241625)
+#%%
     #FEATURE ENGINEERING II
     #typical engineered features based on lagging metrics
     #mean + stdev of past 3d/7d/30d/ + rolling volume
