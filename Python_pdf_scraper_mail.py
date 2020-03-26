@@ -95,18 +95,18 @@ for link in path_list:
         error_list.append(link)
         #shutil.move(source_folder,destination_failed)
         pass
-print("Following motherfuckers were too fucking dumb to create a properly readable PDF...")
+print("Following motherfuckers were either too fucking dumb to create a properly readable PDF or there was another error:")
 print("-------------------------------------------------------------------------------")
 print(error_list)
 try:
-    pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/WECODE_mail_list.csv')
-    pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/WECODE_fail_list.csv')
+    pd.DataFrame(pure_email_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/WECODE_mail_list.csv')
+    pd.DataFrame(error_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/WECODE_fail_list.csv')
 #if the file is existing catch the error and print it; append the existing file instead creating a new one
 except FileExistsError as exc:
     print(exc)
-    print("existing file will be appended")
-    pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/WECODE_mail_list.csv', mode = 'a', header = False)
-    pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/WECODE_fail_list.csv', mode = 'a', header = False)
+    print("existing file will be appended instead...")
+    pd.DataFrame(pure_email_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/WECODE_mail_list.csv', mode = 'a', header = False)
+    pd.DataFrame(error_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/WECODE_fail_list.csv', mode = 'a', header = False)
 
 #%%
 pure_email_list = []
@@ -151,13 +151,17 @@ for link in path_list:
         error_list.append(link)
         #shutil.move(source_folder,destination_failed)
         pass
-print("Following motherfuckers were too fucking dumb to create a properly readable PDF...")
+
+print("Following motherfuckers were either too fucking dumb to create a properly readable PDF or there was another error:...")
 print("-------------------------------------------------------------------------------")
 print(error_list)
+'''
+Convert it to a dataframe, drop duplicated mails that were found by more than just one pattern and convert a CSV
+'''
 try:
-    pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_mail_list_2.csv')
-    pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_fail_list_2.csv')
+    pd.DataFrame(pure_email_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/Non-Harvard_mail_list_2.csv')
+    pd.DataFrame(error_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/Non-Harvard_fail_list_2.csv')
 #if the file is existing catch the error and print it; append the existing file instead creating a new one
 except:
-    pd.DataFrame(pure_email_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_mail_list_2.csv', mode = 'a', header = False)
-    pd.DataFrame(error_list).to_csv('C:/Users/bill-/Desktop/Non-Harvard_fail_list_2.csv', mode = 'a', header = False)
+    pd.DataFrame(pure_email_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/Non-Harvard_mail_list_2.csv', mode = 'a', header = False)
+    pd.DataFrame(error_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/Non-Harvard_fail_list_2.csv', mode = 'a', header = False)
