@@ -314,24 +314,14 @@ card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]
 bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
 #%%
-
-#Sort the names list by rank in descending order and slice the first 10 items
-#for row in sorted(row, reverse = False)[:10]:
-#    #Print each item
-#    print(income_dict[card_members])
-#%%
 #df = pd.read_csv("file")
 #d= dict([(i,[a,b,c ]) for i, a,b,c in zip(df.ID, df.A,df.B,df.C)])
 #%%
-#test_dictionary = {}
-
+test_dictionary = {}
 for ids, money in zip(df_card.unique_mem_id, df_card.amount):
     print(ids, money)
 #%%
-#df.set_index('ID').T.to_dict('list')
-#{s'p': [1, 3, 2], 'q': [4, 3, 2], 'r': [4, 0, 9]}
-#%%
-#tst with csv
+#test with csv
 #from collections import defaultdict
 
 #d = defaultdict(int)
@@ -349,18 +339,7 @@ for ids, money in zip(df_card.unique_mem_id, df_card.amount):
 #%%
 #get content of the entire row with the second element of the tuple that is being generated
 #row = next(df_card.iterrows())[1]
-# iterate over rows with iterrows()
-#df_ = pd.DataFrame()
-for member in card_members:
-    for index, row in df_card.iterrows():
-         # access data using column names
-         if row['transaction_class'] == "expense":
-             print(index, row['unique_mem_id'], row['amount'], row['transaction_class'])
-             cumulative_amount = np.cumsum(row['amount'],axis = 0)
-             print(row['unique_mem_id'], cumulative_amount)
-             #df_[f"{member}"] = pd.DataFrame({'Member_ID': member,
-             #                                 'Cumulative_Sum': np.cumsum(row['amount'], axis = 0)}, index = None)
-#%%
+
 #ALMOST WORKS
 amount_list = []
 for member in card_members:
