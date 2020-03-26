@@ -408,6 +408,7 @@ iteration over each row as tuples and append amount to a list.
 This list is taken and used for a cumulative sum of all transactions with type "expense"
 Until "income" class is hit to stop
 Numerical amount needs to be injected for simulation
+problem of Python here; one cannot assign an element to a list that is not yet existing
 '''
 df_1 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '70850441974905670928446']
 df_2 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '201492116860211330700059']
