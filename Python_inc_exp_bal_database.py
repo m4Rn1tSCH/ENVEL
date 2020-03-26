@@ -349,7 +349,7 @@ for member in card_members:
              #print(index, row['unique_mem_id'], row['amount'], row['transaction_class'])
              amount_list.append(row['amount'])
              cumulative_amount = np.cumsum(amount_list, axis = 0)
-             print(f"TIMESTAMP:{index}, USER_ID:{row['unique_mem_id']}, \n {cumulative_amount}")
+             print(f"INDEX:{index}, USER_ID:{row['unique_mem_id']}, \n {cumulative_amount}")
          #else:
           #   print("stopped at {row['index']}, user_ID: {row['unique_mem_id']}, cumulative sum injected: {cumulative amount}")
            #  break
@@ -357,10 +357,10 @@ for member in card_members:
 #THIS MOFO WORKS
 #for row in flights.head().itertuples():
 #    print(row.Index, row.date, row.delay)
+#in tuples slice columns with df.col instead of ['col']
 amount_list = []
 
 for member in card_members:
-    #cumulative_amount = []
     for row in df_card.itertuples():
          # access data using column names
          if row.transaction_class == "expense":
@@ -369,12 +369,38 @@ for member in card_members:
              cumulative_amount = np.cumsum(amount_list, axis = 0)
              print(row.unique_mem_id, cumulative_amount)
          else:
-             print(row.unique_mem_id, cumulative_amount)
-             #print("stoppes at {row.index}, user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative amount}")
+             #print(row.unique_mem_id, cumulative_amount)
+             print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
              break
     #print out the member id as part of the for-loop and and the last element of the list
     print(f"unique_member_ID: {member}; {cumulative_amount[-1]}")
-    cumulative_amount = []
+#    cumulative_amount = []
+#for member in card_members:
+#    print(f"unique_member_ID: {member}; {cumulative_amount[-1]}")
+#%%
+#THIS MOFO WORKS TEST COPY
+#for row in flights.head().itertuples():
+#    print(row.Index, row.date, row.delay)
+#in tuples slice columns with df.col instead of ['col']
+amount_list = []
+
+for member in card_members:
+    for row in df_card.itertuples():
+         # access data using column names
+         if row.transaction_class == "expense":
+             #print(index, row.unique_mem_id, row.amount, row.transaction_class)
+             amount_list.append(row.amount)
+             cumulative_amount = np.cumsum(amount_list, axis = 0)
+             print(row.unique_mem_id, cumulative_amount)
+         else:
+             #print(row.unique_mem_id, cumulative_amount)
+             print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+             break
+    #print out the member id as part of the for-loop and and the last element of the list
+    print(f"unique_member_ID: {member}; {cumulative_amount[-1]}")
+#    cumulative_amount = []
+#for member in card_members:
+#    print(f"unique_member_ID: {member}; {cumulative_amount[-1]}")
 #%%
 #for row in flights.head().itertuples():
 #    print(row.Index, row.date, row.delay)

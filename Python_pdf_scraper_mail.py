@@ -19,6 +19,7 @@ import shutil
 #%%
 #set csv_path
 basepath = 'C:/Users/bill-/Desktop/Resumes'
+basepath_hvd = 'C:/Users/bill-/Desktop/Harvard_Resumes'
 basepath_non_hvd = 'C:/Users/bill-/Desktop/Non-Harvard_Resumes'
 path_list = []
 #error_list = []
@@ -28,6 +29,7 @@ for dirpath, dirnames, filename in os.walk(basepath):
     for file in filename:
         path_list.append(os.path.abspath(os.path.join(dirpath, file)))
 #%%
+#raw function; unfinished
 #complete the move to folders when exception occurs
 def get_cv_email(self, cv_path):
     pagenums = set()
