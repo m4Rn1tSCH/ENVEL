@@ -24,7 +24,7 @@ basepath_non_hvd = 'C:/Users/bill-/Desktop/Non-Harvard_Resumes'
 path_list = []
 #error_list = []
 #Walking a directory tree and printing the names of the directories and files
-for dirpath, dirnames, filename in os.walk(basepath):
+for dirpath, dirnames, filename in os.walk(basepath_non_hvd):
     print(f'Found directory: {dirpath}')
     for file in filename:
         path_list.append(os.path.abspath(os.path.join(dirpath, file)))
@@ -99,14 +99,14 @@ print("Following motherfuckers were either too fucking dumb to create a properly
 print("-------------------------------------------------------------------------------")
 print(error_list)
 try:
-    pd.DataFrame(pure_email_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/WECODE_mail_list.csv')
-    pd.DataFrame(error_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/WECODE_fail_list.csv')
+    pd.DataFrame(pure_email_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/nh_mail_list.csv')
+    pd.DataFrame(error_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/nh_fail_list.csv')
 #if the file is existing catch the error and print it; append the existing file instead creating a new one
 except FileExistsError as exc:
     print(exc)
     print("existing file will be appended instead...")
-    pd.DataFrame(pure_email_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/WECODE_mail_list.csv', mode = 'a', header = False)
-    pd.DataFrame(error_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/WECODE_fail_list.csv', mode = 'a', header = False)
+    pd.DataFrame(pure_email_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/nh_mail_list.csv', mode = 'a', header = False)
+    pd.DataFrame(error_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/nh_fail_list.csv', mode = 'a', header = False)
 
 #%%
 pure_email_list = []
