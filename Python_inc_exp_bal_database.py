@@ -70,13 +70,13 @@ This part is needed to make sure that initial balances can be determined better
 #DF_CARD
 try:
     transaction_class_card = pd.Series([], dtype = 'object')
-    for i in range(len(df_card)):
-        if df_card["transaction_category_name"][i] in card_inc:
-            transaction_class_card[i] = "income"
-        elif df_card["transaction_category_name"][i] in card_exp:
-            transaction_class_card[i] = "expense"
+    for index, i in enumerate(df_card['transaction_category_name']):
+        if i in card_inc:
+            transaction_class_card[index] = "income"
+        elif i in card_exp:
+            transaction_class_card[index] = "expense"
         else:
-            transaction_class_card[i] = "NOT_CLASSIFIED"
+            transaction_class_card[index] = "NOT_CLASSIFIED"
     df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
 except:
     print("column is already existing or another error")
@@ -86,13 +86,13 @@ except:
 #DF_BANK
 try:
     transaction_class_bank = pd.Series([], dtype = 'object')
-    for i in range(len(df_bank)):
-        if df_bank["transaction_category_name"][i] in bank_inc:
-            transaction_class_bank[i] = "income"
-        elif df_bank["transaction_category_name"][i] in bank_exp:
-            transaction_class_bank[i] = "expense"
+    for index, i in enumerate(df_bank['transaction_category_name']):
+        if i in bank_inc:
+            transaction_class_bank[index] = "income"
+        elif i in bank_exp:
+            transaction_class_bank[index] = "expense"
         else:
-            transaction_class_bank[i] = "NOT_CLASSIFIED"
+            transaction_class_bank[index] = "NOT_CLASSIFIED"
     df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = transaction_class_bank)
 except:
     print("column is already existing or another error")
@@ -131,13 +131,13 @@ bill_env_bank = ['Service Charges/Fees', 'Credit Card Payments',
 #DF_CARD
 try:
     envelope_cat_card = pd.Series([], dtype = 'object')
-    for i in range(len(df_card)):
-        if df_card["transaction_category_name"][i] in cash_env_card:
-            envelope_cat_card[i] = "cash"
-        elif df_card["transaction_category_name"][i] in bill_env_card:
-            envelope_cat_card[i] = "bill"
+    for index, i in enumerate(df_card['transaction_category_name']):
+        if i in cash_env_card:
+            envelope_cat_card[index] = "cash"
+        elif i in bill_env_card:
+            envelope_cat_card[index] = "bill"
         else:
-            envelope_cat_card[i] = "NOT_CLASSIFIED"
+            envelope_cat_card[index] = "NOT_CLASSIFIED"
     df_card.insert(loc = len(df_card.columns), column = "envelope_category", value = envelope_cat_card)
 except:
     print("CASH/BILL column is already existing or another error")
@@ -145,19 +145,21 @@ except:
 #DF_BANK
 try:
     envelope_cat_bank = pd.Series([], dtype = 'object')
-    for i in range(len(df_bank)):
-        if df_bank["transaction_category_name"][i] in cash_env_bank:
-            envelope_cat_bank[i] = "cash"
-        elif df_bank["transaction_category_name"][i] in bill_env_bank:
-            envelope_cat_bank[i] = "bill"
+    for i in enumerate(df_bank['transaction_category_name']):
+        if i in cash_env_bank:
+            envelope_cat_bank[index] = "cash"
+        elif i in bill_env_bank:
+            envelope_cat_bank[index] = "bill"
         else:
-            envelope_cat_bank[i] = "NOT_CLASSIFIED"
+            envelope_cat_bank[index] = "NOT_CLASSIFIED"
     df_bank.insert(loc = len(df_bank.columns), column = "envelope_category", value = envelope_cat_bank)
 except:
     print("CASH/BILL column is already existing or another error")
 #%%
 '''
-#Datetime engineering DF_CARD
+Datetime engineering for card and bank panel
+These columns help for reporting like weekly or monthly expenses and
+improve prediction of re-occurring transactions
 '''
 for col in list(df_card):
     if df_card[col].dtype == 'datetime64[ns]':
