@@ -28,17 +28,19 @@ path_mac = os.path.relpath('/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Wor
 #no preprocessing here or encoding
 df_card = pd.read_excel(path_win, sheet_name = "Card Panel")
 df_bank = pd.read_excel(path_win, sheet_name = "Bank Panel")
-df_demo = pd.read_excel(path_win, sheet_name = "User Demographics")
+#df_demo = pd.read_excel(path_win, sheet_name = "User Demographics")
 #%%
 #in the non-encoded verion all columns still have correct types
 #extract unique numbers from all panels to find out unique users;
 card_members = df_card['unique_mem_id'].unique()
 bank_members = df_bank['unique_mem_id'].unique()
-demo_members = df_card['unique_mem_id'].unique()
+#demo_members = df_card['unique_mem_id'].unique()
 trans_cat_card = df_card['transaction_category_name'].unique()
 trans_cat_bank = df_bank['transaction_category_name'].unique()
+#%%
 '''
-ADD DESCRIPTION
+Following lists contains the categories to classify transactions either as expense or income
+names taken directly from the Yodlee dataset; can be appended at will
 '''
 #append these unique to dictionaries measuring expenses or income with their respective categories
 card_inc = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts']
@@ -61,14 +63,14 @@ bank_exp = ['Service Charges/Fees',
             'Postage/Shipping', 'Insurance', 'Travel', 'Taxes',
             'Home Improvement', 'Education', 'Charitable Giving',
             'Subscriptions/Renewals', 'Rent', 'Office Expenses', 'Mortgage']
-#%%
 '''
-#iterate through rows and create a new columns with a note that it is either an expense or income
+Iterate through rows and create new columns with a keyword that it is either an expense or income
+This part is needed to make sure that initial balances can be determined better
 '''
 #DF_CARD
 try:
     transaction_class_card = pd.Series([], dtype = 'object')
-    for i in enumerate(df_card):
+    for i in range(len(df_card)):
         if df_card["transaction_category_name"][i] in card_inc:
             transaction_class_card[i] = "income"
         elif df_card["transaction_category_name"][i] in card_exp:
@@ -77,14 +79,14 @@ try:
             transaction_class_card[i] = "NOT_CLASSIFIED"
     df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
 except:
-    print("column is already existing, cannot be added again")
+    print("column is already existing or another error")
 #    df_card.drop(['transaction_class'], axis = 1)
 #    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
 ###################################
 #DF_BANK
 try:
     transaction_class_bank = pd.Series([], dtype = 'object')
-    for i in enumerate(df_bank):
+    for i in range(len(df_bank)):
         if df_bank["transaction_category_name"][i] in bank_inc:
             transaction_class_bank[i] = "income"
         elif df_bank["transaction_category_name"][i] in bank_exp:
@@ -93,7 +95,7 @@ try:
             transaction_class_bank[i] = "NOT_CLASSIFIED"
     df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = transaction_class_bank)
 except:
-    print("column is already existing and cannot be appended again")
+    print("column is already existing or another error")
 #%%
 '''
 POSTGRE-SQL COLUMNS
@@ -129,7 +131,7 @@ bill_env_bank = ['Service Charges/Fees', 'Credit Card Payments',
 #DF_CARD
 try:
     envelope_cat_card = pd.Series([], dtype = 'object')
-    for i in enumerate(df_card):
+    for i in range(len(df_card)):
         if df_card["transaction_category_name"][i] in cash_env_card:
             envelope_cat_card[i] = "cash"
         elif df_card["transaction_category_name"][i] in bill_env_card:
@@ -138,12 +140,12 @@ try:
             envelope_cat_card[i] = "NOT_CLASSIFIED"
     df_card.insert(loc = len(df_card.columns), column = "envelope_category", value = envelope_cat_card)
 except:
-    print("CASH/BILL column is already existing, cannot be added again")
+    print("CASH/BILL column is already existing or another error")
 ##############################
 #DF_BANK
 try:
     envelope_cat_bank = pd.Series([], dtype = 'object')
-    for i in enumerate(df_bank):
+    for i in range(len(df_bank)):
         if df_bank["transaction_category_name"][i] in cash_env_bank:
             envelope_cat_bank[i] = "cash"
         elif df_bank["transaction_category_name"][i] in bill_env_bank:
@@ -152,7 +154,7 @@ try:
             envelope_cat_bank[i] = "NOT_CLASSIFIED"
     df_bank.insert(loc = len(df_bank.columns), column = "envelope_category", value = envelope_cat_bank)
 except:
-    print("CASH/BILL column is already existing and cannot be appended again")
+    print("CASH/BILL column is already existing or another error")
 #%%
 '''
 #Datetime engineering DF_CARD
