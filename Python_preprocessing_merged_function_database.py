@@ -133,6 +133,10 @@ PROBLEM: data would sit in vanilla state in the db, then gets pulled and then ge
 #Flatiron Building, 175, 5th Avenue, Flatiron, New York, NYC, New York, ...
 #print((location.latitude, location.longitude))
 #(40.7410861, -73.9896297241625)
+
+##If google services are required specifically
+#from geopy.geocoders import GoogleV3
+#geolocator = GoogleV3()
 #%%
     #FEATURE ENGINEERING II
     #typical engineered features based on lagging metrics
