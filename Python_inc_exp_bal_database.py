@@ -9,7 +9,7 @@ Created on Tue Mar 17 10:01:06 2020
 Purpose of this script is to interact with a csv file/database and produce a dictionary
 with unique IDs and corresponding income and expenses in separate dictionaries
 -determine income and expenses based on given categories
--add it either to the INCOME DICTIONARY or the EXPENSE DICTIONARY
+-add it either to the INCOME DF or the EXPENSE DF
 -find out daily, weekly and monthly throughput of accounts and their excess cash
 -develop a logic or daily limits and spending patterns
 '''
@@ -20,6 +20,55 @@ import numpy as np
 #from datetime import datetime as dt
 #import regex
 import os
+#%%
+#CONNECTION TO FLASK/SQL
+#INSERT FLASK CONNECTION SCRIPT HERE
+###########################################
+#loading the simplified applications
+#from flask import Flask
+#app = Flask(__Preprocessor__)
+
+##put address here
+#@app.route('/')
+#def hello_world():
+#    return 'Hello, World!'
+#route tells what URL should trigger the function
+#use __main__ only for the actual core of the application
+# pick unique names for particular functions if these are imported later
+#DONT CALL APPLICATIONS FLASK.PY TO AVOID CONFLICTS WITH FLASK
+
+#RUN THE APPLICATION
+#flask command or -m swith in Python
+
+########SETTING THE ENVIRONMENT VARIABLE#######
+#$ export FLASK_APP = C:\Users\bill-\OneDrive\Dokumente\Docs Bill\TA_files\functions_scripts_storage\Python_preprocessing_merged_function_database.py
+#$ flask run
+# * Running on http://127.0.0.1:5000/
+
+####COMMAND PROMPT#####
+#C:\path\to\app>set FLASK_APP=hello.py
+
+####for production use##
+#$ flask run --host=0.0.0.0
+############################################
+#INSERT SQL CONNECTION HERE
+############################################
+###SQL-CONNECTION TO QUERY THE VENDOR FILE
+###Create engine
+##engine = create_engine('sqlite:///Chinook.sqlite')
+
+##Open engine connection: con
+##con = engine.connect()
+
+##Perform query: rs
+##rs = con.execute("SELECT * from <<DB_FOLDER>>")
+
+#Save results df
+##df = pd.DataFrame(rs.fetchall())
+
+##Close connection
+##con.close()
+#############################################################################
 #%%
 #determine the path of the files
 path_win = os.path.relpath(r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx')
