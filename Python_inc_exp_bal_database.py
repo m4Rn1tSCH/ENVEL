@@ -207,6 +207,14 @@ except:
 #%%
 '''
 budgeting mode section
+Create columns with an initial recommendation of the budgeting mode and the corresponding daily limit
+Logic is based on the weekly or biweekly income:
+Logic of stability of spending behavior and standard deviation within various time frames
+Behavior is considered: stable and non-erratic when:
+    Std dev of past 3 days is still smaller than emergency cash allocated for a day
+    std dev of past week is still smaller than emergency allocated for a week
+    std dev of 30d is smaller than 70% of monthly income
+    (to allow purchase of flight tickets or hotel stays without forcing a change of the spending mode)
 '''
 #DF_CARD
 try:
@@ -593,7 +601,7 @@ for row in df_1.itertuples():
         cumulative_amount = np.cumsum(amount_list, axis = 0)
         print(row.unique_mem_id, cumulative_amount)
     else:
-        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+        #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
@@ -606,9 +614,9 @@ for row in df_2.itertuples():
         #print an overview and calculate the cumulative sum
         amount_list.append(row.amount)
         cumulative_amount = np.cumsum(amount_list, axis = 0)
-        print(row.unique_mem_id, cumulative_amount)
+        #print(row.unique_mem_id, cumulative_amount)
     else:
-        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+        #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
@@ -621,9 +629,9 @@ for row in df_3.itertuples():
         #print an overview and calculate the cumulative sum
         amount_list.append(row.amount)
         cumulative_amount = np.cumsum(amount_list, axis = 0)
-        print(row.unique_mem_id, cumulative_amount)
+        #print(row.unique_mem_id, cumulative_amount)
     else:
-        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+        #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
@@ -636,9 +644,9 @@ for row in df_4.itertuples():
         #print an overview and calculate the cumulative sum
         amount_list.append(row.amount)
         cumulative_amount = np.cumsum(amount_list, axis = 0)
-        print(row.unique_mem_id, cumulative_amount)
+        #print(row.unique_mem_id, cumulative_amount)
     else:
-        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+        #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
@@ -651,9 +659,9 @@ for row in df_5.itertuples():
         #print an overview and calculate the cumulative sum
         amount_list.append(row.amount)
         cumulative_amount = np.cumsum(amount_list, axis = 0)
-        print(row.unique_mem_id, cumulative_amount)
+        #print(row.unique_mem_id, cumulative_amount)
     else:
-        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+       # print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
@@ -666,9 +674,9 @@ for row in df_6.itertuples():
         #print an overview and calculate the cumulative sum
         amount_list.append(row.amount)
         cumulative_amount = np.cumsum(amount_list, axis = 0)
-        print(row.unique_mem_id, cumulative_amount)
+        #print(row.unique_mem_id, cumulative_amount)
     else:
-        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+        #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
