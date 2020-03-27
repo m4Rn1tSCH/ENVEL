@@ -157,6 +157,62 @@ except:
     print("CASH/BILL column is already existing or another error")
 #%%
 '''
+budgeting mode section
+'''
+#DF_BANK
+try:
+    envelope_cat_bank = pd.Series([], dtype = 'object')
+    for i in enumerate(df_card['transaction_category_name']):
+        if i in XXX:
+            envelope_cat_bank[index] = "cash"
+        elif i in XXX:
+            envelope_cat_bank[index] = "bill"
+        else:
+            envelope_cat_bank[index] = "NOT_CLASSIFIED"
+    df_card.insert(loc = len(df_card.columns), column = "envelope_category", value = envelope_cat_bank)
+except:
+    print("TEST")
+#DF_CARD
+try:
+    envelope_cat_bank = pd.Series([], dtype = 'object')
+    for i in enumerate(df_card['transaction_category_name']):
+        if i in XXX:
+            envelope_cat_bank[index] = "cash"
+        elif i in XXX:
+            envelope_cat_bank[index] = "bill"
+        else:
+            envelope_cat_bank[index] = "NOT_CLASSIFIED"
+    df_card.insert(loc = len(df_card.columns), column = "envelope_category", value = envelope_cat_bank)
+except:
+    print("TEST")
+#DF_BANK
+try:
+    envelope_cat_bank = pd.Series([], dtype = 'object')
+    for i in enumerate(df_bank['transaction_category_name']):
+        if i in XXX:
+            envelope_cat_bank[index] = "cash"
+        elif i in XXX:
+            envelope_cat_bank[index] = "bill"
+        else:
+            envelope_cat_bank[index] = "NOT_CLASSIFIED"
+    df_bank.insert(loc = len(df_bank.columns), column = "envelope_category", value = envelope_cat_bank)
+except:
+    print("TEST")
+#DF_BANK
+try:
+    envelope_cat_bank = pd.Series([], dtype = 'object')
+    for i in enumerate(df_bank['transaction_category_name']):
+        if i in XXX:
+            envelope_cat_bank[index] = "cash"
+        elif i in XXX:
+            envelope_cat_bank[index] = "bill"
+        else:
+            envelope_cat_bank[index] = "NOT_CLASSIFIED"
+    df_bank.insert(loc = len(df_bank.columns), column = "envelope_category", value = envelope_cat_bank)
+except:
+    print("TEST")
+#%%
+'''
 Datetime engineering for card and bank panel
 These columns help for reporting like weekly or monthly expenses and
 improve prediction of re-occurring transactions
@@ -270,8 +326,19 @@ df_bank.fillna(df_bank.mean(), inplace = True)
 #associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
 df_bank.set_index("transaction_date", drop = False, inplace = True)
 #%%
+'''
+Small check if all customers given in the demographics panel are also having transactions in the card or bank panel
+Also to check if some customers are not even listed in the demo panel
+ambiguous values in arrays require .all() /.any() for comparison
+'''
 if card_members.all() == demo_members.all():
-    print("noice")
+    print("In card panel: demo users are identical to card panel users")
+else:
+    print("In card panel: users dissimilar!")
+if bank_members.all() == demo_members.all():
+    print("In bank panel: demo users are identical to bank panel users")
+else:
+    print("In bank panel: users dissimilar!")
 #%%
 '''
 Addition of feature columns for additive spending on a weekly; monthly; daily basis

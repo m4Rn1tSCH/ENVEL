@@ -120,23 +120,23 @@ def preprocess_input_file(transactions):
             df_bank[f"{col}_week"] = df_bank[col].dt.week
             df_bank[f"{col}_weekday"] = df_bank[col].dt.weekday
 #%%
-'''
-ADD DESCRIPTION
-My idea would be to add longitude and latitude data for shops but that needs to
-be done manually for each transaction counterparty of a customer
-PROBLEM: data would sit in vanilla state in the db, then gets pulled and then gets preprocessed and uploaded
-'''
-#from geopy.geocoders import Nominatim
-#geolocator = Nominatim()
-#location = geolocator.geocode("175 5th Avenue NYC")
-#print(location.address)
-#Flatiron Building, 175, 5th Avenue, Flatiron, New York, NYC, New York, ...
-#print((location.latitude, location.longitude))
-#(40.7410861, -73.9896297241625)
+    '''
+    ADD DESCRIPTION
+    My idea would be to add longitude and latitude data for shops but that needs to
+    be done manually for each transaction counterparty of a customer
+    PROBLEM: data would sit in vanilla state in the db, then gets pulled and then gets preprocessed and uploaded
+    '''
+    #from geopy.geocoders import Nominatim
+    #geolocator = Nominatim()
+    #location = geolocator.geocode("175 5th Avenue NYC")
+    #print(location.address)
+    #Flatiron Building, 175, 5th Avenue, Flatiron, New York, NYC, New York, ...
+    #print((location.latitude, location.longitude))
+    #(40.7410861, -73.9896297241625)
 
-##If google services are required specifically
-#from geopy.geocoders import GoogleV3
-#geolocator = GoogleV3()
+    ##If google services are required specifically
+    #from geopy.geocoders import GoogleV3
+    #geolocator = GoogleV3()
 #%%
     #FEATURE ENGINEERING II
     #typical engineered features based on lagging metrics
@@ -291,8 +291,8 @@ PROBLEM: data would sit in vanilla state in the db, then gets pulled and then ge
     weekly_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_week']).sum()
     #weekly_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_week']).sum()
     #daily figures
-    net_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).mean()
-    avg_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).sum()
+    net_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).sum()
+    avg_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).mean()
     #CHECK VIABILITY OF SUCH VARIABLES
     daily_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_weekday']).sum()
     #daily_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_weekday']).sum()
