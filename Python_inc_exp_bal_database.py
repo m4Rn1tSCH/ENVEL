@@ -445,8 +445,7 @@ df[column][condition =<> x].sum()
 totalMoney = df.Amount.sum()
 totalGained = df["Amount"][df["Amount"] >= 0].sum()
 '''
-for mem_id in card_members:
-    print(mem_id)
+print(bank_members)
 '''
 70850441974905670928446
 201492116860211330700059
@@ -455,74 +454,6 @@ for mem_id in card_members:
 651451454569880463282551
 748150568877494117414131
 '''
-for mem_id in card_members:
-    df_1 = df_card[['amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == mem_id]
-    print(df_mem_id)
-
-#%%
-#df = pd.read_csv("file")
-#d= dict([(i,[a,b,c ]) for i, a,b,c in zip(df.ID, df.A,df.B,df.C)])
-#%%
-test_dictionary = {}
-for ids, money in zip(df_card.unique_mem_id, df_card.amount):
-    print(ids, money)
-#%%
-#test with csv
-#from collections import defaultdict
-
-#d = defaultdict(int)
-
-#with open("data.txt") as f:
-#    for line in f:
-#        tokens = [t.strip() for t in line.split(",")]
-#        try:
-#            key = int(tokens[3])
-#            value = int(tokens[4])
-#        except ValueError:
-#            continue
-#        d[key] += value
-#print d
-#%%
-#get content of the entire row with the second element of the tuple that is being generated
-#row = next(df_card.iterrows())[1]
-
-#ALMOST WORKS
-amount_list = []
-for member in card_members:
-    for index, row in df_card.iterrows():
-         # access data using column names
-         if row['transaction_class'] != "expense":
-             #print(index, row['unique_mem_id'], row['amount'], row['transaction_class'])
-             amount_list.append(row['amount'])
-             cumulative_amount = np.cumsum(amount_list, axis = 0)
-             print(f"INDEX:{index}, USER_ID:{row['unique_mem_id']}, \n {cumulative_amount}")
-         #else:
-          #   print("stopped at {row['index']}, user_ID: {row['unique_mem_id']}, cumulative sum injected: {cumulative amount}")
-           #  break
-#%%
-#THIS MOFO WORKS
-#for row in flights.head().itertuples():
-#    print(row.Index, row.date, row.delay)
-#in tuples slice columns with df.col instead of ['col']
-amount_list = []
-
-for member in card_members:
-    for row in df_card.itertuples():
-         # access data using column names
-         if row.transaction_class == "expense":
-             #print(index, row.unique_mem_id, row.amount, row.transaction_class)
-             amount_list.append(row.amount)
-             cumulative_amount = np.cumsum(amount_list, axis = 0)
-             print(row.unique_mem_id, cumulative_amount)
-         else:
-             #print(row.unique_mem_id, cumulative_amount)
-             print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-             break
-    #print out the member id as part of the for-loop and and the last element of the list
-    print(f"unique_member_ID: {member}; {cumulative_amount[-1]}")
-#    cumulative_amount = []
-#for member in card_members:
-#    print(f"unique_member_ID: {member}; {cumulative_amount[-1]}")
 #%%
 '''
 IMPROVISED SOLUTION WITHOUT ITERATION
@@ -539,6 +470,7 @@ df_3 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_cla
 df_4 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '364987015290224198196263']
 df_5 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '651451454569880463282551']
 df_6 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '748150568877494117414131']
+#%%
 #DF_1
 #for member in card_members:
 cumulative_amount = []
@@ -555,7 +487,6 @@ for row in df_1.itertuples():
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
-#%%
 ##DF_2
 cumulative_amount = []
 amount_list = []
@@ -571,7 +502,6 @@ for row in df_2.itertuples():
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
-#%%
 ##DF_3
 cumulative_amount = []
 amount_list = []
@@ -587,7 +517,6 @@ for row in df_3.itertuples():
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
-#%%
 ##DF_4
 cumulative_amount = []
 amount_list = []
@@ -603,7 +532,6 @@ for row in df_4.itertuples():
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
-#%%
 ##DF_5
 cumulative_amount = []
 amount_list = []
@@ -619,7 +547,6 @@ for row in df_5.itertuples():
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
-#%%
 ##DF_6
 cumulative_amount = []
 amount_list = []
@@ -653,6 +580,7 @@ df_579758724513140495207829 = df_bank[['unique_mem_id', 'amount', 'envelope_cate
 df_630323465162087035360618 = df_bank[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_bank['unique_mem_id'] == '630323465162087035360618']
 df_635337295180631420039874 = df_bank[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_bank['unique_mem_id'] == '635337295180631420039874']
 df_1187627404526562698645364 = df_bank[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_bank['unique_mem_id'] == '1187627404526562698645364']
+#%%
 #DF_1
 #for member in card_members:
 cumulative_amount = []
@@ -669,7 +597,6 @@ for row in df_1.itertuples():
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
-#%%
 ##DF_2
 cumulative_amount = []
 amount_list = []
@@ -685,7 +612,6 @@ for row in df_2.itertuples():
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
-#%%
 ##DF_3
 cumulative_amount = []
 amount_list = []
@@ -701,7 +627,6 @@ for row in df_3.itertuples():
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
-#%%
 ##DF_4
 cumulative_amount = []
 amount_list = []
@@ -717,7 +642,6 @@ for row in df_4.itertuples():
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
-#%%
 ##DF_5
 cumulative_amount = []
 amount_list = []
@@ -733,7 +657,6 @@ for row in df_5.itertuples():
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
-#%%
 ##DF_6
 cumulative_amount = []
 amount_list = []
@@ -749,27 +672,3 @@ for row in df_6.itertuples():
         break
     #print out the member id as part of the for-loop and and the last element of the list
 print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
-#%%
-#for row in flights.head().itertuples():
-#    print(row.Index, row.date, row.delay)
-amount_list = []
-for member in card_members:
-    for row in df_card.itertuples():
-         # access data using column names
-         if row.transaction_class != "expense":
-             #print(index, row.unique_mem_id, row.amount, row.transaction_class)
-             amount_list.append(row.amount)
-             cumulative_amount = np.cumsum(amount_list, axis = 0)
-             print(row.unique_mem_id, cumulative_amount)
-         else:
-             print(row.unique_mem_id, cumulative_amount)
-             break
-#%%
-#almost works
-#dictionary displays mem_id with transaction sum ( no split up between exp/inc)
-#turnover_dictionary= {}
-#for mem_id in card_members:
-#    key = mem_id
-#    value = df_card[df_card['unique_mem_id'] == mem_id]['amount'].sum()
-#    turnover_dictionary[key] += value
-#print(turnover_dictionary.keys())
