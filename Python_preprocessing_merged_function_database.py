@@ -444,10 +444,8 @@ for col in list(df_card):
 
 #%%
     '''
-            CONVERION OF THE SPENDING REPORTS
-    '''
-    ##CONVERSION TO CSV FOR TESTING
-    '''
+            CONVERSION OF THE SPENDING REPORTS
+
     For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
     Test the functionality and reassert some columns after CSV is generated
     AFTER CSV IS GENERATED(in pred_func):
@@ -462,33 +460,32 @@ for col in list(df_card):
     #working path = 'C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/yodlee_converted.csv'
     date_of_creation = dt.today().strftime('%m-%d-%Y')
     #os.mkdir(os.path.join(raw, converted_csv))
-    csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL' + '.csv')
-    csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL' + '.csv')
-    csv_path_demo = os.path.join(raw, date_of_creation + '_DEMO_PANEL' + '.csv')
 
-    #name_list = ['df_card', 'df_bank', 'df_demo']
-    #for name in name_list:
-    #    f"{date_of_creation}_{name}".to_csv(csv_path)
-    if os.path.exists(os.path.join(raw, date_of_creation + '_CARD_PANEL' + '.csv')) = False:
-        spending_metrics_monthly.to_csv(csv_path_card)
-        spending_metrics_weekly.to_csv(csv_path_bank)
-        spending_metrics_daily.to_csv(csv_path_demo)
-    else:
-        spending_metrics_monthly.to_csv(csv_path_card, mode = 'a', header = False)
-        spending_metrics_weekly.to_csv(csv_path_bank, mode = 'a', header = False)
-        spending_metrics_daily.to_csv(csv_path_demo, mode = 'a', header = False)
+    csv_path_msp = os.path.join(raw, date_of_creation + '_MONTHLY_REPORT' + '.csv')
+    csv_path_wsp = os.path.join(raw, date_of_creation + '_WEEKLY_REPORT' + '.csv')
+    csv_path_dsp = os.path.join(raw, date_of_creation + '_DAILY_REPORT' + '.csv')
+
+try:
+    spending_metrics_monthly.to_csv(csv_path_msp)
+    spending_metrics_weekly.to_csv(csv_path_wsp)
+    spending_metrics_daily.to_csv(csv_path_dsp)
+except FileExistsError as exc:
+    print(exc)
+    print("existing file will be appended instead...")
+    spending_metrics_monthly.to_csv(csv_path_msp, mode = 'a', header = False)
+    spending_metrics_weekly.to_csv(csv_path_wsp, mode = 'a', header = False)
+    spending_metrics_daily.to_csv(csv_path_dsp, mode = 'a', header = False)
 #%%
     '''
-            CONVERION OF THE ENTIRE DATAFRAMES
+            CONVERSION OF THE ENTIRE DATAFRAMES
+
+For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
+AFTER CSV IS GENERATED(in pred_func):
+    Reassert datetime objects to all date columns
+    Set Transaction date as index
+The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
     '''
-    ##CONVERSION TO CSV FOR TESTING
-    '''
-    For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
-    AFTER CSV IS GENERATED(in pred_func):
-        Reassert datetime objects to all date columns
-        Set Transaction date as index
-    '''
-    #The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
+    #
     #Conversion of df to CSV or direct pass possible
     ##Conversion
     raw = 'C:/Users/bill-/Desktop/'
@@ -496,15 +493,19 @@ for col in list(df_card):
     #working path = 'C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/yodlee_converted.csv'
     date_of_creation = dt.today().strftime('%m-%d-%Y')
     #os.mkdir(os.path.join(raw, converted_csv))
-    csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL' + '.csv')
-    csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL' + '.csv')
-    csv_path_demo = os.path.join(raw, date_of_creation + '_DEMO_PANEL' + '.csv')
-    #name_list = ['df_card', 'df_bank', 'df_demo']
-    #for name in name_list:
-    #    f"{date_of_creation}_{name}".to_csv(csv_path)
+    csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL_PREPROCESSED' + '.csv')
+    csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL_PREPROCESSED' + '.csv')
+    csv_path_demo = os.path.join(raw, date_of_creation + '_DEMO_PANEL_PREPROCESSED' + '.csv')
+try:
     df_card.to_csv(csv_path_card)
     df_bank.to_csv(csv_path_bank)
     df_demo.to_csv(csv_path_demo)
+except FileExistsError as exc:
+    print(exc)
+    print("existing file will be appended instead...")
+    df_card.to_csv(csv_path_card, mode = 'a', header = False)
+    df_bank.to_csv(csv_path_bank, mode = 'a', header = False)
+    df_demo.to_csv(csv_path_demo, mode = 'a', header = False)
 #%%
     ##CONVERSION TO CSV FINAL
     '''
