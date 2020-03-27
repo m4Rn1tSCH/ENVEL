@@ -159,7 +159,7 @@ except:
 '''
 budgeting mode section
 '''
-#DF_BANK
+#DF_CARD
 try:
     envelope_cat_bank = pd.Series([], dtype = 'object')
     for i in enumerate(df_card['transaction_category_name']):
@@ -490,6 +490,120 @@ df_3 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_cla
 df_4 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '364987015290224198196263']
 df_5 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '651451454569880463282551']
 df_6 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '748150568877494117414131']
+#DF_1
+#for member in card_members:
+cumulative_amount = []
+amount_list = []
+for row in df_1.itertuples():
+    #access data using column names
+    if row.transaction_class == "expense":
+        #print(index, row.unique_mem_id, row.amount, row.transaction_class)
+        amount_list.append(row.amount)
+        cumulative_amount = np.cumsum(amount_list, axis = 0)
+        print(row.unique_mem_id, cumulative_amount)
+    else:
+        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+        break
+    #print out the member id as part of the for-loop and and the last element of the list
+print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+#%%
+##DF_2
+cumulative_amount = []
+amount_list = []
+for row in df_2.itertuples():
+    #access data using column names
+    if row.transaction_class == "expense":
+        #print an overview and calculate the cumulative sum
+        amount_list.append(row.amount)
+        cumulative_amount = np.cumsum(amount_list, axis = 0)
+        print(row.unique_mem_id, cumulative_amount)
+    else:
+        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+        break
+    #print out the member id as part of the for-loop and and the last element of the list
+print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+#%%
+##DF_3
+cumulative_amount = []
+amount_list = []
+for row in df_3.itertuples():
+    #access data using column names
+    if row.transaction_class == "expense":
+        #print an overview and calculate the cumulative sum
+        amount_list.append(row.amount)
+        cumulative_amount = np.cumsum(amount_list, axis = 0)
+        print(row.unique_mem_id, cumulative_amount)
+    else:
+        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+        break
+    #print out the member id as part of the for-loop and and the last element of the list
+print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+#%%
+##DF_4
+cumulative_amount = []
+amount_list = []
+for row in df_4.itertuples():
+    #access data using column names
+    if row.transaction_class == "expense":
+        #print an overview and calculate the cumulative sum
+        amount_list.append(row.amount)
+        cumulative_amount = np.cumsum(amount_list, axis = 0)
+        print(row.unique_mem_id, cumulative_amount)
+    else:
+        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+        break
+    #print out the member id as part of the for-loop and and the last element of the list
+print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+#%%
+##DF_5
+cumulative_amount = []
+amount_list = []
+for row in df_5.itertuples():
+    #access data using column names
+    if row.transaction_class == "expense":
+        #print an overview and calculate the cumulative sum
+        amount_list.append(row.amount)
+        cumulative_amount = np.cumsum(amount_list, axis = 0)
+        print(row.unique_mem_id, cumulative_amount)
+    else:
+        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+        break
+    #print out the member id as part of the for-loop and and the last element of the list
+print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+#%%
+##DF_6
+cumulative_amount = []
+amount_list = []
+for row in df_6.itertuples():
+    #access data using column names
+    if row.transaction_class == "expense":
+        #print an overview and calculate the cumulative sum
+        amount_list.append(row.amount)
+        cumulative_amount = np.cumsum(amount_list, axis = 0)
+        print(row.unique_mem_id, cumulative_amount)
+    else:
+        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+        break
+    #print out the member id as part of the for-loop and and the last element of the list
+print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+#%%
+print(bank_members)
+'''
+'70850441974905670928446'
+'257154737161372702866152'
+'364987015290224198196263'
+'579758724513140495207829'
+'630323465162087035360618'
+'635337295180631420039874'
+'1187627404526562698645364'
+'''
+df_70850441974905670928446 = df_bank[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_bank['unique_mem_id'] == '70850441974905670928446']
+df_257154737161372702866152 = df_bank[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_bank['unique_mem_id'] == '257154737161372702866152']
+df_364987015290224198196263 = df_bank[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_bank['unique_mem_id'] == '364987015290224198196263']
+df_579758724513140495207829 = df_bank[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_bank['unique_mem_id'] == '579758724513140495207829']
+df_630323465162087035360618 = df_bank[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_bank['unique_mem_id'] == '630323465162087035360618']
+df_635337295180631420039874 = df_bank[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_bank['unique_mem_id'] == '635337295180631420039874']
+df_1187627404526562698645364 = df_bank[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_bank['unique_mem_id'] == '1187627404526562698645364']
 #DF_1
 #for member in card_members:
 cumulative_amount = []
