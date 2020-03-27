@@ -28,13 +28,13 @@ path_mac = os.path.relpath('/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Wor
 #no preprocessing here or encoding
 df_card = pd.read_excel(path_win, sheet_name = "Card Panel")
 df_bank = pd.read_excel(path_win, sheet_name = "Bank Panel")
-#df_demo = pd.read_excel(path_win, sheet_name = "User Demographics")
+df_demo = pd.read_excel(path_win, sheet_name = "User Demographics")
 #%%
 #in the non-encoded verion all columns still have correct types
 #extract unique numbers from all panels to find out unique users;
 card_members = df_card['unique_mem_id'].unique()
 bank_members = df_bank['unique_mem_id'].unique()
-#demo_members = df_card['unique_mem_id'].unique()
+demo_members = df_card['unique_mem_id'].unique()
 trans_cat_card = df_card['transaction_category_name'].unique()
 trans_cat_bank = df_bank['transaction_category_name'].unique()
 #%%
@@ -270,7 +270,14 @@ df_bank.fillna(df_bank.mean(), inplace = True)
 #associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
 df_bank.set_index("transaction_date", drop = False, inplace = True)
 #%%
-#Add feature columns for additive spending on a weekly; monthly; daily basis
+if card_members.all() == demo_members.all():
+    print("noice")
+#%%
+'''
+Addition of feature columns for additive spending on a weekly; monthly; daily basis
+These dataframes are then convertable to a CSV for reporting purposes or showing it in the app
+
+'''
 #total throughput of money
 total_throughput = df_card['amount'].sum()
 #monthly figures
@@ -286,8 +293,8 @@ avg_weekly_throughput = df_card['amount'].groupby(df_card['transaction_date_week
 weekly_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_week']).sum()
 #weekly_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_week']).sum()
 #daily figures
-net_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).mean()
-avg_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).sum()
+net_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).sum()
+avg_daily_spending = df_card['amount'].groupby(df_card['transaction_date_weekday']).mean()
 #CHECK VIABILITY OF SUCH VARIABLES
 daily_gain = df_card['amount'][df_card['amount'] >= 0].groupby(df_card['transaction_date_weekday']).sum()
 #daily_expenses = df_card['amount'][df_card['transaction_base_type'] == "debit"].groupby(df_card['transaction_date_weekday']).sum()
