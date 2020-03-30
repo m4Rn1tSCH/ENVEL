@@ -98,15 +98,28 @@ for link in path_list:
 print("Following motherfuckers were either too fucking dumb to create a properly readable PDF or there was another error:")
 print("-------------------------------------------------------------------------------")
 print(error_list)
+'''
+Convert it to a dataframe, drop duplicated mails that were found by more than just one pattern and convert a CSV
+'''
+#Components to crate the path and the file name
+raw = 'C:/Users/bill-/Desktop/'
+date_of_creation = dt.today().strftime('%m-%d-%Y_%Hh:%mmin')
+#Enter a name for the file
+name_mail_file = 'Non-Harvard_mail_list_'
+name_fail_file = 'Non-Harvard_fail_list_'
+
+path_mail = os.path.join(raw, date_of_creation + name_mail_file + '.csv')
+path_fail = os.path.join(raw, date_of_creation + name_fail_file + '.csv')
+
 try:
-    pd.DataFrame(pure_email_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/nh_mail_list.csv')
-    pd.DataFrame(error_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/nh_fail_list.csv')
+    pd.DataFrame(pure_email_list).drop_duplicates().to_csv(path_mail)
+    pd.DataFrame(error_list).drop_duplicates().to_csv(path_fail)
 #if the file is existing catch the error and print it; append the existing file instead creating a new one
 except FileExistsError as exc:
     print(exc)
-    print("existing file will be appended instead...")
-    pd.DataFrame(pure_email_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/nh_mail_list.csv', mode = 'a', header = False)
-    pd.DataFrame(error_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/nh_fail_list.csv', mode = 'a', header = False)
+    print("File already exists and will be appended instead...")
+    pd.DataFrame(pure_email_list).drop_duplicates().to_csv(path_mail, mode = 'a', header = False)
+    pd.DataFrame(error_list).drop_duplicates().to_csv(path_fail, mode = 'a', header = False)
 
 #%%
 pure_email_list = []
@@ -158,10 +171,22 @@ print(error_list)
 '''
 Convert it to a dataframe, drop duplicated mails that were found by more than just one pattern and convert a CSV
 '''
+#Components to crate the path and the file name
+raw = 'C:/Users/bill-/Desktop/'
+date_of_creation = dt.today().strftime('%m-%d-%Y_%Hh:%mmin')
+#Enter a name for the file
+name_mail_file = 'Non-Harvard_mail_list_'
+name_fail_file = 'Non-Harvard_fail_list_'
+
+path_mail = os.path.join(raw, date_of_creation + name_mail_file + '.csv')
+path_fail = os.path.join(raw, date_of_creation + name_fail_file + '.csv')
+
 try:
-    pd.DataFrame(pure_email_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/Non-Harvard_mail_list_2.csv')
-    pd.DataFrame(error_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/Non-Harvard_fail_list_2.csv')
+    pd.DataFrame(pure_email_list).drop_duplicates().to_csv(path_mail)
+    pd.DataFrame(error_list).drop_duplicates().to_csv(path_fail)
 #if the file is existing catch the error and print it; append the existing file instead creating a new one
-except:
-    pd.DataFrame(pure_email_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/Non-Harvard_mail_list_2.csv', mode = 'a', header = False)
-    pd.DataFrame(error_list).drop_duplicates().to_csv('C:/Users/bill-/Desktop/Non-Harvard_fail_list_2.csv', mode = 'a', header = False)
+except FileExistsError as exc:
+    print(exc)
+    print("File already exists and will be appended instead...")
+    pd.DataFrame(pure_email_list).drop_duplicates().to_csv(path_mail, mode = 'a', header = False)
+    pd.DataFrame(error_list).drop_duplicates().to_csv(path_fail, mode = 'a', header = False)
