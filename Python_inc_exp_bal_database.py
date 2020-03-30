@@ -16,40 +16,30 @@ with unique IDs and corresponding income and expenses in separate dictionaries
 #load needed packages
 import pandas as pd
 import numpy as np
-#from collections import defaultdict
 #from datetime import datetime as dt
 #import regex
 import os
 #%%
 #CONNECTION TO FLASK/SQL
-#INSERT FLASK CONNECTION SCRIPT HERE
 ###########################################
-#loading the simplified applications
 #from flask import Flask
-#app = Flask(__Preprocessor__)
+#app = Flask(__yodlee_splitter_preprocessor__)
 
 ##put address here
 #@app.route('/')
-#def hello_world():
+#def preprocessing():
 #    return 'Hello, World!'
-#route tells what URL should trigger the function
-#use __main__ only for the actual core of the application
-# pick unique names for particular functions if these are imported later
-#DONT CALL APPLICATIONS FLASK.PY TO AVOID CONFLICTS WITH FLASK
-
-#RUN THE APPLICATION
-#flask command or -m swith in Python
 
 ########SETTING THE ENVIRONMENT VARIABLE#######
-#$ export FLASK_APP = C:\Users\bill-\OneDrive\Dokumente\Docs Bill\TA_files\functions_scripts_storage\Python_preprocessing_merged_function_database.py
+#$ set FLASK_APP=file_name.py
 #$ flask run
 # * Running on http://127.0.0.1:5000/
 
 ####COMMAND PROMPT#####
 #C:\path\to\app>set FLASK_APP=hello.py
-
 ####for production use##
 #$ flask run --host=0.0.0.0
+
 ############################################
 #INSERT SQL CONNECTION HERE
 ############################################
@@ -88,187 +78,6 @@ trans_cat_card = df_card['transaction_category_name'].unique()
 trans_cat_bank = df_bank['transaction_category_name'].unique()
 #%%
 '''
-Following lists contains the categories to classify transactions either as expense or income
-names taken directly from the Yodlee dataset; can be appended at will
-'''
-#append these unique to dictionaries measuring expenses or income with their respective categories
-card_inc = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts']
-card_exp = ['Groceries', 'Automotive/Fuel', 'Home Improvement', 'Travel',
-            'Restaurants', 'Healthcare/Medical', 'Credit Card Payments',
-            'Electronics/General Merchandise', 'Entertainment/Recreation',
-            'Postage/Shipping', 'Other Expenses', 'Personal/Family',
-            'Service Charges/Fees', 'Services/Supplies', 'Utilities',
-            'Office Expenses', 'Cable/Satellite/Telecom',
-            'Subscriptions/Renewals', 'Insurance']
-bank_inc = ['Deposits', 'Salary/Regular Income', 'Transfers',
-            'Investment/Retirement Income', 'Rewards', 'Other Income',
-            'Refunds/Adjustments', 'Interest Income', 'Gifts', 'Expense Reimbursement']
-bank_exp = ['Service Charges/Fees',
-            'Credit Card Payments', 'Utilities', 'Healthcare/Medical', 'Loans',
-            'Check Payment', 'Electronics/General Merchandise', 'Groceries',
-            'Automotive/Fuel', 'Restaurants', 'Personal/Family',
-            'Entertainment/Recreation', 'Services/Supplies', 'Other Expenses',
-            'ATM/Cash Withdrawals', 'Cable/Satellite/Telecom',
-            'Postage/Shipping', 'Insurance', 'Travel', 'Taxes',
-            'Home Improvement', 'Education', 'Charitable Giving',
-            'Subscriptions/Renewals', 'Rent', 'Office Expenses', 'Mortgage']
-'''
-Iterate through rows and create new columns with a keyword that it is either an expense or income
-This part is needed to make sure that initial balances can be determined better
-'''
-#DF_CARD
-try:
-    transaction_class_card = pd.Series([], dtype = 'object')
-    for index, i in enumerate(df_card['transaction_category_name']):
-        if i in card_inc:
-            transaction_class_card[index] = "income"
-        elif i in card_exp:
-            transaction_class_card[index] = "expense"
-        else:
-            transaction_class_card[index] = "NOT_CLASSIFIED"
-    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
-except:
-    print("column is already existing or another error")
-#    df_card.drop(['transaction_class'], axis = 1)
-#    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
-###################################
-#DF_BANK
-try:
-    transaction_class_bank = pd.Series([], dtype = 'object')
-    for index, i in enumerate(df_bank['transaction_category_name']):
-        if i in bank_inc:
-            transaction_class_bank[index] = "income"
-        elif i in bank_exp:
-            transaction_class_bank[index] = "expense"
-        else:
-            transaction_class_bank[index] = "NOT_CLASSIFIED"
-    df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = transaction_class_bank)
-except:
-    print("column is already existing or another error")
-#%%
-'''
-POSTGRE-SQL COLUMNS
-This section adds a classification of transaction categories to allow a proper allocation to either the cash or the bills envelope
-Bills describes as of 3/26/2020 all kinds of payment whose occurrence is beyond one's control,
-that comes due and for which non-compliance has evere consequences
-All other kinds of payments that are of optional nature and can be avoided are classifed as cash
-'''
-cash_env_card = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts',
-                 'Restaurants', 'Electronics/General Merchandise',
-                 'Entertainment/Recreation', 'Postage/Shipping', 'Other Expenses',
-                 'Personal/Family','Groceries', 'Automotive/Fuel',  'Travel']
-
-bill_env_card = ['Home Improvement', 'Healthcare/Medical', 'Credit Card Payments'
-                 'Service Charges/Fees', 'Services/Supplies', 'Utilities',
-                 'Office Expenses', 'Cable/Satellite/Telecom',
-                 'Subscriptions/Renewals', 'Insurance']
-
-cash_env_bank = ['Deposits', 'Salary/Regular Income', 'Transfers',
-                 'Investment/Retirement Income', 'Rewards', 'Other Income',
-                 'Refunds/Adjustments', 'Interest Income', 'Gifts', 'Expense Reimbursement',
-                 'Electronics/General Merchandise', 'Groceries', 'Automotive/Fuel',
-                 'Restaurants', 'Personal/Family', 'Entertainment/Recreation',
-                 'Services/Supplies', 'Other Expenses', 'ATM/Cash Withdrawals',
-                 'Postage/Shipping', 'Travel', 'Education', 'Charitable Giving',
-                 'Office Expenses']
-
-bill_env_bank = ['Service Charges/Fees', 'Credit Card Payments',
-                 'Utilities', 'Healthcare/Medical', 'Loans', 'Check Payment',
-                 'Cable/Satellite/Telecom', 'Insurance', 'Taxes', 'Home Improvement',
-                 'Subscriptions/Renewals', 'Rent', 'Mortgage']
-#iterate through rows and create a new columns with a note that it is either an expense or income
-#DF_CARD
-try:
-    envelope_cat_card = pd.Series([], dtype = 'object')
-    for index, i in enumerate(df_card['transaction_category_name']):
-        if i in cash_env_card:
-            envelope_cat_card[index] = "cash"
-        elif i in bill_env_card:
-            envelope_cat_card[index] = "bill"
-        else:
-            envelope_cat_card[index] = "NOT_CLASSIFIED"
-    df_card.insert(loc = len(df_card.columns), column = "envelope_category", value = envelope_cat_card)
-except:
-    print("CASH/BILL column is already existing or another error")
-##############################
-#DF_BANK
-try:
-    envelope_cat_bank = pd.Series([], dtype = 'object')
-    for i in enumerate(df_bank['transaction_category_name']):
-        if i in cash_env_bank:
-            envelope_cat_bank[index] = "cash"
-        elif i in bill_env_bank:
-            envelope_cat_bank[index] = "bill"
-        else:
-            envelope_cat_bank[index] = "NOT_CLASSIFIED"
-    df_bank.insert(loc = len(df_bank.columns), column = "envelope_category", value = envelope_cat_bank)
-except:
-    print("CASH/BILL column is already existing or another error")
-#%%
-'''
-Create columns with an initial recommendation of the budgeting mode and the corresponding daily limit
-Logic is based on the weekly or biweekly income:
-Logic of stability of spending behavior and standard deviation within various time frames
-Behavior is considered: stable and non-erratic when:
-    Std dev of past 3 days is still smaller than emergency cash allocated for a day
-    std dev of past week is still smaller than emergency allocated for a week
-    std dev of 30d is smaller than 70% of monthly income
-    (to allow purchase of flight tickets or hotel stays without forcing a change of the spending mode)
-'''
-#DF_CARD
-try:
-    envelope_cat_bank = pd.Series([], dtype = 'object')
-    for i in enumerate(df_card['transaction_category_name']):
-        if i in XXX:
-            envelope_cat_bank[index] = "cash"
-        elif i in XXX:
-            envelope_cat_bank[index] = "bill"
-        else:
-            envelope_cat_bank[index] = "NOT_CLASSIFIED"
-    df_card.insert(loc = len(df_card.columns), column = "envelope_category", value = envelope_cat_bank)
-except:
-    print("TEST")
-#DF_CARD
-try:
-    envelope_cat_bank = pd.Series([], dtype = 'object')
-    for i in enumerate(df_card['transaction_category_name']):
-        if i in XXX:
-            envelope_cat_bank[index] = "cash"
-        elif i in XXX:
-            envelope_cat_bank[index] = "bill"
-        else:
-            envelope_cat_bank[index] = "NOT_CLASSIFIED"
-    df_card.insert(loc = len(df_card.columns), column = "envelope_category", value = envelope_cat_bank)
-except:
-    print("TEST")
-#DF_BANK
-try:
-    envelope_cat_bank = pd.Series([], dtype = 'object')
-    for i in enumerate(df_bank['transaction_category_name']):
-        if i in XXX:
-            envelope_cat_bank[index] = "cash"
-        elif i in XXX:
-            envelope_cat_bank[index] = "bill"
-        else:
-            envelope_cat_bank[index] = "NOT_CLASSIFIED"
-    df_bank.insert(loc = len(df_bank.columns), column = "envelope_category", value = envelope_cat_bank)
-except:
-    print("TEST")
-#DF_BANK
-try:
-    envelope_cat_bank = pd.Series([], dtype = 'object')
-    for i in enumerate(df_bank['transaction_category_name']):
-        if i in XXX:
-            envelope_cat_bank[index] = "cash"
-        elif i in XXX:
-            envelope_cat_bank[index] = "bill"
-        else:
-            envelope_cat_bank[index] = "NOT_CLASSIFIED"
-    df_bank.insert(loc = len(df_bank.columns), column = "envelope_category", value = envelope_cat_bank)
-except:
-    print("TEST")
-#%%
-'''
 Datetime engineering for card and bank panel
 These columns help for reporting like weekly or monthly expenses and
 improve prediction of re-occurring transactions
@@ -287,7 +96,7 @@ for col in list(df_bank):
         df_bank[f"{col}_weekday"] = df_bank[col].dt.weekday
 #%%
 #DATETIME ENGINEERING
-#typical engineered features based on lagging metrics
+#this includes expenses and income
 #mean + stdev of past 3d/7d/30d/ + rolling volume
 df_card.reset_index(drop = True, inplace = True)
 #pick lag features to iterate through and calculate features
@@ -443,8 +252,190 @@ except:
 #filter with ilocation and show expenses and income as spearate dataframe
 card_expenses = df_card.iloc[np.where(df_card['transaction_class'] == "expense")]
 card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]
+card_income_by_user = df_card.iloc[np.where(df_card['transaction_class'] == "income")].groupby('unique_mem_id').sum()
 bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
-bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
+bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "income")]
+bank_income_by_user = df_bank.iloc[np.where(df_bank['transaction_class'] == "income")].groupby('unique_mem_id').sum()
+#%%
+'''
+POSTGRESQL COLUMNS - CLASSIFICATION OF TRANSACTIONS
+Following lists contains the categories to classify transactions either as expense or income
+names taken directly from the Yodlee dataset; can be appended at will
+'''
+#append these unique to dictionaries measuring expenses or income with their respective categories
+card_inc = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts']
+card_exp = ['Groceries', 'Automotive/Fuel', 'Home Improvement', 'Travel',
+            'Restaurants', 'Healthcare/Medical', 'Credit Card Payments',
+            'Electronics/General Merchandise', 'Entertainment/Recreation',
+            'Postage/Shipping', 'Other Expenses', 'Personal/Family',
+            'Service Charges/Fees', 'Services/Supplies', 'Utilities',
+            'Office Expenses', 'Cable/Satellite/Telecom',
+            'Subscriptions/Renewals', 'Insurance']
+bank_inc = ['Deposits', 'Salary/Regular Income', 'Transfers',
+            'Investment/Retirement Income', 'Rewards', 'Other Income',
+            'Refunds/Adjustments', 'Interest Income', 'Gifts', 'Expense Reimbursement']
+bank_exp = ['Service Charges/Fees',
+            'Credit Card Payments', 'Utilities', 'Healthcare/Medical', 'Loans',
+            'Check Payment', 'Electronics/General Merchandise', 'Groceries',
+            'Automotive/Fuel', 'Restaurants', 'Personal/Family',
+            'Entertainment/Recreation', 'Services/Supplies', 'Other Expenses',
+            'ATM/Cash Withdrawals', 'Cable/Satellite/Telecom',
+            'Postage/Shipping', 'Insurance', 'Travel', 'Taxes',
+            'Home Improvement', 'Education', 'Charitable Giving',
+            'Subscriptions/Renewals', 'Rent', 'Office Expenses', 'Mortgage']
+'''
+Iterate through rows and create new columns with a keyword that it is either an expense or income
+This part is needed to make sure that initial balances can be determined better
+'''
+#DF_CARD
+try:
+    transaction_class_card = pd.Series([], dtype = 'object')
+    for index, i in enumerate(df_card['transaction_category_name']):
+        if i in card_inc:
+            transaction_class_card[index] = "income"
+        elif i in card_exp:
+            transaction_class_card[index] = "expense"
+        else:
+            transaction_class_card[index] = "NOT_CLASSIFIED"
+    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
+except:
+    print("column is already existing or another error")
+#    df_card.drop(['transaction_class'], axis = 1)
+#    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
+###################################
+#DF_BANK
+try:
+    transaction_class_bank = pd.Series([], dtype = 'object')
+    for index, i in enumerate(df_bank['transaction_category_name']):
+        if i in bank_inc:
+            transaction_class_bank[index] = "income"
+        elif i in bank_exp:
+            transaction_class_bank[index] = "expense"
+        else:
+            transaction_class_bank[index] = "NOT_CLASSIFIED"
+    df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = transaction_class_bank)
+except:
+    print("column is already existing or another error")
+#%%
+'''
+POSTGRE-SQL COLUMNS - ALLOCATION TO ENVELOPES
+This section adds a classification of transaction categories to allow a proper allocation to either the cash or the bills envelope
+Bills describes as of 3/26/2020 all kinds of payment whose occurrence is beyond one's control,
+that comes due and for which non-compliance has evere consequences
+All other kinds of payments that are of optional nature and can be avoided are classifed as cash
+'''
+cash_env_card = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts',
+                 'Restaurants', 'Electronics/General Merchandise',
+                 'Entertainment/Recreation', 'Postage/Shipping', 'Other Expenses',
+                 'Personal/Family','Groceries', 'Automotive/Fuel',  'Travel']
+
+bill_env_card = ['Home Improvement', 'Healthcare/Medical', 'Credit Card Payments'
+                 'Service Charges/Fees', 'Services/Supplies', 'Utilities',
+                 'Office Expenses', 'Cable/Satellite/Telecom',
+                 'Subscriptions/Renewals', 'Insurance']
+
+cash_env_bank = ['Deposits', 'Salary/Regular Income', 'Transfers',
+                 'Investment/Retirement Income', 'Rewards', 'Other Income',
+                 'Refunds/Adjustments', 'Interest Income', 'Gifts', 'Expense Reimbursement',
+                 'Electronics/General Merchandise', 'Groceries', 'Automotive/Fuel',
+                 'Restaurants', 'Personal/Family', 'Entertainment/Recreation',
+                 'Services/Supplies', 'Other Expenses', 'ATM/Cash Withdrawals',
+                 'Postage/Shipping', 'Travel', 'Education', 'Charitable Giving',
+                 'Office Expenses']
+
+bill_env_bank = ['Service Charges/Fees', 'Credit Card Payments',
+                 'Utilities', 'Healthcare/Medical', 'Loans', 'Check Payment',
+                 'Cable/Satellite/Telecom', 'Insurance', 'Taxes', 'Home Improvement',
+                 'Subscriptions/Renewals', 'Rent', 'Mortgage']
+#iterate through rows and create a new columns with a note that it is either an expense or income
+#DF_CARD
+try:
+    envelope_cat_card = pd.Series([], dtype = 'object')
+    for index, i in enumerate(df_card['transaction_category_name']):
+        if i in cash_env_card:
+            envelope_cat_card[index] = "cash"
+        elif i in bill_env_card:
+            envelope_cat_card[index] = "bill"
+        else:
+            envelope_cat_card[index] = "NOT_CLASSIFIED"
+    df_card.insert(loc = len(df_card.columns), column = "envelope_category", value = envelope_cat_card)
+except:
+    print("CASH/BILL column is already existing or another error")
+##############################
+#DF_BANK
+try:
+    envelope_cat_bank = pd.Series([], dtype = 'object')
+    for i in enumerate(df_bank['transaction_category_name']):
+        if i in cash_env_bank:
+            envelope_cat_bank[index] = "cash"
+        elif i in bill_env_bank:
+            envelope_cat_bank[index] = "bill"
+        else:
+            envelope_cat_bank[index] = "NOT_CLASSIFIED"
+    df_bank.insert(loc = len(df_bank.columns), column = "envelope_category", value = envelope_cat_bank)
+except:
+    print("CASH/BILL column is already existing or another error")
+#%%
+'''
+POSTGRESQL - BUDGET SUGGESTION COLUMNS
+Create columns with an initial recommendation of the budgeting mode and the corresponding daily limit
+Logic is based on the weekly or biweekly income:
+Logic of stability of spending behavior and standard deviation within various time frames
+Behavior is considered: stable and non-erratic when:
+    USED:Std dev of past 3 days is still smaller than emergency cash allocated for a day
+    LATER:Std dev of past week is still smaller than emergency allocated for a week
+    LATER:Std dev of 30d is smaller than 70% of monthly income
+    (to allow purchase of flight tickets or hotel stays without forcing a change of the spending mode)
+'''
+#DF_CARD
+try:
+    budget_mode_card = pd.Series([], dtype = 'object')
+    for i in enumerate(df_card['amount']):
+        if i < df_card:
+            budget_mode_card[index] = "beastmode"
+        else:
+            budget_mode_card[index] = "NOT_CLASSIFIED"
+    df_card.insert(loc = len(df_card.columns), column = "budget_mode_suggestion_card", value = budget_mode_card)
+except:
+    print("TEST")
+#DF_CARD
+#%%
+df_1 = df_card[['unique_mem_id', 'amount', 'transaction_class']][df_card['unique_mem_id'] == '70850441974905670928446']
+#try:
+budget_mode_card = pd.Series([], dtype = 'object')
+for index, i in enumerate(df_card['amount']):
+    if i < df_card['amount_std_lag7'][index] == True:
+        print("works")
+        budget_mode_card[index] = "Beastmode"
+    else:
+        budget_mode_card[index] = "NOT_CLASSIFIED"
+df_card.insert(loc = len(df_card.columns), column = "budget_mode_suggestion_card", value = budget_mode_card)
+#except:
+#    print("TEST")
+#%%
+#DF_BANK
+try:
+    budget_mode_bank = pd.Series([], dtype = 'object')
+    for i in enumerate(df_bank['amount']):
+        if i in XXX:
+            budget_mode_bank[index] = "cash"
+        else:
+            budget_mode_bank[index] = "NOT_CLASSIFIED"
+    df_bank.insert(loc = len(df_bank.columns), column = "budget_mode_suggestion_bank", value = budget_mode_bank)
+except:
+    print("TEST")
+#DF_BANK
+try:
+    budget_mode_bank = pd.Series([], dtype = 'object')
+    for i in enumerate(df_bank['amount']):
+        if i in XXX:
+            budget_mode_bank[index] = "cash"
+        else:
+            budget_mode_bank[index] = "NOT_CLASSIFIED"
+    df_bank.insert(loc = len(df_bank.columns), column = "budget_mode_suggestion_bank", value = budget_mode_bank)
+except:
+    print("TEST")
+
 #%%
 '''
 #Slices based on parameters
@@ -471,104 +462,138 @@ Until "income" class is hit to stop
 Numerical amount needs to be injected for simulation
 problem of Python here; one cannot assign an element to a list that is not yet existing
 '''
-df_1 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '70850441974905670928446']
-df_2 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '201492116860211330700059']
-df_3 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '257154737161372702866152']
-df_4 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '364987015290224198196263']
-df_5 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '651451454569880463282551']
-df_6 = df_card[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_card['unique_mem_id'] == '748150568877494117414131']
+df_1 = df_card[['unique_mem_id', 'amount', 'transaction_class']][df_card['unique_mem_id'] == '70850441974905670928446']
+df_2 = df_card[['unique_mem_id', 'amount', 'transaction_class']][df_card['unique_mem_id'] == '201492116860211330700059']
+df_3 = df_card[['unique_mem_id', 'amount', 'transaction_class']][df_card['unique_mem_id'] == '257154737161372702866152']
+df_4 = df_card[['unique_mem_id', 'amount', 'transaction_class']][df_card['unique_mem_id'] == '364987015290224198196263']
+df_5 = df_card[['unique_mem_id', 'amount', 'transaction_class']][df_card['unique_mem_id'] == '651451454569880463282551']
+df_6 = df_card[['unique_mem_id', 'amount', 'transaction_class']][df_card['unique_mem_id'] == '748150568877494117414131']
 #%%
 #DF_1
-#for member in card_members:
-cumulative_amount = []
-amount_list = []
-for row in df_1.itertuples():
-    #access data using column names
-    if row.transaction_class == "expense":
-        #print(index, row.unique_mem_id, row.amount, row.transaction_class)
-        amount_list.append(row.amount)
-        cumulative_amount = np.cumsum(amount_list, axis = 0)
-        print(row.unique_mem_id, cumulative_amount)
-    else:
-        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-        break
-    #print out the member id as part of the for-loop and and the last element of the list
-print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_1.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print(index, row.unique_mem_id, row.amount, row.transaction_class)
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            #print(row.unique_mem_id, cumulative_amount)
+        else:
+            #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID {card_members[0]}")
+    print(IndexError)
+    pass
+
 ##DF_2
-cumulative_amount = []
-amount_list = []
-for row in df_2.itertuples():
-    #access data using column names
-    if row.transaction_class == "expense":
-        #print an overview and calculate the cumulative sum
-        amount_list.append(row.amount)
-        cumulative_amount = np.cumsum(amount_list, axis = 0)
-        print(row.unique_mem_id, cumulative_amount)
-    else:
-        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-        break
-    #print out the member id as part of the for-loop and and the last element of the list
-print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_2.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print an overview and calculate the cumulative sum
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            #print(row.unique_mem_id, cumulative_amount)
+        else:
+            #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID {card_members[1]}")
+    print(IndexError)
+    pass
+
 ##DF_3
-cumulative_amount = []
-amount_list = []
-for row in df_3.itertuples():
-    #access data using column names
-    if row.transaction_class == "expense":
-        #print an overview and calculate the cumulative sum
-        amount_list.append(row.amount)
-        cumulative_amount = np.cumsum(amount_list, axis = 0)
-        print(row.unique_mem_id, cumulative_amount)
-    else:
-        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-        break
-    #print out the member id as part of the for-loop and and the last element of the list
-print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_3.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print an overview and calculate the cumulative sum
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            #print(row.unique_mem_id, cumulative_amount)
+        else:
+            #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID {card_members[2]}")
+    print(IndexError)
+    pass
+
 ##DF_4
-cumulative_amount = []
-amount_list = []
-for row in df_4.itertuples():
-    #access data using column names
-    if row.transaction_class == "expense":
-        #print an overview and calculate the cumulative sum
-        amount_list.append(row.amount)
-        cumulative_amount = np.cumsum(amount_list, axis = 0)
-        print(row.unique_mem_id, cumulative_amount)
-    else:
-        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-        break
-    #print out the member id as part of the for-loop and and the last element of the list
-print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_4.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print an overview and calculate the cumulative sum
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            #print(row.unique_mem_id, cumulative_amount)
+        else:
+            #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID {card_members[3]}")
+    print(IndexError)
+    pass
+
 ##DF_5
-cumulative_amount = []
-amount_list = []
-for row in df_5.itertuples():
-    #access data using column names
-    if row.transaction_class == "expense":
-        #print an overview and calculate the cumulative sum
-        amount_list.append(row.amount)
-        cumulative_amount = np.cumsum(amount_list, axis = 0)
-        print(row.unique_mem_id, cumulative_amount)
-    else:
-        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-        break
-    #print out the member id as part of the for-loop and and the last element of the list
-print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_5.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print an overview and calculate the cumulative sum
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            #print(row.unique_mem_id, cumulative_amount)
+        else:
+            #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID {card_members[4]}")
+    print(IndexError)
+    pass
+
 ##DF_6
-cumulative_amount = []
-amount_list = []
-for row in df_6.itertuples():
-    #access data using column names
-    if row.transaction_class == "expense":
-        #print an overview and calculate the cumulative sum
-        amount_list.append(row.amount)
-        cumulative_amount = np.cumsum(amount_list, axis = 0)
-        print(row.unique_mem_id, cumulative_amount)
-    else:
-        print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-        break
-    #print out the member id as part of the for-loop and and the last element of the list
-print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_6.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print an overview and calculate the cumulative sum
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            #print(row.unique_mem_id, cumulative_amount)
+        else:
+            #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID {card_members[5]}")
+    print(IndexError)
+    pass
 #%%
 print(bank_members)
 '''
@@ -589,93 +614,148 @@ df_635337295180631420039874 = df_bank[['unique_mem_id', 'amount', 'envelope_cate
 df_1187627404526562698645364 = df_bank[['unique_mem_id', 'amount', 'envelope_category', 'transaction_class']][df_bank['unique_mem_id'] == '1187627404526562698645364']
 #%%
 #DF_1
-#for member in card_members:
-cumulative_amount = []
-amount_list = []
-for row in df_1.itertuples():
-    #access data using column names
-    if row.transaction_class == "expense":
-        #print(index, row.unique_mem_id, row.amount, row.transaction_class)
-        amount_list.append(row.amount)
-        cumulative_amount = np.cumsum(amount_list, axis = 0)
-        print(row.unique_mem_id, cumulative_amount)
-    else:
-        #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-        break
-    #print out the member id as part of the for-loop and and the last element of the list
-print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_70850441974905670928446.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print(index, row.unique_mem_id, row.amount, row.transaction_class)
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            print(row.unique_mem_id, cumulative_amount)
+        else:
+            #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID {bank_members[0]}")
+    print(IndexError)
+    pass
+
 ##DF_2
-cumulative_amount = []
-amount_list = []
-for row in df_2.itertuples():
-    #access data using column names
-    if row.transaction_class == "expense":
-        #print an overview and calculate the cumulative sum
-        amount_list.append(row.amount)
-        cumulative_amount = np.cumsum(amount_list, axis = 0)
-        #print(row.unique_mem_id, cumulative_amount)
-    else:
-        #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-        break
-    #print out the member id as part of the for-loop and and the last element of the list
-print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_257154737161372702866152.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print an overview and calculate the cumulative sum
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            #print(row.unique_mem_id, cumulative_amount)
+        else:
+            #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID {bank_members[1]}")
+    print(IndexError)
+    pass
+
 ##DF_3
-cumulative_amount = []
-amount_list = []
-for row in df_3.itertuples():
-    #access data using column names
-    if row.transaction_class == "expense":
-        #print an overview and calculate the cumulative sum
-        amount_list.append(row.amount)
-        cumulative_amount = np.cumsum(amount_list, axis = 0)
-        #print(row.unique_mem_id, cumulative_amount)
-    else:
-        #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-        break
-    #print out the member id as part of the for-loop and and the last element of the list
-print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_364987015290224198196263.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print an overview and calculate the cumulative sum
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            #print(row.unique_mem_id, cumulative_amount)
+        else:
+            #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID {bank_members[2]}")
+    print(IndexError)
+    pass
+
 ##DF_4
-cumulative_amount = []
-amount_list = []
-for row in df_4.itertuples():
-    #access data using column names
-    if row.transaction_class == "expense":
-        #print an overview and calculate the cumulative sum
-        amount_list.append(row.amount)
-        cumulative_amount = np.cumsum(amount_list, axis = 0)
-        #print(row.unique_mem_id, cumulative_amount)
-    else:
-        #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-        break
-    #print out the member id as part of the for-loop and and the last element of the list
-print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_579758724513140495207829.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print an overview and calculate the cumulative sum
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            #print(row.unique_mem_id, cumulative_amount)
+        else:
+            #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID {bank_members[3]}")
+    print(IndexError)
+    pass
+
 ##DF_5
-cumulative_amount = []
-amount_list = []
-for row in df_5.itertuples():
-    #access data using column names
-    if row.transaction_class == "expense":
-        #print an overview and calculate the cumulative sum
-        amount_list.append(row.amount)
-        cumulative_amount = np.cumsum(amount_list, axis = 0)
-        #print(row.unique_mem_id, cumulative_amount)
-    else:
-       # print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-        break
-    #print out the member id as part of the for-loop and and the last element of the list
-print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_630323465162087035360618.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print an overview and calculate the cumulative sum
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            #print(row.unique_mem_id, cumulative_amount)
+        else:
+           # print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID {bank_members[4]}")
+    print(IndexError)
+    pass
+
 ##DF_6
-cumulative_amount = []
-amount_list = []
-for row in df_6.itertuples():
-    #access data using column names
-    if row.transaction_class == "expense":
-        #print an overview and calculate the cumulative sum
-        amount_list.append(row.amount)
-        cumulative_amount = np.cumsum(amount_list, axis = 0)
-        #print(row.unique_mem_id, cumulative_amount)
-    else:
-        #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
-        break
-    #print out the member id as part of the for-loop and and the last element of the list
-print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_635337295180631420039874.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print an overview and calculate the cumulative sum
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            #print(row.unique_mem_id, cumulative_amount)
+        else:
+            #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID bank_members[5]")
+    print(IndexError)
+    pass
+
+##DF_7
+try:
+    cumulative_amount = []
+    amount_list = []
+    for row in df_1187627404526562698645364.itertuples():
+        #access data using column names
+        if row.transaction_class == "expense":
+            #print an overview and calculate the cumulative sum
+            amount_list.append(row.amount)
+            cumulative_amount = np.cumsum(amount_list, axis = 0)
+            #print(row.unique_mem_id, cumulative_amount)
+        else:
+            #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
+            break
+    #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
+    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+except:
+    print(f"There was a problem with user ID {bank_members[6]}")
+    print(IndexError)
+    pass
