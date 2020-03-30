@@ -78,6 +78,20 @@ trans_cat_card = df_card['transaction_category_name'].unique()
 trans_cat_bank = df_bank['transaction_category_name'].unique()
 #%%
 '''
+Small check if all customers given in the demographics panel are also having transactions in the card or bank panel
+Also to check if some customers are not even listed in the demo panel
+ambiguous values in arrays require .all() /.any() for comparison
+'''
+if card_members.all() == demo_members.all():
+    print("In card panel: demo users are identical to card panel users")
+else:
+    print("In card panel: users dissimilar!")
+if bank_members.all() == demo_members.all():
+    print("In bank panel: demo users are identical to bank panel users")
+else:
+    print("In bank panel: users dissimilar!")
+#%%
+'''
 Datetime engineering for card and bank panel
 These columns help for reporting like weekly or monthly expenses and
 improve prediction of re-occurring transactions
@@ -192,20 +206,6 @@ df_bank.fillna(df_bank.mean(), inplace = True)
 df_bank.set_index("transaction_date", drop = False, inplace = True)
 #%%
 '''
-Small check if all customers given in the demographics panel are also having transactions in the card or bank panel
-Also to check if some customers are not even listed in the demo panel
-ambiguous values in arrays require .all() /.any() for comparison
-'''
-if card_members.all() == demo_members.all():
-    print("In card panel: demo users are identical to card panel users")
-else:
-    print("In card panel: users dissimilar!")
-if bank_members.all() == demo_members.all():
-    print("In bank panel: demo users are identical to bank panel users")
-else:
-    print("In bank panel: users dissimilar!")
-#%%
-'''
 Addition of feature columns for additive spending on a weekly; monthly; daily basis
 These dataframes are then convertable to a CSV for reporting purposes or showing it in the app
 
@@ -247,15 +247,6 @@ try:
     print(spending_metrics_daily)
 except:
     print("You do not have enough transactions yet. But we are getting there...")
-#%%
-#append to lists whether it is income or expense
-#filter with ilocation and show expenses and income as spearate dataframe
-card_expenses = df_card.iloc[np.where(df_card['transaction_class'] == "expense")]
-card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]
-card_income_by_user = df_card.iloc[np.where(df_card['transaction_class'] == "income")].groupby('unique_mem_id').sum()
-bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
-bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "income")]
-bank_income_by_user = df_bank.iloc[np.where(df_bank['transaction_class'] == "income")].groupby('unique_mem_id').sum()
 #%%
 '''
 POSTGRESQL COLUMNS - CLASSIFICATION OF TRANSACTIONS
@@ -316,6 +307,19 @@ try:
     df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = transaction_class_bank)
 except:
     print("column is already existing or another error")
+#%%
+'''
+Filter for dataframes to find out income and expenses narrowed down to the user id
+'''
+#filter with ilocation and show expenses and income as spearate dataframe
+card_expenses = df_card.iloc[np.where(df_card['transaction_class'] == "expense")]
+card_expenses_by_user = df_card.iloc[np.where(df_card['transaction_class'] == "expense")].groupby('unique_mem_id').sum()
+card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]
+card_income_by_user = df_card.iloc[np.where(df_card['transaction_class'] == "income")].groupby('unique_mem_id').sum()
+bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
+bank_expenses_by_user = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")].groupby('unique_mem_id').sum()
+bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "income")]
+bank_income_by_user = df_bank.iloc[np.where(df_bank['transaction_class'] == "income")].groupby('unique_mem_id').sum()
 #%%
 '''
 POSTGRE-SQL COLUMNS - ALLOCATION TO ENVELOPES
@@ -382,7 +386,7 @@ Create columns with an initial recommendation of the budgeting mode and the corr
 Logic is based on the weekly or biweekly income:
 Logic of stability of spending behavior and standard deviation within various time frames
 Behavior is considered: stable and non-erratic when:
-    USED:Std dev of past 3 days is still smaller than emergency cash allocated for a day
+    LATER:Std dev of past 3 days is still smaller than emergency cash allocated for a day
     LATER:Std dev of past week is still smaller than emergency allocated for a week
     LATER:Std dev of 30d is smaller than 70% of monthly income
     (to allow purchase of flight tickets or hotel stays without forcing a change of the spending mode)
@@ -395,23 +399,25 @@ try:
             budget_mode_card[index] = "beastmode"
         else:
             budget_mode_card[index] = "NOT_CLASSIFIED"
-    df_card.insert(loc = len(df_card.columns), column = "budget_mode_suggestion_card", value = budget_mode_card)
+    #df_card.insert(loc = len(df_card.columns), column = "budget_mode_suggestion_card", value = budget_mode_card)
 except:
     print("TEST")
 #DF_CARD
 #%%
-df_1 = df_card[['unique_mem_id', 'amount', 'transaction_class']][df_card['unique_mem_id'] == '70850441974905670928446']
-#try:
-budget_mode_card = pd.Series([], dtype = 'object')
-for index, i in enumerate(df_card['amount']):
-    if i < df_card['amount_std_lag7'][index] == True:
-        print("works")
-        budget_mode_card[index] = "Beastmode"
-    else:
-        budget_mode_card[index] = "NOT_CLASSIFIED"
-df_card.insert(loc = len(df_card.columns), column = "budget_mode_suggestion_card", value = budget_mode_card)
-#except:
-#    print("TEST")
+try:
+    print("CARD PANEL BUDGETING REPORT")
+    budget_mode_card = pd.Series([], dtype = 'object')
+    for index, i, e, c in zip(bank_income_by_user.index, bank_income_by_user.amount,
+                              bank_expenses_by_user.amount, card_expenses_by_user.amount):
+        if i > e + c:
+            print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Good Budget!")
+            budget_mode_card[index] = "normal mode"
+        else:
+            print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Overspending!")
+            budget_mode_card[index] = "beastmode"
+    #df_card.insert(loc = len(df_card.columns), column = "budget_mode_suggestion_card", value = budget_mode_card)
+except:
+    print("problem encontered in card panel")
 #%%
 #DF_BANK
 try:
@@ -421,21 +427,25 @@ try:
             budget_mode_bank[index] = "cash"
         else:
             budget_mode_bank[index] = "NOT_CLASSIFIED"
-    df_bank.insert(loc = len(df_bank.columns), column = "budget_mode_suggestion_bank", value = budget_mode_bank)
+    #df_bank.insert(loc = len(df_bank.columns), column = "budget_mode_suggestion_bank", value = budget_mode_bank)
 except:
     print("TEST")
 #DF_BANK
+#%%
 try:
     budget_mode_bank = pd.Series([], dtype = 'object')
-    for i in enumerate(df_bank['amount']):
-        if i in XXX:
-            budget_mode_bank[index] = "cash"
+    print("CARD PANEL BUDGETING REPORT")
+    for index, i, e, c in zip(bank_income_by_user.index, bank_income_by_user.amount,
+                              bank_expenses_by_user.amount, card_expenses_by_user.amount):
+        if i > e + c:
+            print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Good Budget!")
+            budget_mode_card[index] = "normal mode"
         else:
-            budget_mode_bank[index] = "NOT_CLASSIFIED"
-    df_bank.insert(loc = len(df_bank.columns), column = "budget_mode_suggestion_bank", value = budget_mode_bank)
+            print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Overspending!")
+            budget_mode_card[index] = "beastmode"
+    df_card.insert(loc = len(df_card.columns), column = "budget_mode_suggestion_card", value = budget_mode_bank)
 except:
-    print("TEST")
-
+    print("Problem encountered in bank panel")
 #%%
 '''
 #Slices based on parameters
@@ -526,7 +536,7 @@ try:
             #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
             break
     #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
-    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+    print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
 except:
     print(f"There was a problem with user ID {card_members[2]}")
     print(IndexError)
@@ -547,7 +557,7 @@ try:
             #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
             break
     #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
-    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+    print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
 except:
     print(f"There was a problem with user ID {card_members[3]}")
     print(IndexError)
@@ -568,7 +578,7 @@ try:
             #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
             break
     #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
-    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+    print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
 except:
     print(f"There was a problem with user ID {card_members[4]}")
     print(IndexError)
@@ -589,7 +599,7 @@ try:
             #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
             break
     #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
-    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+    print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
 except:
     print(f"There was a problem with user ID {card_members[5]}")
     print(IndexError)
@@ -628,7 +638,7 @@ try:
             #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
             break
     #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
-    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+    print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
 except:
     print(f"There was a problem with user ID {bank_members[0]}")
     print(IndexError)
@@ -649,7 +659,7 @@ try:
             #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
             break
     #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
-    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+    print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
 except:
     print(f"There was a problem with user ID {bank_members[1]}")
     print(IndexError)
@@ -670,7 +680,7 @@ try:
             #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
             break
     #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
-    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+    print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
 except:
     print(f"There was a problem with user ID {bank_members[2]}")
     print(IndexError)
@@ -691,7 +701,7 @@ try:
             #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
             break
     #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
-    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+    print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
 except:
     print(f"There was a problem with user ID {bank_members[3]}")
     print(IndexError)
@@ -712,7 +722,7 @@ try:
            # print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
             break
     #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
-    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+    print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
 except:
     print(f"There was a problem with user ID {bank_members[4]}")
     print(IndexError)
@@ -733,7 +743,7 @@ try:
             #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
             break
     #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
-    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+    print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
 except:
     print(f"There was a problem with user ID bank_members[5]")
     print(IndexError)
@@ -754,8 +764,20 @@ try:
             #print(f"stopped at user_ID: {row.unique_mem_id}, cumulative sum injected: {cumulative_amount[-1]}")
             break
     #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
-    print(f"unique_member_ID: {row.unique_mem_id}; {cumulative_amount[-1]}")
+    print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
 except:
     print(f"There was a problem with user ID {bank_members[6]}")
     print(IndexError)
     pass
+#%%
+'''
+
+'''
+try:
+    for index, i, e in zip(bank_income_by_user.index, bank_income_by_user.amount, bank_expenses_by_user.amount):
+        if i > e:
+            print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Good Budget!")
+        else:
+            print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Overspending!")
+except:
+    print("income and expense data by user might not be available; check the number of unique user IDs")
