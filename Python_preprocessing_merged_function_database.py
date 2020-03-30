@@ -458,7 +458,7 @@ for col in list(df_card):
     raw = 'C:/Users/bill-/Desktop/'
     #raw_2 = 'C:/Users/bill-/OneDrive - Education First/Documents/Docs Bill/FILES_ENVEL/'
     #working path = 'C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/yodlee_converted.csv'
-    date_of_creation = dt.today().strftime('%m-%d-%Y')
+    date_of_creation = dt.today().strftime('%m-%d-%Y_%Hh:%mmin')
     #os.mkdir(os.path.join(raw, converted_csv))
 
     csv_path_msp = os.path.join(raw, date_of_creation + '_MONTHLY_REPORT' + '.csv')
@@ -487,12 +487,10 @@ The dataframe is now preprocessed and ready to be loaded by the prediction model
     '''
     #
     #Conversion of df to CSV or direct pass possible
-    ##Conversion
+
     raw = 'C:/Users/bill-/Desktop/'
-    #raw_2 = 'C:/Users/bill-/OneDrive - Education First/Documents/Docs Bill/FILES_ENVEL/'
-    #working path = 'C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/yodlee_converted.csv'
-    date_of_creation = dt.today().strftime('%m-%d-%Y')
-    #os.mkdir(os.path.join(raw, converted_csv))
+    date_of_creation = dt.today().strftime('%m-%d-%Y_%Hh:%mmin')
+
     csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL_PREPROCESSED' + '.csv')
     csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL_PREPROCESSED' + '.csv')
     csv_path_demo = os.path.join(raw, date_of_creation + '_DEMO_PANEL_PREPROCESSED' + '.csv')
@@ -515,7 +513,7 @@ except FileExistsError as exc:
     '''
     #raw = 'C:/Users/bill-/Desktop/'
     #working directory = 'C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/yodlee_converted.csv'
-    #date_of_creation = dt.today().strftime('%m-%d-%Y')
+    #date_of_creation = dt.today().strftime('%m-%d-%Y_%Hh:%mmin')
     #setting up paths
     #csv_path_card = os.path.join(raw, date_of_creation + '_CARD_PANEL' + 'ID_' + random_id(length = 5) + '.csv')
     #csv_path_bank = os.path.join(raw, date_of_creation + '_BANK_PANEL' + 'ID_' + random_id(length = 5) + '.csv')
