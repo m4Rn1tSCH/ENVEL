@@ -206,7 +206,6 @@ except:
     print("CASH/BILL column is already existing or another error")
 #%%
 '''
-budgeting mode section
 Create columns with an initial recommendation of the budgeting mode and the corresponding daily limit
 Logic is based on the weekly or biweekly income:
 Logic of stability of spending behavior and standard deviation within various time frames
