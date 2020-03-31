@@ -17,25 +17,14 @@ with unique IDs and corresponding income and expenses in separate dictionaries
 import pandas as pd
 import numpy as np
 from datetime import datetime as dt
-#import regex
+from flask import Flask
 import os
 #%%
-    #determine the path of the files
-#path_win = os.path.abspath(r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx')
-#path_mac = os.path.abspath('/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Working Class Sample.xlsx')
-test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
-
-def preproccessing(file_path):
-    #%%
     #CONNECTION TO FLASK/SQL
-    ###########################################
-    #from flask import Flask
-    #app = Flask(__yodlee_splitter_preprocessor__)
+app = Flask(__name__)
 
     ##put address here
-    #@app.route('/')
-    #def preprocessing():
-    #    return 'Hello, World!'
+@app.route('/')
 
     ########SETTING THE ENVIRONMENT VARIABLE#######
     #$ set FLASK_APP=file_name.py
@@ -66,8 +55,12 @@ def preproccessing(file_path):
     ##Close connection
     ##con.close()
     #############################################################################
-    #%%
-    #read the original XLSX file and then split it up in 3 different dataframes
+    #determine the path of the files
+#path_win = os.path.abspath(r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx')
+#path_mac = os.path.abspath('/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Working Class Sample.xlsx')
+test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
+
+def preproccessing(file_path):
     '''
     REPLACE THE TEST_PATH HERE IF YOU RUN THE FUNCTION EXTERNALLY
     '''
@@ -78,7 +71,7 @@ def preproccessing(file_path):
     #extract unique numbers from all panels to find out unique users;
     card_members = df_card['unique_mem_id'].unique()
     bank_members = df_bank['unique_mem_id'].unique()
-    demo_members = df_card['unique_mem_id'].unique()
+    demo_members = df_demo['unique_mem_id'].unique()
     trans_cat_card = df_card['transaction_category_name'].unique()
     trans_cat_bank = df_bank['transaction_category_name'].unique()
     #%%
@@ -155,7 +148,7 @@ def preproccessing(file_path):
     #fill missing values with the mean to keep distortion very low and allow prediction
     df_card.fillna(df_card.mean(), inplace = True)
     #associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
-    df_card.set_index("transaction_date", drop = False, inplace = True)
+    #df_card.set_index("transaction_date", drop = False, inplace = True)
     #%%
     #DATETIME ENGINEERING
     df_bank.reset_index(drop = True, inplace = True)
@@ -208,7 +201,7 @@ def preproccessing(file_path):
     #fill missing values with the mean to keep distortion very low and allow prediction
     df_bank.fillna(df_bank.mean(), inplace = True)
     #associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
-    df_bank.set_index("transaction_date", drop = False, inplace = True)
+    #df_bank.set_index("transaction_date", drop = False, inplace = True)
     #%%
     '''
     POSTGRESQL COLUMNS - CLASSIFICATION OF TRANSACTIONS
@@ -386,13 +379,16 @@ def preproccessing(file_path):
                               bank_expenses_by_user.amount, card_expenses_by_user.amount):
         if i > e + c:
             print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Good Budget!")
-            budget_mode_card[index] = "normal mode"
+            budget_mode_bank[index] = "normal mode"
         else:
             print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Overspending!")
-            budget_mode_card[index] = "beastmode"
-    df_card.insert(loc = len(df_card.columns), column = "budget_mode_suggestion_card", value = budget_mode_bank)
+            budget_mode_bank[index] = "beastmode"
+    df_bank.insert(loc = len(df_bank.columns), column = "budget_mode_suggestion_card", value = budget_mode_bank)
     #except:
         #print("values overwritten in bank panel")
+    #%%
+    df_card.set_index("optimized_transaction_date", drop = False, inplace = True)
+    df_bank.set_index("optimized_transaction_date", drop = False, inplace = True)
     #%%
     '''
     70850441974905670928446
@@ -791,3 +787,4 @@ def preproccessing(file_path):
         df_card.to_csv(path_card, mode = 'a', header = False)
         df_bank.to_csv(path_bank, mode = 'a', header = False)
         #df_demo.to_csv(csv_path_demo, mode = 'a', header = False)
+#return 'File preprocessed and CSVs saved in the working directory (C:\Users\Username\)'
