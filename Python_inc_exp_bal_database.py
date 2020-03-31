@@ -19,6 +19,7 @@ import numpy as np
 from datetime import datetime as dt
 from flask import Flask
 import os
+import csv
 #%%
     #CONNECTION TO FLASK/SQL
 app = Flask(__name__)
@@ -346,17 +347,6 @@ def preproccessing(file_path):
     '''
     #DF_CARD
     #try:
-    #    budget_mode_card = pd.Series([], dtype = 'object')
-    #    for i in enumerate(df_card['amount']):
-    #        if i < df_card:
-    #            budget_mode_card[index] = "beastmode"
-    #        else:
-    #            budget_mode_card[index] = "NOT_CLASSIFIED"
-    #    #df_card.insert(loc = len(df_card.columns), column = "budget_mode_suggestion_card", value = budget_mode_card)
-    #except:
-    #    print("TEST")
-    #DF_CARD
-    #try:
     print("CARD PANEL BUDGETING REPORT")
     budget_mode_card = pd.Series([], dtype = 'object')
     for index, i, e, c in zip(bank_income_by_user.index, bank_income_by_user.amount,
@@ -370,11 +360,10 @@ def preproccessing(file_path):
     df_card.insert(loc = len(df_card.columns), column = "budget_mode_suggestion_card", value = budget_mode_card)
     #except:
         #print("values overwritten in card panel")
-    #%%
     #DF_BANK
     #try:
     budget_mode_bank = pd.Series([], dtype = 'object')
-    print("CARD PANEL BUDGETING REPORT")
+    print("BANK PANEL BUDGETING REPORT")
     for index, i, e, c in zip(bank_income_by_user.index, bank_income_by_user.amount,
                               bank_expenses_by_user.amount, card_expenses_by_user.amount):
         if i > e + c:
@@ -708,7 +697,15 @@ def preproccessing(file_path):
         pass
     #%%
     '''
-    DESCRIPTION
+    CHART FOR EACH USER'S INCOME, EXPENSES AND EXCESS MONEY
+    The loop uses the filtered dataframes which are narrowed down by user and
+    show the budgeting ability of unique user ID found in the panel
+    '''
+    #index = index
+    #i = income
+    #e = expense
+    '''
+    write it on a per-line basis to the csv that will sit in the flask folder and will later be available for training
     '''
     try:
         for index, i, e in zip(bank_income_by_user.index, bank_income_by_user.amount, bank_expenses_by_user.amount):
@@ -716,6 +713,14 @@ def preproccessing(file_path):
                 print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Good Budget!; Excess cash: {i - e}")
             else:
                 print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Overspending!; Debt: {i - e}")
+        with open('User_ID_transactions.csv','a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            newFileWriter.writerow(["User_ID", "Income", "Expenses", "Excess_Cash"])
+                #write per row to a CSV
+            with open('User_ID_transactions.csv','a') as newFile:
+                newFileWriter.writerow([index, i, e, i - e])
+            #return(index, i, e, i - e)
+        #newFile.close()
     except:
         print("income and expense data by user might not be available; check the number of unique user IDs")
     #%%
@@ -769,7 +774,6 @@ def preproccessing(file_path):
         Set Transaction date as index
     The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
     '''
-
     #Conversion of df to CSV or direct pass possible
     raw = os.getcwd()
     date_of_creation = dt.today().strftime('%m-%d-%Y_%Hh-%mmin')
@@ -788,3 +792,31 @@ def preproccessing(file_path):
         df_bank.to_csv(path_bank, mode = 'a', header = False)
         #df_demo.to_csv(csv_path_demo, mode = 'a', header = False)
 #return 'File preprocessed and CSVs saved in the working directory (C:\Users\Username\)'
+#%%
+    '''
+            CONVERSION OF THE SPENDING REPORTS
+
+    For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
+    Test the functionality and reassert some columns after CSV is generated
+    AFTER CSV IS GENERATED(in pred_func):
+        Reassert datetime objects to all date columns
+        Set Transaction date as index
+    '''
+    raw = os.getcwd()
+    date_of_creation = dt.today().strftime('%m-%d-%Y_%Hh-%mmin')
+
+    csv_path_msp = os.path.abspath(os.path.join(raw, date_of_creation + '_MONTHLY_REPORT_ALL_USERS' + '.csv'))
+    csv_path_wsp = os.path.abspath(os.path.join(raw, date_of_creation + '_WEEKLY_REPORT_ALL_USERS' + '.csv'))
+    csv_path_dsp = os.path.abspath(os.path.join(raw, date_of_creation + '_DAILY_REPORT_ALL_USERS' + '.csv'))
+
+    try:
+        spending_metrics_monthly.to_csv(csv_path_msp)
+        spending_metrics_weekly.to_csv(csv_path_wsp)
+        spending_metrics_daily.to_csv(csv_path_dsp)
+    except FileExistsError as exc:
+        print(exc)
+        print("existing file will be appended instead...")
+        spending_metrics_monthly.to_csv(csv_path_msp, mode = 'a', header = False)
+        spending_metrics_weekly.to_csv(csv_path_wsp, mode = 'a', header = False)
+        spending_metrics_daily.to_csv(csv_path_dsp, mode = 'a', header = False)
+#%%

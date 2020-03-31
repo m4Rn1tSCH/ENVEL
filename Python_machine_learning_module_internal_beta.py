@@ -52,11 +52,11 @@ df = pd.read_csv(transactions, index_col = [0])
 #%%
 ###connection to flask with relative link#####
 ###FLASK FUNCTION###
-from flask import Flask
+#from flask import Flask
 #############SETTING UP THE APP##########
-app = Flask(__name__)
+#app = Flask(__name__)
 ####TRIGGER URL#####
-@app.route('/')
+#@app.route('/')
 
 #RUN THE APPLICATION
 #flask command or -m swith in Python
