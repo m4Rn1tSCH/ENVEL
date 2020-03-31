@@ -478,14 +478,13 @@ except FileExistsError as exc:
 #%%
     '''
             CONVERSION OF THE ENTIRE DATAFRAMES
-
 For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
 AFTER CSV IS GENERATED(in pred_func):
     Reassert datetime objects to all date columns
     Set Transaction date as index
 The dataframe is now preprocessed and ready to be loaded by the prediction models for predictive analysis
     '''
-    #
+
     #Conversion of df to CSV or direct pass possible
 
     raw = 'C:/Users/bill-/Desktop/'
