@@ -427,7 +427,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
-    except:
+    except Exception as exc:
 
         with open('Card_Panel_Injection.csv', 'a') as newFile:
             newFileWriter=csv.writer(newFile)
@@ -440,8 +440,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {card_members[0]}")
-        print(IndexError)
+        print(f"There was a problem with user ID: {card_members[0]}; Error: {exc}")
         pass
 
     ##DF_2
@@ -474,7 +473,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
-    except:
+    except Exception as exc:
 
         with open('Card_Panel_Injection.csv', 'a') as newFile:
             newFileWriter=csv.writer(newFile)
@@ -487,8 +486,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {card_members[1]}")
-        print(IndexError)
+        print(f"There was a problem with user ID: {card_members[1]}; Error: {exc}")
         pass
 
     ##DF_3
@@ -521,7 +519,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
-    except:
+    except Exception as exc:
 
         with open('Card_Panel_Injection.csv', 'a') as newFile:
             newFileWriter=csv.writer(newFile)
@@ -534,8 +532,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {card_members[2]}")
-        print(IndexError)
+        print(f"There was a problem with user ID: {card_members[2]}; Error: {exc}")
         pass
 
     ##DF_4
@@ -568,7 +565,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
-    except:
+    except Exception as exc:
 
         with open('Card_Panel_Injection.csv', 'a') as newFile:
             newFileWriter=csv.writer(newFile)
@@ -581,8 +578,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {card_members[3]}")
-        print(IndexError)
+        print(f"There was a problem with user ID: {card_members[3]}; Error: {exc}")
         pass
 
     ##DF_5
@@ -615,7 +611,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
-    except:
+    except Exception as exc:
 
         with open('Card_Panel_Injection.csv', 'a') as newFile:
             newFileWriter=csv.writer(newFile)
@@ -628,8 +624,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {card_members[4]}")
-        print(IndexError)
+        print(f"There was a problem with user ID: {card_members[4]}; Error: {exc}")
         pass
 
     ##DF_6
@@ -662,7 +657,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
-    except:
+    except Exception as exc:
 
         with open('Card_Panel_Injection.csv', 'a') as newFile:
             newFileWriter=csv.writer(newFile)
@@ -675,8 +670,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {card_members[5]}")
-        print(IndexError)
+        print(f"There was a problem with user ID: {card_members[5]}; Error: {exc}")
         pass
     #%%
     '''
@@ -700,7 +694,7 @@ def preproccessing(file_path):
     #open initially and only write to the file to generate the headers
     with open('Bank_Panel_Injection.csv', 'w') as newFile:
         newFileWriter=csv.writer(newFile)
-        newFileWriter.writerow("Refers to: CARD_PANEL")
+        newFileWriter.writerow(["Refers to:", "BANK_PANEL"])
         newFileWriter.writerow(["User_ID", "Injection in USD required"])
     # f = open('test.csv', 'w')
     # with f:
@@ -736,21 +730,19 @@ def preproccessing(file_path):
             #fnames = ['User_ID', 'Injection in USD required']
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
-    except as exc:
+    except Exception as exc:
 
-        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
-        #     newFileWriter=csv.writer(newFile)
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
             #write per row to a CSV
-            # newFileWriter.writerow([row.unique_mem_id}, exc])
+            newFileWriter.writerow([row.unique_mem_id, exc])
         ##f = open('test.csv', 'a')
         #with f:
             #field names needed in append mode to know the orders of keys and values
             #fnames = ['User_ID', 'Injection in USD required']
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
-
-        print(f"There was a problem with user ID: {bank_members[0]}")
-        print(exc)
+        print(f"There was a problem with user ID: {bank_members[0]}; Error: {exc}")
         pass
 
     ##DF_2
@@ -783,12 +775,12 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
-    except as exc:
+    except Exception as exc:
 
-        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
-        #     newFileWriter=csv.writer(newFile)
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
             #write per row to a CSV
-            # newFileWriter.writerow([row.unique_mem_id}, exc])
+            newFileWriter.writerow([row.unique_mem_id, exc])
         ##f = open('test.csv', 'a')
         #with f:
             #field names needed in append mode to know the orders of keys and values
@@ -796,8 +788,7 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {bank_members[1]}")
-        print(exc)
+        print(f"There was a problem with user ID: {bank_members[1]}; Error: {exc}")
         pass
 
     ##DF_3
@@ -830,12 +821,12 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
-    except as exc:
+    except Exception as exc:
 
-        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
-        #     newFileWriter=csv.writer(newFile)
-        #     #write per row to a CSV
-        #     newFileWriter.writerow([row.unique_mem_id}, exc])
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, exc])
         # ##f = open('test.csv', 'a')
         # #with f:
         #     #field names needed in append mode to know the orders of keys and values
@@ -843,8 +834,7 @@ def preproccessing(file_path):
         #     #writer = csv.DictWriter(f, fieldnames=fnames)
         #     #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {bank_members[2]}")
-        print(exc)
+        print(f"There was a problem with user ID: {bank_members[2]}; Error: {exc}")
         pass
 
     ##DF_4
@@ -877,12 +867,12 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
-    except as exc:
+    except Exception as exc:
 
-        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
-        #     newFileWriter=csv.writer(newFile)
-        #     #write per row to a CSV
-        #     newFileWriter.writerow([row.unique_mem_id}, exc])
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, exc])
         # ##f = open('test.csv', 'a')
         # #with f:
         #     #field names needed in append mode to know the orders of keys and values
@@ -890,8 +880,7 @@ def preproccessing(file_path):
         #     #writer = csv.DictWriter(f, fieldnames=fnames)
         #     #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {bank_members[3]}")
-        print(exc)
+        print(f"There was a problem with user ID: {bank_members[3]}; Error: {exc}")
         pass
 
     ##DF_5
@@ -924,12 +913,12 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
-    except as exc:
+    except  Exception as exc:
 
-        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
-        #     newFileWriter=csv.writer(newFile)
-        #     #write per row to a CSV
-        #     newFileWriter.writerow([row.unique_mem_id}, exc])
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, exc])
         # ##f = open('test.csv', 'a')
         # #with f:
         #     #field names needed in append mode to know the orders of keys and values
@@ -937,8 +926,7 @@ def preproccessing(file_path):
         #     #writer = csv.DictWriter(f, fieldnames=fnames)
         #     #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {bank_members[4]}")
-        print(exc)
+        print(f"There was a problem with user ID: {bank_members[4]}; Error: {exc}")
         pass
 
     ##DF_6
@@ -971,12 +959,12 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
-    except as exc:
+    except Exception as exc:
 
-        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
-        #     newFileWriter=csv.writer(newFile)
-        #     #write per row to a CSV
-        #     newFileWriter.writerow([row.unique_mem_id}, exc])
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, exc])
         # ##f = open('test.csv', 'a')
         # #with f:
         #     #field names needed in append mode to know the orders of keys and values
@@ -984,8 +972,7 @@ def preproccessing(file_path):
         #     #writer = csv.DictWriter(f, fieldnames=fnames)
         #     #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {bank_members[5]}")
-        print(exc)
+        print(f"There was a problem with user ID: {bank_members[5]}; Error: {exc}")
         pass
 
     ##DF_7
@@ -1018,12 +1005,12 @@ def preproccessing(file_path):
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
-    except as exc:
+    except Exception as exc:
 
-        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
-        #     newFileWriter=csv.writer(newFile)
-        #     #write per row to a CSV
-        #     newFileWriter.writerow([row.unique_mem_id}, exc])
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, exc])
         # ##f = open('test.csv', 'a')
         # #with f:
         #     #field names needed in append mode to know the orders of keys and values
@@ -1031,8 +1018,7 @@ def preproccessing(file_path):
         #     #writer = csv.DictWriter(f, fieldnames=fnames)
         #     #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {bank_members[6]}")
-        print(exc)
+        print(f"There was a problem with user ID: {bank_members[6]}; Error: {exc}")
         pass
 #%%
 '''
