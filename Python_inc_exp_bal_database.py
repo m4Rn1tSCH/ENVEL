@@ -385,8 +385,19 @@ def preproccessing(file_path):
     df_5 = df_card[['unique_mem_id', 'amount', 'transaction_class']][df_card['unique_mem_id'] == '651451454569880463282551']
     df_6 = df_card[['unique_mem_id', 'amount', 'transaction_class']][df_card['unique_mem_id'] == '748150568877494117414131']
     #%%
+    print("CARD PANEL INJECTION")
+    #open initially and only write to the file to generate the headers
+    with open('Card_Panel_Injection.csv', 'w') as newFile:
+        newFileWriter=csv.writer(newFile)
+        newFileWriter.writerow(["User_ID", "Injection in USD required"])
+        newFileWriter.writerow("Refers to: CARD_PANEL")
+    # f = open('test.csv', 'w')
+    # with f:
+        # fnames = ["User_ID", "Injection in USD required"]
+        # writer = csv.DictWriter(f, fieldnames=fnames)
+        # writer.writeheader()
+
     #DF_1
-    print("BANK PANEL INJECTION")
     try:
         cumulative_amount = []
         amount_list = []
@@ -402,7 +413,33 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
+
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Card_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+
     except:
+
+        with open('Card_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, exc])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {card_members[0]}")
         print(IndexError)
         pass
@@ -423,7 +460,33 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
+
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Card_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+
     except:
+
+        with open('Card_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, exc])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {card_members[1]}")
         print(IndexError)
         pass
@@ -444,7 +507,33 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
+
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Card_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+
     except:
+
+        with open('Card_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, exc])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {card_members[2]}")
         print(IndexError)
         pass
@@ -465,7 +554,33 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
+
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Card_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+
     except:
+
+        with open('Card_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, exc])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {card_members[3]}")
         print(IndexError)
         pass
@@ -486,7 +601,33 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
+
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Card_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+
     except:
+
+        with open('Card_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, exc])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {card_members[4]}")
         print(IndexError)
         pass
@@ -507,12 +648,37 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
+
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Card_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+
     except:
+
+        with open('Card_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, exc])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {card_members[5]}")
         print(IndexError)
         pass
     #%%
-    print(bank_members)
     '''
     '70850441974905670928446'
     '257154737161372702866152'
@@ -530,6 +696,18 @@ def preproccessing(file_path):
     df_635337295180631420039874 = df_bank[['unique_mem_id', 'amount', 'transaction_class']][df_bank['unique_mem_id'] == '635337295180631420039874']
     df_1187627404526562698645364 = df_bank[['unique_mem_id', 'amount', 'transaction_class']][df_bank['unique_mem_id'] == '1187627404526562698645364']
     #%%
+    print("BANK PANEL INJECTION")
+    #open initially and only write to the file to generate the headers
+    with open('Bank_Panel_Injection.csv', 'w') as newFile:
+        newFileWriter=csv.writer(newFile)
+        newFileWriter.writerow("Refers to: CARD_PANEL")
+        newFileWriter.writerow(["User_ID", "Injection in USD required"])
+    # f = open('test.csv', 'w')
+    # with f:
+        # fnames = ["User_ID", "Injection in USD required"]
+        # writer = csv.DictWriter(f, fieldnames=fnames)
+        # writer.writeheader()
+
     #DF_1
     try:
         cumulative_amount = []
@@ -546,9 +724,33 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
-    except:
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+    except as exc:
+
+        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
+        #     newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            # newFileWriter.writerow([row.unique_mem_id}, exc])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {bank_members[0]}")
-        print(IndexError)
+        print(exc)
         pass
 
     ##DF_2
@@ -567,9 +769,35 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
-    except:
+
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+
+    except as exc:
+
+        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
+        #     newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            # newFileWriter.writerow([row.unique_mem_id}, exc])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {bank_members[1]}")
-        print(IndexError)
+        print(exc)
         pass
 
     ##DF_3
@@ -588,9 +816,35 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
-    except:
+
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+
+    except as exc:
+
+        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
+        #     newFileWriter=csv.writer(newFile)
+        #     #write per row to a CSV
+        #     newFileWriter.writerow([row.unique_mem_id}, exc])
+        # ##f = open('test.csv', 'a')
+        # #with f:
+        #     #field names needed in append mode to know the orders of keys and values
+        #     #fnames = ['User_ID', 'Injection in USD required']
+        #     #writer = csv.DictWriter(f, fieldnames=fnames)
+        #     #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {bank_members[2]}")
-        print(IndexError)
+        print(exc)
         pass
 
     ##DF_4
@@ -609,9 +863,35 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
-    except:
+
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+
+    except as exc:
+
+        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
+        #     newFileWriter=csv.writer(newFile)
+        #     #write per row to a CSV
+        #     newFileWriter.writerow([row.unique_mem_id}, exc])
+        # ##f = open('test.csv', 'a')
+        # #with f:
+        #     #field names needed in append mode to know the orders of keys and values
+        #     #fnames = ['User_ID', 'Injection in USD required']
+        #     #writer = csv.DictWriter(f, fieldnames=fnames)
+        #     #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {bank_members[3]}")
-        print(IndexError)
+        print(exc)
         pass
 
     ##DF_5
@@ -630,9 +910,35 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
-    except:
+
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+
+    except as exc:
+
+        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
+        #     newFileWriter=csv.writer(newFile)
+        #     #write per row to a CSV
+        #     newFileWriter.writerow([row.unique_mem_id}, exc])
+        # ##f = open('test.csv', 'a')
+        # #with f:
+        #     #field names needed in append mode to know the orders of keys and values
+        #     #fnames = ['User_ID', 'Injection in USD required']
+        #     #writer = csv.DictWriter(f, fieldnames=fnames)
+        #     #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {bank_members[4]}")
-        print(IndexError)
+        print(exc)
         pass
 
     ##DF_6
@@ -651,9 +957,35 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
-    except:
+
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+
+    except as exc:
+
+        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
+        #     newFileWriter=csv.writer(newFile)
+        #     #write per row to a CSV
+        #     newFileWriter.writerow([row.unique_mem_id}, exc])
+        # ##f = open('test.csv', 'a')
+        # #with f:
+        #     #field names needed in append mode to know the orders of keys and values
+        #     #fnames = ['User_ID', 'Injection in USD required']
+        #     #writer = csv.DictWriter(f, fieldnames=fnames)
+        #     #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {bank_members[5]}")
-        print(IndexError)
+        print(exc)
         pass
 
     ##DF_7
@@ -672,9 +1004,35 @@ def preproccessing(file_path):
                 break
         #print out the member id as part of the for-loop and and the last element of the list which is the amount to be injected
         print(f"unique_member_ID: {row.unique_mem_id}; initial injection needed in USD: {cumulative_amount[-1]}")
-    except:
+
+        #open/append income and expense per user_id to a CSV that has been created outside the loop
+        #writes all rows inside the iteration loop correctly but without headers now
+        with open('Bank_Panel_Injection.csv', 'a') as newFile:
+            newFileWriter=csv.writer(newFile)
+            #write per row to a CSV
+            newFileWriter.writerow([row.unique_mem_id, cumulative_amount[-1]])
+        ##f = open('test.csv', 'a')
+        #with f:
+            #field names needed in append mode to know the orders of keys and values
+            #fnames = ['User_ID', 'Injection in USD required']
+            #writer = csv.DictWriter(f, fieldnames=fnames)
+            #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
+
+    except as exc:
+
+        # with open('Bank_Panel_Injection.csv', 'a') as newFile:
+        #     newFileWriter=csv.writer(newFile)
+        #     #write per row to a CSV
+        #     newFileWriter.writerow([row.unique_mem_id}, exc])
+        # ##f = open('test.csv', 'a')
+        # #with f:
+        #     #field names needed in append mode to know the orders of keys and values
+        #     #fnames = ['User_ID', 'Injection in USD required']
+        #     #writer = csv.DictWriter(f, fieldnames=fnames)
+        #     #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+
         print(f"There was a problem with user ID: {bank_members[6]}")
-        print(IndexError)
+        print(exc)
         pass
 #%%
 '''
@@ -694,7 +1052,7 @@ try:
     #open initially and only write to the file to generate the headers
     with open('User_ID_transactions.csv','w') as newFile:
         newFileWriter=csv.writer(newFile)
-        newFileWriter.writerow(["User_ID", "Income", "Expenses", "Excess_Cash"])
+        newFileWriter.writerow(["User_ID", "Income", "Expenses", "Excess_Cash(+)/Debt(-)"])
     # f = open('test.csv', 'w')
     # with f:
         # fnames = ['User_ID', 'income', 'expense', 'difference']
@@ -815,4 +1173,3 @@ except:
         spending_metrics_monthly.to_csv(csv_path_msp, mode = 'a', header = False)
         spending_metrics_weekly.to_csv(csv_path_wsp, mode = 'a', header = False)
         spending_metrics_daily.to_csv(csv_path_dsp, mode = 'a', header = False)
-#%%
