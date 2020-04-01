@@ -24,7 +24,10 @@ import csv
     #CONNECTION TO FLASK/SQL
 app = Flask(__name__)
 
-    ##put address here
+##put address here
+#function can be bound to the script ny adding a new URL
+#e.g. route('/start') would then start the entire function that follows
+#same can be split up
 @app.route('/')
 
     ########SETTING THE ENVIRONMENT VARIABLE#######
@@ -695,34 +698,56 @@ def preproccessing(file_path):
         print(f"There was a problem with user ID: {bank_members[6]}")
         print(IndexError)
         pass
-    #%%
-    '''
-    CHART FOR EACH USER'S INCOME, EXPENSES AND EXCESS MONEY
-    The loop uses the filtered dataframes which are narrowed down by user and
-    show the budgeting ability of unique user ID found in the panel
-    '''
-    #index = index
-    #i = income
-    #e = expense
-    '''
-    write it on a per-line basis to the csv that will sit in the flask folder and will later be available for training
-    '''
-    try:
-        for index, i, e in zip(bank_income_by_user.index, bank_income_by_user.amount, bank_expenses_by_user.amount):
-            if i > e:
-                print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Good Budget!; Excess cash: {i - e}")
-            else:
-                print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Overspending!; Debt: {i - e}")
+#%%
+'''
+CHART FOR EACH USER'S INCOME, EXPENSES AND EXCESS MONEY
+The loop uses the filtered dataframes which are narrowed down by user and
+show the budgeting ability of unique user ID found in the panel
+'''
+#index = index
+#i = income
+#e = expense
+
+# with open('User_ID_transactions.csv','a') as newFile:
+#             newFileWriter=csv.writer(newFile)
+#             newFileWriter.writerow(["User_ID", "Income", "Expenses", "Excess_Cash"])
+#             #write per row to a CSV
+#             for row in len(bank_income_by_user.index):
+#             newFileWriter.writerow([index, i, e, i - e])
+# return(index, i, e, i - e)
+
+
+'''
+write it on a per-line basis to the csv that will sit in the flask folder and will later be available for training
+'''
+try:
+    #with open('User_ID_transactions.csv','a') as newFile:
+     #   newFileWriter=csv.writer(newFile)
+    for index, i, e in zip(bank_income_by_user.index, bank_income_by_user.amount, bank_expenses_by_user.amount):
+        if i > e:
+            print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Good Budget!; Excess cash: {i - e}")
+        else:
+            print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Overspending!; Debt: {i - e}")
+
         with open('User_ID_transactions.csv','a') as newFile:
             newFileWriter=csv.writer(newFile)
-            newFileWriter.writerow(["User_ID", "Income", "Expenses", "Excess_Cash"])
-                #write per row to a CSV
-            with open('User_ID_transactions.csv','a') as newFile:
-                newFileWriter.writerow([index, i, e, i - e])
-            #return(index, i, e, i - e)
-        #newFile.close()
-    except:
-        print("income and expense data by user might not be available; check the number of unique user IDs")
+            #write per row to a CSV
+            newFileWriter.writerow([index, i, e, i - e])
+
+
+# headers = ['a','b','c','b']
+# row = 4
+# generators = ['A','B','C','D']
+# with open('test.csv','a') as csvfile:
+#      writer = csv.writer(csvfile, delimiter='.')
+# # Gives the header name row into csv
+#      writer.writerow([g for g in headers])
+# #Data add in csv file
+#      for x in range(row):
+#          writer.writerow([g() for g in generators])
+
+except:
+    print("income and expense data by user might not be available; check the number of unique user IDs")
     #%%
     '''
     Addition of feature columns for additive spending on a weekly; monthly; daily basis
