@@ -9,7 +9,7 @@ Created on Tue Mar 17 10:01:06 2020
 Purpose of this script is to interact with a csv file/database and produce a dictionary
 with unique IDs and corresponding income and expenses in separate dictionaries
 -determine income and expenses based on given categories
--add it either to the INCOME DF or the EXPENSE DF
+-add it either to the INCOME DF or the EXPENSE DF and export it later
 -find out daily, weekly and monthly throughput of accounts and their excess cash
 -develop a logic for daily limits and spending patterns
 '''
@@ -28,7 +28,7 @@ app = Flask(__name__)
 #function can be bound to the script ny adding a new URL
 #e.g. route('/start') would then start the entire function that follows
 #same can be split up
-@app.route('/')
+@app.route('/start')
 
     ########SETTING THE ENVIRONMENT VARIABLE#######
     #$ set FLASK_APP=file_name.py
@@ -40,28 +40,6 @@ app = Flask(__name__)
     ####for production use##
     #$ flask run --host=0.0.0.0
 
-    ############################################
-    #INSERT SQL CONNECTION HERE
-    ############################################
-    ###SQL-CONNECTION TO QUERY THE VENDOR FILE
-    ###Create engine
-    ##engine = create_engine('sqlite:///Chinook.sqlite')
-
-    ##Open engine connection: con
-    ##con = engine.connect()
-
-    ##Perform query: rs
-    ##rs = con.execute("SELECT * from <<DB_FOLDER>>")
-
-    #Save results df
-    ##df = pd.DataFrame(rs.fetchall())
-
-    ##Close connection
-    ##con.close()
-    #############################################################################
-    #determine the path of the files
-#path_win = os.path.abspath(r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx')
-#path_mac = os.path.abspath('/Users/bill/OneDrive - Envel/2020-01-28 envel.ai Working Class Sample.xlsx')
 test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
 
 def preproccessing(file_path):
@@ -707,16 +685,6 @@ show the budgeting ability of unique user ID found in the panel
 #index = index
 #i = income
 #e = expense
-
-# with open('User_ID_transactions.csv','a') as newFile:
-#             newFileWriter=csv.writer(newFile)
-#             newFileWriter.writerow(["User_ID", "Income", "Expenses", "Excess_Cash"])
-#             #write per row to a CSV
-#             for row in len(bank_income_by_user.index):
-#             newFileWriter.writerow([index, i, e, i - e])
-# return(index, i, e, i - e)
-
-
 '''
 REPORTING CSV - YODLEE DATA
 Write it on a per-line basis to the csv that will either sit sit in the flask folder
@@ -750,7 +718,7 @@ try:
             #writer = csv.DictWriter(f, fieldnames=fnames)
             #writer.writerow({'User_ID' : index, 'income': i, 'expense': e, 'difference': i-e})
 except:
-    print("income and expense data by user might not be available; check the number of unique user IDs")
+    print("data by user might not be available; check the number of unique user IDs")
     #%%
     '''
     Addition of feature columns for additive spending on a weekly; monthly; daily basis
