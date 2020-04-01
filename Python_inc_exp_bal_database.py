@@ -721,30 +721,31 @@ show the budgeting ability of unique user ID found in the panel
 write it on a per-line basis to the csv that will sit in the flask folder and will later be available for training
 '''
 try:
-    #with open('User_ID_transactions.csv','a') as newFile:
-     #   newFileWriter=csv.writer(newFile)
+    #with open('User_ID_transactions.csv','w') as newFile:
+    #   newFileWriter=csv.writer(newFile)
+    f = open('test.csv', 'w')
+    with f:
+        fnames = ['User_ID', 'income', 'expense', 'difference']
+        writer = csv.DictWriter(f, fieldnames=fnames)
+        writer.writeheader()
     for index, i, e in zip(bank_income_by_user.index, bank_income_by_user.amount, bank_expenses_by_user.amount):
         if i > e:
             print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Good Budget!; Excess cash: {i - e}")
         else:
             print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Overspending!; Debt: {i - e}")
-
-        with open('User_ID_transactions.csv','a') as newFile:
-            newFileWriter=csv.writer(newFile)
+        #open/append income and expense per user_id to a CSV
+        #writes all numbers correctly but without headers
+        #with open('User_ID_transactions.csv','a') as newFile:
+            #newFileWriter=csv.writer(newFile)
             #write per row to a CSV
-            newFileWriter.writerow([index, i, e, i - e])
+            #newFileWriter.writerow([index, i, e, i - e])
+        f = open('test.csv', 'a')
+        with f:
+            #field names needed in append mode to know the orders of keys and values
+            fnames = ['User_ID', 'income', 'expense', 'difference']
+            writer = csv.DictWriter(f, fieldnames=fnames)
+            writer.writerow({'User_ID' : index, 'income': i, 'expense': e, 'difference': i-e})
 
-
-# headers = ['a','b','c','b']
-# row = 4
-# generators = ['A','B','C','D']
-# with open('test.csv','a') as csvfile:
-#      writer = csv.writer(csvfile, delimiter='.')
-# # Gives the header name row into csv
-#      writer.writerow([g for g in headers])
-# #Data add in csv file
-#      for x in range(row):
-#          writer.writerow([g() for g in generators])
 
 except:
     print("income and expense data by user might not be available; check the number of unique user IDs")
