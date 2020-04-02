@@ -1021,19 +1021,19 @@ def preproccessing(file_path):
         print(f"There was a problem with user ID: {bank_members[6]}; Error: {exc}")
         pass
 #%%
-'''
-CHART FOR EACH USER'S INCOME, EXPENSES AND EXCESS MONEY
-The loop uses the filtered dataframes which are narrowed down by user and
-show the budgeting ability of unique user ID found in the panel
-'''
-#index = index
-#i = income
-#e = expense
-'''
-REPORTING CSV - YODLEE DATA
-Write it on a per-line basis to the csv that will either sit sit in the flask folder
-or can be saved in the current working directory and will deliver information for the disconnected injector
-'''
+    '''
+    CHART FOR EACH USER'S INCOME, EXPENSES AND EXCESS MONEY
+    The loop uses the filtered dataframes which are narrowed down by user and
+    show the budgeting ability of unique user ID found in the panel
+    '''
+    #index = index
+    #i = income
+    #e = expense
+    '''
+    REPORTING CSV - YODLEE DATA
+    Write it on a per-line basis to the csv that will either sit sit in the flask folder
+    or can be saved in the current working directory and will deliver information for the disconnected injector
+    '''
     try:
         #open initially and only write to the file to generate the headers
         with open('User_ID_transactions.csv','w') as newFile:
