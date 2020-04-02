@@ -321,7 +321,7 @@ def preproccessing():
     '''
     Filter for dataframes to find out income and expenses narrowed down to the user id
     '''
-    #filter with ilocation and show expenses and income as spearate dataframe
+    #filter with ilocation and show expenses and income as separate dataframe
     card_expenses = df_card.iloc[np.where(df_card['transaction_class'] == "expense")]
     card_expenses_by_user = df_card.iloc[np.where(df_card['transaction_class'] == "expense")].groupby('unique_mem_id').sum()
     card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]

@@ -69,8 +69,8 @@ def preproccessing():
     card_members = df_card['unique_mem_id'].unique()
     bank_members = df_bank['unique_mem_id'].unique()
     demo_members = df_demo['unique_mem_id'].unique()
-    trans_cat_card = df_card['transaction_category_name'].unique()
-    trans_cat_bank = df_bank['transaction_category_name'].unique()
+    #trans_cat_card = df_card['transaction_category_name'].unique()
+    #trans_cat_bank = df_bank['transaction_category_name'].unique()
     #%%
     '''
     Brief check if all customers given in the demographics panel are also having transactions in the card or bank panel
@@ -320,7 +320,7 @@ def preproccessing():
     '''
     Filter for dataframes to find out income and expenses narrowed down to the user id
     '''
-    #filter with ilocation and show expenses and income as spearate dataframe
+    #filter with ilocation and show expenses and income as separate dataframe
     card_expenses = df_card.iloc[np.where(df_card['transaction_class'] == "expense")]
     card_expenses_by_user = df_card.iloc[np.where(df_card['transaction_class'] == "expense")].groupby('unique_mem_id').sum()
     card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]
