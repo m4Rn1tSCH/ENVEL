@@ -36,11 +36,18 @@ app = Flask(__name__)
     # * Running on http://127.0.0.1:5000/
 
     ####COMMAND PROMPT#####
+    #set env var in windows with name: FLASK_APP and value: path to app.py
+    #switch in dev consolde to this path
     #C:\path\to\app>set FLASK_APP=hello.py
     ####for production use##
-    #$ flask run --host=0.0.0.0
+    #make the flask app listen to all public IPs
+    ##ONLY FOR TESTING; MAJOR SECURITY ISSUE
+    #flask run --host=0.0.0.0
 
+    ##joint command to set env var and run the app
+    #env FLASK_APP=Python_inc_exp_bal_database.py flask run
 
+##remove paths outside of functions before running it with flask
 
 def preproccessing(file_path):
     '''
@@ -1160,3 +1167,5 @@ def preproccessing(file_path):
         spending_metrics_monthly.to_csv(csv_path_msp, mode = 'a', header = False)
         spending_metrics_weekly.to_csv(csv_path_wsp, mode = 'a', header = False)
         spending_metrics_daily.to_csv(csv_path_dsp, mode = 'a', header = False)
+#close the function with return xx to avoid error 500 when querying the URL and have a message showing up instead
+    return 'Preprocessing completed.'
