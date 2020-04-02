@@ -40,7 +40,7 @@ app = Flask(__name__)
     ####for production use##
     #$ flask run --host=0.0.0.0
 
-test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
+#test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
 
 def preproccessing(file_path):
     '''
@@ -389,8 +389,8 @@ def preproccessing(file_path):
     #open initially and only write to the file to generate the headers
     with open('Card_Panel_Injection.csv', 'w') as newFile:
         newFileWriter=csv.writer(newFile)
-        newFileWriter.writerow(["User_ID", "Injection in USD required"])
         newFileWriter.writerow("Refers to: CARD_PANEL")
+        newFileWriter.writerow(["User_ID", "Injection in USD required"])
     # f = open('test.csv', 'w')
     # with f:
         # fnames = ["User_ID", "Injection in USD required"]
@@ -1034,35 +1034,35 @@ REPORTING CSV - YODLEE DATA
 Write it on a per-line basis to the csv that will either sit sit in the flask folder
 or can be saved in the current working directory and will deliver information for the disconnected injector
 '''
-try:
-    #open initially and only write to the file to generate the headers
-    with open('User_ID_transactions.csv','w') as newFile:
-        newFileWriter=csv.writer(newFile)
-        newFileWriter.writerow(["User_ID", "Income", "Expenses", "Excess_Cash(+)/Debt(-)"])
-    # f = open('test.csv', 'w')
-    # with f:
-        # fnames = ['User_ID', 'income', 'expense', 'difference']
-        # writer = csv.DictWriter(f, fieldnames=fnames)
-        # writer.writeheader()
-    for index, i, e in zip(bank_income_by_user.index, bank_income_by_user.amount, bank_expenses_by_user.amount):
-        if i > e:
-            print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Good Budget!; Excess cash: {i - e}")
-        else:
-            print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Overspending!; Debt: {i - e}")
-        #open/append income and expense per user_id to a CSV that has been created outside the loop
-        #writes all rows inside the iteration loop correctly but without headers now
-        with open('User_ID_transactions.csv','a') as newFile:
+    try:
+        #open initially and only write to the file to generate the headers
+        with open('User_ID_transactions.csv','w') as newFile:
             newFileWriter=csv.writer(newFile)
-            #write per row to a CSV
-            newFileWriter.writerow([index, i, e, i - e])
-        ##f = open('test.csv', 'a')
-        #with f:
-            #field names needed in append mode to know the orders of keys and values
-            #fnames = ['User_ID', 'income', 'expense', 'difference']
-            #writer = csv.DictWriter(f, fieldnames=fnames)
-            #writer.writerow({'User_ID' : index, 'income': i, 'expense': e, 'difference': i-e})
-except:
-    print("data by user might not be available; check the number of unique user IDs")
+            newFileWriter.writerow(["User_ID", "Income", "Expenses", "Excess_Cash(+)/Debt(-)"])
+        # f = open('test.csv', 'w')
+        # with f:
+            # fnames = ['User_ID', 'income', 'expense', 'difference']
+            # writer = csv.DictWriter(f, fieldnames=fnames)
+            # writer.writeheader()
+        for index, i, e in zip(bank_income_by_user.index, bank_income_by_user.amount, bank_expenses_by_user.amount):
+            if i > e:
+                print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Good Budget!; Excess cash: {i - e}")
+            else:
+                print(f"User_ID: {index}; Income: {i}; Expenses: {e}; Overspending!; Debt: {i - e}")
+            #open/append income and expense per user_id to a CSV that has been created outside the loop
+            #writes all rows inside the iteration loop correctly but without headers now
+            with open('User_ID_transactions.csv','a') as newFile:
+                newFileWriter=csv.writer(newFile)
+                #write per row to a CSV
+                newFileWriter.writerow([index, i, e, i - e])
+            ##f = open('test.csv', 'a')
+            #with f:
+                #field names needed in append mode to know the orders of keys and values
+                #fnames = ['User_ID', 'income', 'expense', 'difference']
+                #writer = csv.DictWriter(f, fieldnames=fnames)
+                #writer.writerow({'User_ID' : index, 'income': i, 'expense': e, 'difference': i-e})
+    except:
+        print("data by user might not be available; check the number of unique user IDs")
     #%%
     '''
     Addition of feature columns for additive spending on a weekly; monthly; daily basis
