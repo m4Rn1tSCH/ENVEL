@@ -61,9 +61,9 @@ def preproccessing():
     #relative path to test the file sitting directly in the folder with the script
     #test_path_2 = './2020-01-28 envel.ai Working Class Sample.xlsx'
 
-    df_card = pd.read_excel(os.path.abspath(test_path_2), sheet_name = "Card Panel")
-    df_bank = pd.read_excel(os.path.abspath(test_path_2), sheet_name = "Bank Panel")
-    df_demo = pd.read_excel(os.path.abspath(test_path_2), sheet_name = "User Demographics")
+    df_card = pd.read_excel(os.path.abspath(test_path), sheet_name = "Card Panel")
+    df_bank = pd.read_excel(os.path.abspath(test_path), sheet_name = "Bank Panel")
+    df_demo = pd.read_excel(os.path.abspath(test_path), sheet_name = "User Demographics")
     #in the non-encoded verion all columns still have correct types
     #extract unique numbers from all panels to find out unique users;
     card_members = df_card['unique_mem_id'].unique()
@@ -1082,6 +1082,7 @@ def preproccessing():
     '''
     Addition of feature columns for additive spending on a weekly; monthly; daily basis
     These dataframes are then convertable to a CSV for reporting purposes or could be shown in the app
+    As of 4/2/2020 the spending report generates a file-wide dataframe based on all users together
     '''
     #total throughput of money
     total_throughput = df_card['amount'].sum()
@@ -1149,13 +1150,9 @@ def preproccessing():
 #return 'File preprocessed and CSVs saved in the working directory (C:\Users\Username\)'
 #%%
     '''
-            CONVERSION OF THE SPENDING REPORTS
-
+            CONVERSION OF THE SPENDING REPORTS - ALL USERS
     For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
-    Test the functionality and reassert some columns after CSV is generated
-    AFTER CSV IS GENERATED(in pred_func):
-        Reassert datetime objects to all date columns
-        Set Transaction date as index
+    calculations are incorporating all users simultaneously!
     '''
     raw = os.getcwd()
     date_of_creation = dt.today().strftime('%m-%d-%Y_%Hh-%mmin')
