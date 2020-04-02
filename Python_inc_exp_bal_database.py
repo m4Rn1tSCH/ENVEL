@@ -40,12 +40,13 @@ app = Flask(__name__)
     ####for production use##
     #$ flask run --host=0.0.0.0
 
-#test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
+
 
 def preproccessing(file_path):
     '''
     REPLACE THE TEST_PATH HERE IF YOU RUN THE FUNCTION EXTERNALLY
     '''
+    test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
     df_card = pd.read_excel(os.path.abspath(test_path), sheet_name = "Card Panel")
     df_bank = pd.read_excel(os.path.abspath(test_path), sheet_name = "Bank Panel")
     df_demo = pd.read_excel(os.path.abspath(test_path), sheet_name = "User Demographics")
