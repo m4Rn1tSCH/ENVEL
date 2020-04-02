@@ -57,7 +57,7 @@ def preproccessing():
     '''
     REPLACE THE TEST_PATH HERE IF YOU RUN THE FUNCTION EXTERNALLY
     '''
-    #test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
+    test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
     #relative path to test the file sitting directly in the folder with the script
     #test_path_2 = './2020-01-28 envel.ai Working Class Sample.xlsx'
 
