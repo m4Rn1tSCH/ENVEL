@@ -25,7 +25,7 @@ import csv
 app = Flask(__name__)
 
 ##put address here
-#function can be bound to the script ny adding a new URL
+#function can be bound to the script by adding a new URL
 #e.g. route('/start') would then start the entire function that follows
 #same can be split up
 @app.route('/start')
@@ -57,10 +57,13 @@ def preproccessing():
     '''
     REPLACE THE TEST_PATH HERE IF YOU RUN THE FUNCTION EXTERNALLY
     '''
-    test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
-    df_card = pd.read_excel(os.path.abspath(test_path), sheet_name = "Card Panel")
-    df_bank = pd.read_excel(os.path.abspath(test_path), sheet_name = "Bank Panel")
-    df_demo = pd.read_excel(os.path.abspath(test_path), sheet_name = "User Demographics")
+    #test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
+    #relative path to test the file sitting directly in the folder with the script
+    #test_path_2 = './2020-01-28 envel.ai Working Class Sample.xlsx'
+
+    df_card = pd.read_excel(os.path.abspath(test_path_2), sheet_name = "Card Panel")
+    df_bank = pd.read_excel(os.path.abspath(test_path_2), sheet_name = "Bank Panel")
+    df_demo = pd.read_excel(os.path.abspath(test_path_2), sheet_name = "User Demographics")
     #in the non-encoded verion all columns still have correct types
     #extract unique numbers from all panels to find out unique users;
     card_members = df_card['unique_mem_id'].unique()
