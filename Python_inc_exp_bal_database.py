@@ -44,12 +44,16 @@ app = Flask(__name__)
     ##ONLY FOR TESTING; MAJOR SECURITY ISSUE
     #flask run --host=0.0.0.0
 
+    #to enable all development features, like debugger and
+    #automatic restart when code changes
+    #set FLASK_ENV=development
+
     ##joint command to set env var and run the app
     #env FLASK_APP=Python_inc_exp_bal_database.py flask run
 
 ##remove paths outside of functions before running it with flask
 
-def preproccessing(file_path):
+def preproccessing():
     '''
     REPLACE THE TEST_PATH HERE IF YOU RUN THE FUNCTION EXTERNALLY
     '''
