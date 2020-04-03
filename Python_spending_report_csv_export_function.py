@@ -6,20 +6,23 @@ Created on Thu Apr  2 17:21:10 2020
 """
 
 '''
-This module conducts calculations per user ID
+This module conducts calculations if fed with a dataframe from Yodlee
 determines:
     daily spending (mean/std)
     weekly spending (mean/std)
     monthly spending (mean/std)
 the report is saved as a pandas df and converted to a CSV
+the CSV is saved in the current working directory of the device
 '''
 import os
 from datetime import datetime as dt
 import pandas as pd
+
 #in flask body with variable input
 #allows to input file
 #self in python: self is updating an instance variable of its own function
 #in this case thei nstance is the dataframe fed to the method and that is upposed to be processed
+
 def spending_report(self):
     #%%
     #temporary test section
@@ -110,3 +113,10 @@ def spending_report(self):
 
 #close the function with return xx to avoid error 500 when querying the URL and have a message showing up instead
     return 'Spending report generated; CSV-file in current working directory.'
+
+#add this part at the end to make the module executable as script
+#takes arguments here (self)
+#
+    if __name__ == "__main__":
+        import sys
+        spending_report(int(sys.argv[1]))
