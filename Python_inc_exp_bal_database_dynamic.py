@@ -20,6 +20,9 @@ from datetime import datetime as dt
 from flask import Flask
 import os
 import csv
+
+#imported custom function
+from Python_spending_report_csv_export_function_test import spending_report
 #%%
     #CONNECTION TO FLASK/SQL
 app = Flask(__name__)
@@ -69,8 +72,15 @@ def preproccessing():
     card_members = df_card['unique_mem_id'].unique()
     bank_members = df_bank['unique_mem_id'].unique()
     demo_members = df_demo['unique_mem_id'].unique()
-    #trans_cat_card = df_card['transaction_category_name'].unique()
-    #trans_cat_bank = df_bank['transaction_category_name'].unique()
+    #%%
+    try:
+        for member in card_members:
+            #save as var or not?
+            spending_report(df_card.groupby(member))
+            #spending report regroups by date again, calculates metrics and exports to CSV
+    except:
+        print(f"problem with {member}")
+        pass
     #%%
     '''
     Brief check if all customers given in the demographics panel are also having transactions in the card or bank panel
