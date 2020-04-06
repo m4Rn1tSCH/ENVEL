@@ -23,6 +23,7 @@ import csv
 
 #imported custom function
 from Python_spending_report_csv_export_function_test import spending_report
+import Python_SQL_connection
 #%%
     #CONNECTION TO FLASK/SQL
 app = Flask(__name__)
