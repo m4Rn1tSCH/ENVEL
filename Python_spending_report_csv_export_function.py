@@ -17,7 +17,7 @@ the CSV is saved in the current working directory of the device
 import os
 from datetime import datetime as dt
 import pandas as pd
-import Python_SQL_connection
+import Python_IDs_demo_panel
 
 #in flask body with variable input
 #allows to input file
