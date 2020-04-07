@@ -22,7 +22,7 @@ import Python_IDs_demo_panel
 #in flask body with variable input
 #allows to input file
 #self in python: self is updating an instance variable of its own function
-#in this case thei nstance is the dataframe fed to the method and that is upposed to be processed
+#in this case the instance is the dataframe fed to the method and that is upposed to be processed
 
 def spending_report(self):
     #%%

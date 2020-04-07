@@ -10,6 +10,9 @@ This script contains all SQL components
 -make a connection to the Yodlee DB
 -insert records to it
 -delete records
+
+when it throws error about transaction blocked enter: rollback
+this reverts old incorrect queries
 '''
 
 #establish a connection to the Yodlee DB
@@ -20,10 +23,11 @@ from psycopg2 import pool
 #%%
 name = "postgres"
 user = "envel_yodlee"
-password = "Bl0w@F1sh321"
+pw = "Bl0w@F1sh321"
 host = "envel-yodlee-datasource.c11nj3dc7pn5.us-east-2.rds.amazonaws.com"
 port = "5432"
 #%%
+#assign connection object as variable + use in further functions
 def create_connection(db_name, db_user, db_password, db_host, db_port):
     connection = None
     try:
@@ -38,6 +42,23 @@ def create_connection(db_name, db_user, db_password, db_host, db_port):
     except OperationalError as e:
         print(f"The error '{e}' occurred")
     return connection
+#%%
+def execute_read_query(connection, query):
+    cursor = connection.cursor()
+    result = None
+    try:
+        cursor.execute(query)
+        result = cursor.fetchall()
+        return result
+    except OperationalError as e:
+        print(f"The error '{e}' occurred")
+#%%
+#example query for transaction in MA
+select_users = "SELECT * FROM bank_record WHERE state = 'MA'"
+users = execute_read_query(connection, select_users)
+
+for x in users:
+    print(x[:10])
 
 #%%
     #insert a value into the DB
@@ -83,7 +104,7 @@ def delete_val():
 
     #add this part at the end to make the module executable as script
     #takes arguments here (self)
-
+#%%
 '''
 IMPORTANT: This closes all connections even those that are in use by applications!
     Use with caution!
