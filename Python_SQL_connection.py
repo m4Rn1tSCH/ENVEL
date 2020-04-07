@@ -15,7 +15,15 @@ This script contains all SQL components
 #establish a connection to the Yodlee DB
 import psycopg2
 from psycopg2 import OperationalError
-
+from psycopg2 import pool
+#import PostgreSQL_access
+#%%
+name = "postgres"
+user = "envel_yodlee"
+password = "Bl0w@F1sh321"
+host = "envel-yodlee-datasource.c11nj3dc7pn5.us-east-2.rds.amazonaws.com"
+port = "5432"
+#%%
 def create_connection(db_name, db_user, db_password, db_host, db_port):
     connection = None
     try:
@@ -26,12 +34,12 @@ def create_connection(db_name, db_user, db_password, db_host, db_port):
             host=db_host,
             port=db_port,
         )
-        print("Connection to PostgreSQL DB successful")
+        print(f"Connection to PostgreSQL {db_name} successful")
     except OperationalError as e:
         print(f"The error '{e}' occurred")
     return connection
 
-
+#%%
     #insert a value into the DB
 def insert_val():
     create_users = """
@@ -66,7 +74,7 @@ def insert_val():
     cursor = connection.cursor()
     cursor.execute(insert_query, users)
     return 'edit_msg'
-
+#%%
 def delete_val():
     #delete comments
     delete_comment = "DELETE FROM comments WHERE id = 2"
@@ -75,6 +83,15 @@ def delete_val():
 
     #add this part at the end to make the module executable as script
     #takes arguments here (self)
+
+'''
+IMPORTANT: This closes all connections even those that are in use by applications!
+    Use with caution!
+'''
+#close a single connection pool
+def close_connection():
+    pool.SimpleConnectionPool.closeall
+
 
     if __name__ == "__main__":
         import sys
