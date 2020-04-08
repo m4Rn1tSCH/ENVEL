@@ -26,6 +26,7 @@ user = "envel_yodlee"
 pw = "Bl0w@F1sh321"
 host = "envel-yodlee-datasource.c11nj3dc7pn5.us-east-2.rds.amazonaws.com"
 port = "5432"
+#create_connection(name, user, pw, host, port)
 #%%
 #assign connection object as variable + use in further functions
 def create_connection(db_name, db_user, db_password, db_host, db_port):
@@ -116,4 +117,4 @@ def close_connection():
 
     if __name__ == "__main__":
         import sys
-        spending_report(int(sys.argv[1]))
+        close_connection(int(sys.argv[1]))
