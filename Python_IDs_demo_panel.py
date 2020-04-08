@@ -18,9 +18,9 @@ demo_full = pd.read_csv(transactions,
                         index_col = None,
                         header = None,
                         usecols = [0, 1, 2, 4, 5, 6],
-                        names = ['unique_mem_id', 'state', 'city', 'income_class', 'date_1', 'date_2',])
-pd.to_datetime(demo_full['date_1'])
-pd.to_datetime(demo_full['date_2'])
+                        names = ['unique_mem_id', 'state', 'city', 'income_class', 'file_created_date', 'panel_file_created_date',])
+pd.to_datetime(demo_full['file_created_date'])
+pd.to_datetime(demo_full['panel_file_created_date'])
 demo_full.fillna(value = 'unknown')
 
 #first 25 users as array and list
