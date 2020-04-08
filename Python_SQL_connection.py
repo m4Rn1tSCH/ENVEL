@@ -13,6 +13,9 @@ This script contains all SQL components
 
 when it throws error about transaction blocked enter: rollback
 this reverts old incorrect queries
+
+THE SCRIPT ONLY CONDUCTS QUERIES; THE OUTPUT IS A TUPLE!
+THE MODULE IT IS CONNECTED TO WILL CONVERT THE PULLED CONTENT TO A DF
 '''
 
 #establish a connection to the Yodlee DB
@@ -55,12 +58,9 @@ def execute_read_query(connection, query):
         print(f"The error '{e}' occurred")
 #%%
 #example query for transaction in MA
-select_users = "SELECT * FROM bank_record WHERE state = 'MA'"
-users = execute_read_query(connection, select_users)
-
-for x in users:
-    print(x[:10])
-
+#select_users = "SELECT * FROM bank_record WHERE state = 'MA'"
+#generates a tuple output
+#transaction_query = execute_read_query(connection, select_users)
 #%%
     #insert a value into the DB
 def insert_val():

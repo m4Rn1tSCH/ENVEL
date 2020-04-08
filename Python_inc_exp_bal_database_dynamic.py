@@ -23,7 +23,8 @@ import csv
 
 #imported custom function
 from Python_spending_report_csv_export_function_test import spending_report
-import Python_SQL_connection
+from Python_SQL_connection import *
+import PostgreSQL_credentials as acc
 #%%
     #CONNECTION TO FLASK/SQL
 app = Flask(__name__)
@@ -57,10 +58,11 @@ app = Flask(__name__)
 
 ##remove paths outside of functions before running it with flask
 
-def preproccessing():
+def preprocessing():
     '''
-    REPLACE THE TEST_PATH HERE IF YOU RUN THE FUNCTION EXTERNALLY
+    LOCAL CONNECTION TO THE SAMPLE CSVs
     '''
+    #REPLACE THE TEST_PATH HERE IF YOU RUN THE FUNCTION EXTERNALLY
     test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
     #relative path to test the file sitting directly in the folder with the script
     #test_path_2 = './2020-01-28 envel.ai Working Class Sample.xlsx'
@@ -74,14 +76,15 @@ def preproccessing():
     bank_members = df_bank['unique_mem_id'].unique()
     demo_members = df_demo['unique_mem_id'].unique()
     #%%
-    try:
-        for member in card_members:
-            #save as var or not?
-            spending_report(df_card.groupby(member))
-            #spending report regroups by date again, calculates metrics and exports to CSV
-    except:
-        print(f"problem with {member}")
-        pass
+    '''
+    SQL CONNECTION TO THE YODLEE DATABASE
+    '''
+    #establishing connection to the full Yodlee database
+    connection = create_connection(db_name = acc.YDB_name, db_user = acc.YDB_user, db_password = acc.YDB_password, db_host = acc.YDB_host, db_port = acc.YDB_port)
+    #example query for transaction in MA
+    #select_users = "SELECT * FROM bank_record WHERE state = 'MA'"
+    #generates a tuple output
+    #transaction_query = execute_read_query(connection, select_users)
     #%%
     '''
     Brief check if all customers given in the demographics panel are also having transactions in the card or bank panel
