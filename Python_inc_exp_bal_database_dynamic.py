@@ -22,9 +22,14 @@ import os
 import csv
 
 #imported custom function
-from Python_spending_report_csv_export_function_test import spending_report
+#generates a CSV for daily/weekly/monthly account throughput; expenses and income
+from Python_spending_report_csv_export_function import spending_report
+#contains the connection script
 from Python_SQL_connection import *
+#contains all credentials
 import PostgreSQL_credentials as acc
+#produces lists of unique member IDs from the bank_panel/card_panel
+import Python_IDs_demo_panel
 #%%
     #CONNECTION TO FLASK/SQL
 app = Flask(__name__)
@@ -80,7 +85,12 @@ def preprocessing():
     SQL CONNECTION TO THE YODLEE DATABASE
     '''
     #establishing connection to the full Yodlee database
+    #Py_SQL_con needs to be loaded first
     connection = create_connection(db_name = acc.YDB_name, db_user = acc.YDB_user, db_password = acc.YDB_password, db_host = acc.YDB_host, db_port = acc.YDB_port)
+    #this seems to work but cannot read because of rounded numbers
+    for i in id_list:
+        filter_query = f"SELECT * FROM bank_record WHERE state = 'MA' AND unique_mem_id = {i}"
+        transaction_query = execute_read_query(connection, filter_query)
     #example query for transaction in MA
     #select_users = "SELECT * FROM bank_record WHERE state = 'MA'"
     #generates a tuple output
