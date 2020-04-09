@@ -13,6 +13,7 @@ determines:
     monthly spending (mean/std)
 the report is saved as a pandas df and converted to a CSV
 the CSV is saved in the current working directory of the device
+4/9/2020: works fine for bank and card panel
 '''
 import os
 from datetime import datetime as dt

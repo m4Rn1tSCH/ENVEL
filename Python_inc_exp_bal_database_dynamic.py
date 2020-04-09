@@ -89,7 +89,7 @@ def preprocessing():
     connection = create_connection(db_name = acc.YDB_name, db_user = acc.YDB_user, db_password = acc.YDB_password, db_host = acc.YDB_host, db_port = acc.YDB_port)
     #this seems to work but cannot read because of rounded numbers
     for i in id_list:
-        filter_query = f"SELECT * FROM bank_record WHERE state = 'MA' AND unique_mem_id = '{i}' AND amount <= '10'"
+        filter_query = f"SELECT * FROM bank_record WHERE state = 'MA' AND unique_mem_id = '{i}' AND amount <= '250'"
         transaction_query = execute_read_query(connection, filter_query)
     #example query for transaction in MA
     #select_users = "SELECT * FROM bank_record WHERE state = 'MA'"
