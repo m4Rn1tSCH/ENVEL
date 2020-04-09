@@ -22,6 +22,7 @@ import os
 import csv
 
 #imported custom function
+import Python_injection_dbms_csv_exp_function_dynamic.py as injector
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
 from Python_spending_report_csv_export_function import spending_report
 #contains the connection script

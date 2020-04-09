@@ -24,7 +24,7 @@ pd.to_datetime(demo_full['panel_file_created_date'])
 demo_full.fillna(value = 'unknown')
 
 #first 25 users as array and list
-id_array = demo_full['unique_mem_id'].unique()[:25]
-id_list = list(demo_full['unique_mem_id'].unique()[:25])
+id_array = demo_full['unique_mem_id'].unique()[:5]
+id_list = list(demo_full['unique_mem_id'].unique()[:5])
 
-print(demo_full.head(10))
+#print(demo_full.head(10))

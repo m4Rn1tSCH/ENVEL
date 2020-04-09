@@ -12,6 +12,10 @@ Following steps are involved:
     summing up values per user and transaction class
     calculates injection needed before first income is received
 '''
+import numpy as np
+import pandas as pd
+
+
 
 #as a self function to use as method
 def injection(self):
@@ -55,14 +59,14 @@ def injection(self):
     #DF_CARD
     #try:
     transaction_class_card = pd.Series([], dtype = 'object')
-    for index, i in enumerate(df_card['transaction_category_name']):
+    for index, i in enumerate(self['transaction_category_name']):
         if i in card_inc:
             transaction_class_card[index] = "income"
         elif i in card_exp:
             transaction_class_card[index] = "expense"
         else:
             transaction_class_card[index] = "NOT_CLASSIFIED"
-    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
+    self.insert(loc = len(self.columns), column = "transaction_class", value = transaction_class_card)
     #except:
         #print("column is already existing or another error")
     ###################################
@@ -84,16 +88,16 @@ def injection(self):
     Filter for dataframes to find out income and expenses narrowed down to the user id
     '''
     #filter with ilocation and show expenses and income as separate dataframe
-    card_expenses = df_card.iloc[np.where(df_card['transaction_class'] == "expense")]
-    card_expenses_by_user = df_card.iloc[np.where(df_card['transaction_class'] == "expense")].groupby('unique_mem_id').sum()
-    card_income = df_card.iloc[np.where(df_card['transaction_class'] == "income")]
-    card_income_by_user = df_card.iloc[np.where(df_card['transaction_class'] == "income")].groupby('unique_mem_id').sum()
-    bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
-    bank_expenses_by_user = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")].groupby('unique_mem_id').sum()
-    bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "income")]
-    bank_income_by_user = df_bank.iloc[np.where(df_bank['transaction_class'] == "income")].groupby('unique_mem_id').sum()
+    card_expenses = self.iloc[np.where(self['transaction_class'] == "expense")]
+    card_expenses_by_user = self.iloc[np.where(self['transaction_class'] == "expense")].groupby('unique_mem_id').sum()
+    card_income = self.iloc[np.where(self['transaction_class'] == "income")]
+    card_income_by_user = self.iloc[np.where(self['transaction_class'] == "income")].groupby('unique_mem_id').sum()
+    #bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
+    #bank_expenses_by_user = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")].groupby('unique_mem_id').sum()
+    #bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "income")]
+    #bank_income_by_user = df_bank.iloc[np.where(df_bank['transaction_class'] == "income")].groupby('unique_mem_id').sum()
     #%%
-    df_1 = df_card[['unique_mem_id', 'amount', 'transaction_class']][df_card['unique_mem_id'] == '70850441974905670928446']
+    df_1 = self[['unique_mem_id', 'amount', 'transaction_class']].groupby('unique_mem_id')
     #%%
     print("CARD PANEL INJECTION")
     #open initially and only write to the file to generate the headers
@@ -152,3 +156,7 @@ def injection(self):
 
         print(f"There was a problem with user ID: {card_members[0]}; Error: {exc}")
         pass
+
+    if __name__ == "__main__":
+        import sys
+        close_connection(int(sys.argv[1]))
