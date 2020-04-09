@@ -103,12 +103,15 @@ def spending_report(self):
     For testing purposes which does not include randomized IDs as part of the name and allows loading a constant name
     calculations are incorporating all users simultaneously!
     '''
-    raw = os.getcwd()
+    #local working directory
+    #raw = os.getcwd()
+    #folder when executed on the AWS instance
+    aws = os.mkdir('/injection')
     date_of_creation = dt.today().strftime('%m-%d-%Y_%Hh-%mmin')
 
-    csv_path_msp = os.path.abspath(os.path.join(raw, date_of_creation + '_MONTHLY_REPORT_ALL_USERS' + '.csv'))
-    csv_path_wsp = os.path.abspath(os.path.join(raw, date_of_creation + '_WEEKLY_REPORT_ALL_USERS' + '.csv'))
-    csv_path_dsp = os.path.abspath(os.path.join(raw, date_of_creation + '_DAILY_REPORT_ALL_USERS' + '.csv'))
+    csv_path_msp = os.path.abspath(os.path.join(aws, date_of_creation + '_MONTHLY_REPORT_ALL_USERS' + '.csv'))
+    csv_path_wsp = os.path.abspath(os.path.join(aws, date_of_creation + '_WEEKLY_REPORT_ALL_USERS' + '.csv'))
+    csv_path_dsp = os.path.abspath(os.path.join(aws, date_of_creation + '_DAILY_REPORT_ALL_USERS' + '.csv'))
 
     try:
         spending_metrics_monthly.to_csv(csv_path_msp)
