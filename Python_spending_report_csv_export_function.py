@@ -12,7 +12,8 @@ determines:
     weekly spending (mean/std)
     monthly spending (mean/std)
 the report is saved as a pandas df and converted to a CSV
-the CSV is saved in the current working directory of the device
+LOCAL:the CSV is saved in the current working directory of the device
+AWS:the CSV is saved in ././injection/*.csv
 4/9/2020: works fine for bank and card panel
 '''
 import os
