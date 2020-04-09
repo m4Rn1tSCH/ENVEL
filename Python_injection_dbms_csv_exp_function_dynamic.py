@@ -14,17 +14,17 @@ Following steps are involved:
 '''
 import numpy as np
 import pandas as pd
-
+import csv
 
 
 #as a self function to use as method
-def injection(self):
-    test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
+def injectior(self):
+    #test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
     #relative path to test the file sitting directly in the folder with the script
     #test_path_2 = './2020-01-28 envel.ai Working Class Sample.xlsx'
 
-    df_card = pd.read_excel(os.path.abspath(test_path), sheet_name = "Card Panel")
-    card_members = df_card['unique_mem_id'].unique()
+    #df_card = pd.read_excel(os.path.abspath(test_path), sheet_name = "Card Panel")
+    #card_members = df_card['unique_mem_id'].unique()
     #%%
     '''
     POSTGRESQL COLUMNS - CLASSIFICATION OF TRANSACTIONS
@@ -72,15 +72,15 @@ def injection(self):
     ###################################
     #DF_BANK
     #try:
-    transaction_class_bank = pd.Series([], dtype = 'object')
-    for index, i in enumerate(df_bank['transaction_category_name']):
-        if i in bank_inc:
-            transaction_class_bank[index] = "income"
-        elif i in bank_exp:
-            transaction_class_bank[index] = "expense"
-        else:
-            transaction_class_bank[index] = "NOT_CLASSIFIED"
-    df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = transaction_class_bank)
+    # transaction_class_bank = pd.Series([], dtype = 'object')
+    # for index, i in enumerate(df_bank['transaction_category_name']):
+    #     if i in bank_inc:
+    #         transaction_class_bank[index] = "income"
+    #     elif i in bank_exp:
+    #         transaction_class_bank[index] = "expense"
+    #     else:
+    #         transaction_class_bank[index] = "NOT_CLASSIFIED"
+    # df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = transaction_class_bank)
     #except:
         #print("column is already existing or another error")
     #%%
