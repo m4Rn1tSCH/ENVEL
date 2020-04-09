@@ -18,7 +18,7 @@ import csv
 
 
 #as a self function to use as method
-def injectior(self):
+def injector(self):
     #test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
     #relative path to test the file sitting directly in the folder with the script
     #test_path_2 = './2020-01-28 envel.ai Working Class Sample.xlsx'
@@ -142,17 +142,17 @@ def injectior(self):
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
     except Exception as exc:
-
-        with open('Card_Panel_Injection.csv', 'a') as newFile:
-            newFileWriter=csv.writer(newFile)
-            #write per row to a CSV
-            newFileWriter.writerow([row.unique_mem_id, exc])
-        ##f = open('test.csv', 'a')
-        #with f:
-            #field names needed in append mode to know the orders of keys and values
-            #fnames = ['User_ID', 'Injection in USD required']
-            #writer = csv.DictWriter(f, fieldnames=fnames)
-            #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
+        for row in self.head(1).itertuples():
+            with open('Card_Panel_Injection.csv', 'a') as newFile:
+                newFileWriter=csv.writer(newFile)
+                #write per row to a CSV
+                newFileWriter.writerow([row.unique_mem_id, exc])
+            ##f = open('test.csv', 'a')
+            #with f:
+                #field names needed in append mode to know the orders of keys and values
+                #fnames = ['User_ID', 'Injection in USD required']
+                #writer = csv.DictWriter(f, fieldnames=fnames)
+                #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
         print(f"There was a problem with user ID: {card_members[0]}; Error: {exc}")
         pass
