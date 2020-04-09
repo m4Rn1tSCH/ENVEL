@@ -48,7 +48,9 @@ def spending_report(self):
     '''
     Addition of feature columns for additive spending on a weekly; monthly; daily basis
     These dataframes are then convertable to a CSV for reporting purposes or could be shown in the app
-    As of 4/2/2020 the spending report generates a file-wide dataframe based on all users together
+    As of 4/2/2020 the spending report generates a file-wide dataframe based on all users
+    IN CARD PANEL: debit will decrease its balance and credit will increase it (liability on the bank's part)
+    IN BANK PANEL: debit will decrease its balance and credit will increase it (liability on the bank's part)
     '''
     #total throughput of money
     total_throughput = self['amount'].sum()
@@ -56,36 +58,42 @@ def spending_report(self):
     net_monthly_throughput = self['amount'].groupby(self['transaction_date_month']).sum()
     avg_monthly_throughput = self['amount'].groupby(self['transaction_date_month']).mean()
     #CHECK VIABILITY OF SUCH VARIABLES
-    monthly_gain = self['amount'][self['amount'] >= 0].groupby(self['transaction_date_week']).sum()
-    #monthly_expenses = self['amount'][self['transaction_base_type'] == 'debit'].groupby(self['transaction_date_week']).sum()
+    monthly_gain = self['amount'][self['transaction_base_type'] == 'credit'].groupby(self['transaction_date_week']).sum()
+    monthly_expenses = self['amount'][self['transaction_base_type'] == 'debit'].groupby(self['transaction_date_week']).sum()
     #weekly figures
     net_weekly_throughput = self['amount'].groupby(self['transaction_date_week']).sum()
     avg_weekly_throughput = self['amount'].groupby(self['transaction_date_week']).mean()
     #CHECK VIABILITY OF SUCH VARIABLES
-    weekly_gain = self['amount'][self['amount'] >= 0].groupby(self['transaction_date_week']).sum()
-    #weekly_expenses = self['amount'][self['transaction_base_type'] == "debit"].groupby(self['transaction_date_week']).sum()
+    weekly_gain = self['amount'][self['transaction_base_type'] == "credit"].groupby(self['transaction_date_week']).sum()
+    weekly_expenses = self['amount'][self['transaction_base_type'] == "debit"].groupby(self['transaction_date_week']).sum()
     #daily figures
     net_daily_spending = self['amount'].groupby(self['transaction_date_weekday']).sum()
     avg_daily_spending = self['amount'].groupby(self['transaction_date_weekday']).mean()
     #CHECK VIABILITY OF SUCH VARIABLES
-    daily_gain = self['amount'][self['amount'] >= 0].groupby(self['transaction_date_weekday']).sum()
-    #daily_expenses = self['amount'][self['transaction_base_type'] == "debit"].groupby(self['transaction_date_weekday']).sum()
+    daily_gain = self['amount'][self['transaction_base_type'] == "credit"].groupby(self['transaction_date_weekday']).sum()
+    daily_expenses = self['amount'][self['transaction_base_type'] == "debit"].groupby(self['transaction_date_weekday']).sum()
 
     #report for users about their spending patterns, given in various intervals
     try:
         print(f"The total turnover on your account has been ${total_throughput}")
         print("................................................................")
         spending_metrics_monthly = pd.DataFrame(data = {'Average Monthly Spending':avg_monthly_throughput,
-                                                        'Monthly Turnover':net_monthly_throughput})
-        print(spending_metrics_monthly)
+                                                        'Monthly Turnover':net_monthly_throughput,
+                                                        'Monthly Inflow':monthly_gain,
+                                                        'MonthlyOutflow':monthly_expenses})
+        #print(spending_metrics_monthly)
         print(".................................................................")
         spending_metrics_weekly = pd.DataFrame(data = {'Average Weekly Spending':avg_weekly_throughput,
-                                                       'Weekly Turnover':net_weekly_throughput})
-        print(spending_metrics_weekly)
+                                                       'Weekly Turnover':net_weekly_throughput,
+                                                       'Weekly Inflow': weekly_gain,
+                                                       'Weekly Outflow': weekly_expenses})
+        #print(spending_metrics_weekly)
         print(".................................................................")
         spending_metrics_daily = pd.DataFrame(data = {'Average Daily Spending':avg_daily_spending,
-                                                      'Daily Turnover':net_daily_spending})
-        print(spending_metrics_daily)
+                                                      'Daily Turnover':net_daily_spending,
+                                                      'Daily Inflow':daily_gain,
+                                                      'Daily Outlow':daily_expenses})
+        #print(spending_metrics_daily)
     except:
         print("You do not have enough transactions yet. But we are getting there...")
 
