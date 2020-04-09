@@ -88,10 +88,10 @@ def injector(self):
     Filter for dataframes to find out income and expenses narrowed down to the user id
     '''
     #filter with ilocation and show expenses and income as separate dataframe
-    card_expenses = self.iloc[np.where(self['transaction_class'] == "expense")]
-    card_expenses_by_user = self.iloc[np.where(self['transaction_class'] == "expense")].groupby('unique_mem_id').sum()
-    card_income = self.iloc[np.where(self['transaction_class'] == "income")]
-    card_income_by_user = self.iloc[np.where(self['transaction_class'] == "income")].groupby('unique_mem_id').sum()
+    #card_expenses = self.iloc[np.where(self['transaction_class'] == "expense")]
+    #card_expenses_by_user = self.iloc[np.where(self['transaction_class'] == "expense")].groupby('unique_mem_id').sum()
+    #card_income = self.iloc[np.where(self['transaction_class'] == "income")]
+    #card_income_by_user = self.iloc[np.where(self['transaction_class'] == "income")].groupby('unique_mem_id').sum()
     #bank_expenses = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")]
     #bank_expenses_by_user = df_bank.iloc[np.where(df_bank['transaction_class'] == "expense")].groupby('unique_mem_id').sum()
     #bank_income = df_bank.iloc[np.where(df_bank['transaction_class'] == "income")]
@@ -142,7 +142,7 @@ def injector(self):
             #writer.writerow({'User_ID' : row.unique_mem_id, 'Injection in USD required': cumulative_amount[-1]})
 
     except Exception as exc:
-        for row in self.head(1).itertuples():
+        for row in df_1.head(1).itertuples():
             with open('Card_Panel_Injection.csv', 'a') as newFile:
                 newFileWriter=csv.writer(newFile)
                 #write per row to a CSV
@@ -154,7 +154,8 @@ def injector(self):
                 #writer = csv.DictWriter(f, fieldnames=fnames)
                 #writer.writerow({'User_ID' : "Problem with:" row.unique_mem_id, 'Injection in USD required': "Problem:" exc})
 
-        print(f"There was a problem with user ID: {card_members[0]}; Error: {exc}")
+        #print(f"There was a problem with user ID: {card_members[0]}; Error: {exc}")
+        print(f"There was a problem with user ID: {row.unique_mem_id}; Error: {exc}")
         pass
 
     if __name__ == "__main__":
