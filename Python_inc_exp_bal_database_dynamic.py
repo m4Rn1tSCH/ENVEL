@@ -20,6 +20,7 @@ from datetime import datetime as dt
 from flask import Flask
 import os
 import csv
+import matplotlib.pyplot as plt
 
 #imported custom function
 import Python_injection_dbms_csv_exp_function_dynamic as injection
@@ -69,7 +70,7 @@ def preprocessing():
     LOCAL CONNECTION TO THE SAMPLE CSVs
     '''
     #REPLACE THE TEST_PATH HERE IF YOU RUN THE FUNCTION EXTERNALLY
-    test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
+    #test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
     #relative path to test the file sitting directly in the folder with the script
     #test_path_2 = './2020-01-28 envel.ai Working Class Sample.xlsx'
 
@@ -89,13 +90,14 @@ def preprocessing():
     #Py_SQL_con needs to be loaded first
     connection = create_connection(db_name = acc.YDB_name, db_user = acc.YDB_user, db_password = acc.YDB_password, db_host = acc.YDB_host, db_port = acc.YDB_port)
     #this seems to work but cannot read because of rounded numbers
-    for i in id_list:
-        filter_query = f"SELECT * FROM bank_record WHERE state = 'MA' AND unique_mem_id = '{i}' AND amount <= '250'"
-        transaction_query = execute_read_query(connection, filter_query)
-    #example query for transaction in MA
-    #select_users = "SELECT * FROM bank_record WHERE state = 'MA'"
-    #generates a tuple output
-    #transaction_query = execute_read_query(connection, select_users)
+    filter_query = f"SELECT unique_mem_id, state, city, zip_code, income_class, file_created_date FROM user_demographic WHERE state = 'MA'"
+    transaction_query = execute_read_query(connection, filter_query)
+    query_df = pd.DataFrame(transaction_query,
+                        columns = ['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
+    pd.to_datetime(query_df['file_created_date'])
+    #user IDs need to be converted to string to be not truncated and readable
+    query_df['unique_mem_id'].astype('string')
+    query_df.fillna(value = 'unknown')
     #%%
     '''
     Brief check if all customers given in the demographics panel are also having transactions in the card or bank panel
