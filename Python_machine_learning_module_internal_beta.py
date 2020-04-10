@@ -45,33 +45,6 @@ SCRIPT WILL GET ALL CSV FILES AT THIS STAGE!
 #relative_t_path = './*.csv'
 df = pd.read_csv(transactions, index_col = [0])
 #%%
-#vendor_file = r"C:\Users\bill-\Dropbox\Nan\Archived\BillVendors_Only.xlsx"
-#path_11 = vendor_file.replace(os.sep,'/')
-#vendors = ''.join(('', path_11, ''))
-#relative_v_path = './BillVendors_Only.xlsx'
-#%%
-###connection to flask with relative link#####
-###FLASK FUNCTION###
-#from flask import Flask
-#############SETTING UP THE APP##########
-#app = Flask(__name__)
-####TRIGGER URL#####
-#@app.route('/')
-
-#RUN THE APPLICATION
-#flask command or -m swith in Python
-
-########SETTING THE ENVIRONMENT VARIABLE#######
-#$ export FLASK_APP=CONNECTION.py
-#$ flask run
-#* Running on http://127.0.0.1:5000/
-
-####COMMAND PROMPT#####
-#C:\path\to\app>set FLASK_APP=CONNECTION.py
-
-####for production use##
-#$ flask run --host=0.0.0.0
-#%%
 #CHECK FOR TRANSACTION HISTORY
 '''
 If previous transactions are in the list/database/history, it is passed to check for missing values
@@ -121,17 +94,6 @@ for col in df.columns:
 ##V2
 #first .all() for the entire column; second .all() for the entire df as a single value
 #assert df.iloc[:, 1:].apply(df.notnull(), axis=1).all().all()
-#%%
-#######FIX IMPUTER SOLUTION
-#V3
-#not running with anaconda python 3.7.3
-#use imputer from sklearn
-#axis = 0 col; axis = 1 row
-#from sklearn. import Imputer
-#imputer = Imputer(missing_values = 'NaN', strategy = 'mean', axis = 0)
-#imputer = imputer.fit(X[:, 1:3])
-#X[:, 1:3] = imputer.transform(X[:, 1:3])
-
 #%%
 #LABEL ENCODER
 '''

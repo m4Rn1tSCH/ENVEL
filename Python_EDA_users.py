@@ -18,6 +18,7 @@ import csv
 import matplotlib.pyplot as plt
 
 from sklearn.feature_selection import SelectKBest , chi2, f_classif
+from sklearn.preprocessing import LabelEncoder
 
 #imported custom function
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
@@ -71,7 +72,20 @@ add preprocessing
 add label encoder first
 add select k best
 '''
+le = LabelEncoder()
+le_count = 0
 
+for col in bank_df.columns:
+    #if bank_df[col].dtype == 'object':
+    le.fit(bank_df[col])
+    bank_df[col] = le.transform(bank_df[col])
+    le_count += 1
+
+print('%d columns were converted.' % le_count)
+
+#for comparison of the old data frame and the new one
+print("PROCESSED DATA FRAME:")
+print(df.head(3))
 k_best = SelectKBest(score_func = f_classif, k = 12)
 k_best.fit(bank_df, bank_df['amount'])
 k_best.get_params()
