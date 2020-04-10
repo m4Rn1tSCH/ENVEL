@@ -17,6 +17,8 @@ import os
 import csv
 import matplotlib.pyplot as plt
 
+from sklearn.feature_selection import SelectKBest , chi2, f_classif
+
 #imported custom function
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
 from Python_spending_report_csv_export_function import spending_report
@@ -53,3 +55,23 @@ try:
 except OperationalError as e:
         print(f"The error '{e}' occurred")
         connection.rollback
+#%%
+#Plot template
+fig, ax = plt.subplots(2, 1, figsize = (25, 25))
+ax[0].plot(df.index.values, df['x'], color = 'green', lw = 4, ls = '-.', marker = 'o', label = 'line_1')
+ax[1].plot(df.index.values, df['y'], color = 'orange', lw = 0, marker = 'o', label = 'line_2')
+ax[0].legend(loc = 'upper right')
+ax[1].legend(loc = 'lower center')
+#%%
+'''
+add preprocessing
+'''
+#%%
+'''
+add label encoder first
+add select k best
+'''
+
+k_best = SelectKBest(score_func = f_classif, k = 12)
+k_best.fit(bank_df, bank_df['amount'])
+k_best.get_params()
