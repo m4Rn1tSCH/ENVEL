@@ -114,7 +114,7 @@ le_count = 0
 #Train on the training data
 #Transform both training and testing
 #Keep track of how many columns were converted
-for col in df:
+for col in df.columns:
     if df[col].dtype == 'object':
         le.fit(df[col])
         df[col] = le.transform(df[col])
