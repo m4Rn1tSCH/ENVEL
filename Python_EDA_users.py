@@ -51,9 +51,9 @@ try:
                                    'factual_category', 'factual_id', 'file_created_date', 'optimized_transaction_date',
                                    'yodlee_transaction_status', 'mcc_raw', 'mcc_inferred', 'swipe_date',
                                    'panel_file_created_date', 'update_type', 'is_outlier', 'change_source',
-                                   'account_type', 'account_source_type', 'account_score', 'user_score', 'lag', 'is_duplicate'], dtype = None)
+                                   'account_type', 'account_source_type', 'account_score', 'user_score', 'lag', 'is_duplicate'])
         print(f"User {i} has {len(bank_df)} transactions on record.")
-        bank_df = bank_df.drop(columns = ['secondary_merchant_name', 'swipe_date', 'update_type', 'is_outlier', 'change_source'])
+        bank_df = bank_df.drop(columns = ['secondary_merchant_name', 'swipe_date', 'update_type', 'is_duplicate', 'change_source'], axis = 1)
 except OperationalError as e:
         print(f"The error '{e}' occurred")
         connection.rollback
@@ -69,6 +69,18 @@ except OperationalError as e:
 '''
 add preprocessing
 '''
+#key error shows a weird \n new line operator after is outlier
+#this might block stuff
+
+bank_df.isna().sum()
+bank_df.drop('mcc_inferred', axis = 1)
+bank_df.drop('factual_id', axis = 1)
+bank_df.drop('factual_category', axis = 1)
+#investigate here and how it is with zip codes
+bank_df.drop('zip_code', axis = 1)
+bank_df.drop('is_duplicate', axis = 1)
+bank_df[col].fillna(value = 'NA')
+
 for col in bank_df.columns:
     bank_df[col].fillna(value = 'NA')
     if bank_df[col].isnull().count() > 0:
@@ -97,10 +109,11 @@ add select k best
 le = LabelEncoder()
 le_count = 0
 
-for col in bank_df.columns:
+for col in bank_df:
+    #print(col)
     if bank_df[col].dtype == 'object':
         le.fit(bank_df[col])
-        bank_df[col] = le.transform(bank_df.col)
+        bank_df[col] = le.transform(bank_df[col])
         le_count += 1
 
 print('%d columns were converted.' % le_count)
