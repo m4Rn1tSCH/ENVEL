@@ -167,8 +167,7 @@ le = LabelEncoder()
 le.fit_transform(merchants)
 embedding_map_merchants = dict(zip(le.classes_, le.transform(le.classes_)))
 
-#FOR NEW DATA
-#and when applying to new test data:
+#APPLICATION TO OUR DATASET
 bank_df['primary_merchant_name'] = bank_df['primary_merchant_name'].apply(lambda x: x if x in embedding_map_merchants else UNKNOWN_TOKEN)
 #le.transform(bank_df)
 bank_df['primary_merchant_name'] = bank_df['primary_merchant_name'].map(lambda x: le.transform([x])[0] if type(x)==str else x)
@@ -181,7 +180,7 @@ le_2 = LabelEncoder()
 le_2.fit_transform(cities)
 embedding_map_cities = dict(zip(le_2.classes_, le_2.transform(le_2.classes_)))
 
-#and when applying to new test data:
+#APPLICATION TO OUR DATASET
 bank_df['city'] = bank_df['city'].apply(lambda x: x if x in embedding_map_cities else UNKNOWN_TOKEN)
 #le_2.transform(bank_df)
 bank_df['city'] = bank_df['city'].map(lambda x: le_2.transform([x])[0] if type(x)==str else x)
@@ -195,27 +194,10 @@ le_3 = LabelEncoder()
 le_3.fit_transform(states)
 embedding_map_states = dict(zip(le_3.classes_, le_3.transform(le.classes_)))
 
-#and when applying to new test data:
+#APPLICATION TO OUR DATASET
 bank_df['state'] = bank_df['state'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
 #le_3.transform(bank_df)
 bank_df['state'] = bank_df['state'].map(lambda x: le_3.transform([x])[0] if type(x)==str else x)
-
-
-# le = LabelEncoder()
-# le_count = 0
-# try:
-#     for col in bank_df:
-#         if bank_df[col].dtype == 'object':
-#             bank_df[col] = le.fit_transform(bank_df[col])
-#             le_count += 1
-#     print('%d columns were converted.' % le_count)
-# except TypeError as e:
-#     print(e)
-#     pass
-
-# #for comparison of the old data frame and the new one
-# print("PROCESSED DATA FRAME:")
-# print(bank_df.head(3))
 #%%
 k_best = SelectKBest(score_func = f_classif, k = 10)
 k_best.fit(bank_df, bank_df['primary_merchant_name'])
