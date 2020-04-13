@@ -29,7 +29,11 @@ from Python_SQL_connection import execute_read_query, create_connection, close_c
 import PostgreSQL_credentials as acc
 #%%
 #Py_SQL_con needs to be loaded first
-connection = create_connection(db_name = acc.YDB_name, db_user = acc.YDB_user, db_password = acc.YDB_password, db_host = acc.YDB_host, db_port = acc.YDB_port)
+connection = create_connection(db_name = acc.YDB_name,
+                               db_user = acc.YDB_user,
+                               db_password = acc.YDB_password,
+                               db_host = acc.YDB_host,
+                               db_port = acc.YDB_port)
 #%%
 #estbalish connection to get user IDs
 filter_query = f"SELECT unique_mem_id, state, city, zip_code, income_class, file_created_date FROM user_demographic WHERE state = 'MA'"
@@ -53,7 +57,18 @@ try:
                                    'panel_file_created_date', 'update_type', 'is_outlier', 'change_source',
                                    'account_type', 'account_source_type', 'account_score', 'user_score', 'lag', 'is_duplicate'])
         print(f"User {i} has {len(bank_df)} transactions on record.")
-        bank_df = bank_df.drop(columns = ['secondary_merchant_name', 'swipe_date', 'update_type', 'is_duplicate', 'change_source'], axis = 1)
+        #all these columns are empty or almost empty and contain no viable information
+        bank_df = bank_df.drop(columns = ['secondary_merchant_name',
+                                          'swipe_date',
+                                          'update_type',
+                                          'is_outlier' ,
+                                          'is_duplicate',
+                                          'change_source',
+                                          'lag',
+                                          'mcc_inferred',
+                                          'factual_id',
+                                          'factual_category',
+                                          'zip_code'], axis = 1)
 except OperationalError as e:
         print(f"The error '{e}' occurred")
         connection.rollback
@@ -71,21 +86,18 @@ add preprocessing
 '''
 #key error shows a weird \n new line operator after is outlier
 #this might block stuff
-
-bank_df.isna().sum()
-bank_df.drop('mcc_inferred', axis = 1)
-bank_df.drop('factual_id', axis = 1)
-bank_df.drop('factual_category', axis = 1)
-#investigate here and how it is with zip codes
-bank_df.drop('zip_code', axis = 1)
-bank_df.drop('is_duplicate', axis = 1)
-bank_df[col].fillna(value = 'NA')
-
-for col in bank_df.columns:
-    bank_df[col].fillna(value = 'NA')
-    if bank_df[col].isnull().count() > 0:
-        bank_df.replace(to_replace = '', value = 'unknown')
-    #bank_df.replace(to_replace = 0, value = np.NaN)
+#dealing with missing data to prepare a smooth label encoding
+print("Following columns will be filled up with UNKNOWN values:")
+for col in bank_df:
+    if bank_df[col].isnull().sum().any() > 0:
+        print(col)
+        bank_df[col].fillna(value = 'unknown')
+bank_df['state'].fillna(value = 'MA')
+bank_df['city'].fillna(value = 'unknown')
+bank_df['primary_merchant_name'].fillna(value = 'unknown')
+bank_df['factual_category'].fillna(value = 'unknown')
+bank_df['factual_id'].fillna(value = 'unknown')
+bank_df.reset_index()
 #%%
 '''
 add label encoder first
@@ -110,7 +122,6 @@ le = LabelEncoder()
 le_count = 0
 
 for col in bank_df:
-    #print(col)
     if bank_df[col].dtype == 'object':
         le.fit(bank_df[col])
         bank_df[col] = le.transform(bank_df[col])
