@@ -104,21 +104,21 @@ After successfully loading the data, columns that are of no importance will be r
 Then the dataframe is ready to be encoded to get rid of all non-numerical data
 add preprocessing
 '''
-print(bank_df[bank_df['city'].isnull()])
-#Then for remove all not numeric values use to_numeric with parameetr errors='coerce' - it replace non numeric to NaNs:
-bank_df['x'] = pd.to_numeric(bank_df['x'], errors='coerce')
-#And for remove all rows with NaNs in column x use dropna:
-bank_df = bank_df.dropna(subset=['x'])
-#Last convert values to ints:
-bank_df['x'] = bank_df['x'].astype(int)
+# print(bank_df[bank_df['city'].isnull()])
+# #Then for remove all not numeric values use to_numeric with parameetr errors='coerce' - it replace non numeric to NaNs:
+# bank_df['x'] = pd.to_numeric(bank_df['x'], errors='coerce')
+# #And for remove all rows with NaNs in column x use dropna:
+# bank_df = bank_df.dropna(subset=['x'])
+# #Last convert values to ints:
+# bank_df['x'] = bank_df['x'].astype(int)
 
-try:
-    bank_df['city'].replace("None", "UNKNOWN")
-    bank_df['state'].replace("None", "UNKNOWN")
-#    bank_df.fillna(value = 'unknown')
-except TypeError as e:
-    print(e)
-    pass
+# try:
+#     bank_df['city'].replace("None", "UNKNOWN")
+#     bank_df['state'].replace("None", "UNKNOWN")
+# #    bank_df.fillna(value = 'unknown')
+# except TypeError as e:
+#     print(e)
+#     pass
 
 bank_df['primary_merchant_name'].fillna(value = 'unknown')
 
@@ -130,12 +130,12 @@ bank_df['primary_merchant_name'].fillna(value = 'unknown')
 #bank_df['factual_id'].fillna(value = 'unknown')
 
 #prepare numeric and string columns
-bank_df['unique_bank_account_id'].astype('str', errors = 'ignore')
-bank_df['unique_bank_transaction_id'].astype('str', errors = 'ignore')
-bank_df['amount'].astype('float64')
+bank_df['unique_bank_account_id'] = bank_df['unique_bank_account_id'].astype('str', errors = 'ignore')
+bank_df['unique_bank_transaction_id'] = bank_df['unique_bank_transaction_id'].astype('str', errors = 'ignore')
+bank_df['amount'] = bank_df['amount'].astype('float64')
 bank_df['currency'].astype('str', errors = 'ignore')
-bank_df['description'].astype('str')
-bank_df['transaction_base_type'].astype('str')
+bank_df['description'] = bank_df['description'].astype('str')
+bank_df['transaction_base_type'] = bank_df['transaction_base_type'].astype('str')
 bank_df['transaction_category_name'].astype('str')
 bank_df['primary_merchant_name'].astype('str')
 bank_df['city'].astype('str')
@@ -143,15 +143,11 @@ bank_df['state'].astype('str')
 #bank_df['zip_code'].astype('str')
 bank_df['transaction_origin'].astype('str')
 
-
-#key error shows a weird \n new line operator after is outlier
-#this might block stuff
-#dealing with missing data to prepare a smooth label encoding
-#print("Following columns will be filled up with UNKNOWN values:")
-#for col in bank_df:
-#    if bank_df[col].isnull().sum().any() > 0:
-#        print(col)
-#        bank_df[col].fillna(value = 'unknown')
+#concert all datetime columns
+bank_df['transaction_date'] = pd.to_datetime(bank_df['transaction_date'])
+bank_df['optimized_transaction_date'] = pd.to_datetime(bank_df['optimized_transaction_date'])
+bank_df['file_created_date'] = pd.to_datetime(bank_df['file_created_date'])
+bank_df['panel_file_created_date'] = pd.to_datetime(bank_df['panel_file_created_date'])
 #%%
 '''
 add label encoder first
@@ -199,8 +195,10 @@ bank_df['state'] = bank_df['state'].apply(lambda x: x if x in embedding_map_stat
 #le_3.transform(bank_df)
 bank_df['state'] = bank_df['state'].map(lambda x: le_3.transform([x])[0] if type(x)==str else x)
 #%%
+y = bank_df['primary_merchant_name']
+X = bank_df.drop(columns = 'primary_merchant_name', axis = 1)
 k_best = SelectKBest(score_func = f_classif, k = 10)
-k_best.fit(bank_df, bank_df['primary_merchant_name'])
+k_best.fit(X, y)
 k_best.get_params()
 
 # isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
