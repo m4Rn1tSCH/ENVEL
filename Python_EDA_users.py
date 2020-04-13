@@ -92,6 +92,7 @@ for col in bank_df:
     if bank_df[col].isnull().sum().any() > 0:
         print(col)
         bank_df[col].fillna(value = 'unknown')
+
 bank_df['state'].fillna(value = 'MA')
 bank_df['city'].fillna(value = 'unknown')
 bank_df['primary_merchant_name'].fillna(value = 'unknown')
@@ -103,35 +104,38 @@ bank_df.reset_index()
 add label encoder first
 add select k best
 '''
-#import pandas as pd
-#from sklearn.preprocessing import LabelEncoder
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
-#UNKNOWN_TOKEN = '<unknown>'
-#a = pd.Series(['A','B','C', 'D','A'], dtype=str).unique().tolist()
-#a.append(UNKNOWN_TOKEN)
-#le = LabelEncoder()
-#le.fit_transform(a)
-#embedding_map = dict(zip(le.classes_, le.transform(le.classes_)))
+UNKNOWN_TOKEN = '<unknown>'
+cities = bank_df['city'].unique().astype('str').tolist()
+a = pd.Series(['A', 'B', 'C', 'D', 'A'], dtype=str).unique().tolist()
+a.append(UNKNOWN_TOKEN)
+cities.append(UNKNOWN_TOKEN)
+le = LabelEncoder()
+le.fit_transform(cities)
+embedding_map = dict(zip(le.classes_, le.transform(le.classes_)))
 
 #and when applying to new test data:
-
-#test_df = test_df.apply(lambda x: x if x in embedding_map else UNKNOWN_TOKEN)
-#le.transform(test_df)
-#df['col'] = df['col'].map(lambda x: le.transform([x])[0] if type(x)==str else x)
-le = LabelEncoder()
-le_count = 0
-
+bank_df = bank_df.apply(lambda x: x if x in embedding_map else UNKNOWN_TOKEN)
+le.transform(bank_df)
 for col in bank_df:
-    if bank_df[col].dtype == 'object':
-        le.fit(bank_df[col])
-        bank_df[col] = le.transform(bank_df[col])
-        le_count += 1
+    bank_df[col] = bank_df[col].map(lambda x: le.transform([x])[0] if type(x)==str else x)
 
-print('%d columns were converted.' % le_count)
+# le = LabelEncoder()
+# le_count = 0
 
-#for comparison of the old data frame and the new one
-print("PROCESSED DATA FRAME:")
-print(bank_df.head(3))
+# for col in bank_df:
+#     if bank_df[col].dtype == 'object':
+#         le.fit(bank_df[col])
+#         bank_df[col] = le.transform(bank_df[col])
+#         le_count += 1
+
+# print('%d columns were converted.' % le_count)
+
+# #for comparison of the old data frame and the new one
+# print("PROCESSED DATA FRAME:")
+# print(bank_df.head(3))
 #%%
 k_best = SelectKBest(score_func = f_classif, k = 12)
 k_best.fit(bank_df, bank_df['amount'])
