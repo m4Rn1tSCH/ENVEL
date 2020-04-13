@@ -85,7 +85,7 @@ except OperationalError as e:
 #%%
 '''
 After successfully loading the data, columns that are of no importance will be removed and missing values replaced
-Then the Dataframe is ready to be encoded to get rid of all non-numerical data
+Then the dataframe is ready to be encoded to get rid of all non-numerical data
 add preprocessing
 '''
 #key error shows a weird \n new line operator after is outlier
@@ -102,14 +102,12 @@ bank_df['city'].fillna(value = 'unknown')
 bank_df['primary_merchant_name'].fillna(value = 'unknown')
 #bank_df['factual_category'].fillna(value = 'unknown')
 #bank_df['factual_id'].fillna(value = 'unknown')
-
+#prepare numeric and string columns
 bank_df['unique_bank_account_id'].astype('str')
 bank_df['unique_bank_transaction_id'].astype('str')
 bank_df['amount'].astype('int64')
 bank_df['currency'].astype('str')
-bank_df['description'].astype('object')
-#bank_df['transaction_date'].astype('')
-bank_df['post_date'].astype('datetime[n64]')
+bank_df['description'].astype('str')
 bank_df['transaction_base_type'].astype('str')
 bank_df['transaction_category_name'].astype('str')
 bank_df['primary_merchant_name'].astype('str')
@@ -118,10 +116,12 @@ bank_df['state'].astype('str')
 #bank_df['zip_code'].astype('str')
 bank_df['transaction_origin'].astype('str')
 
-#bank_df['file_created_date'].astype('')
-#bank_df['optimized_transaction_date'].astype('')
-
-bank_df['panel_file_created_date'].astype('')
+#convert all datetime columns
+pd.to_datetime(bank_df['transaction_date'])
+pd.to_datetime(bank_df['post_date'])
+pd.to_datetime(bank_df['file_created_date'])
+pd.to_datetime(bank_df['optimized_transaction_date'])
+pd.to_datetime(bank_df['panel_file_created_date'])
 bank_df.reset_index()
 #%%
 '''
