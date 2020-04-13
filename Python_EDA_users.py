@@ -104,9 +104,19 @@ bank_df = bank_df.dropna(subset=['x'])
 #Last convert values to ints:
 bank_df['x'] = bank_df['x'].astype(int)
 
+try:
+        bank_df['city'].replace("None", "UNKNOWN")
+        bank_df['state'].replace("None", "UNKNOWN")
+#        bank_df.fillna(value = 'unknown')
+except TypeError as e:
+    print(e)
+    pass
+
 bank_df['primary_merchant_name'].fillna(value = 'unknown')
-bank_df['state'].fillna(value = 'MA')
-bank_df['city'].fillna(value = 'unknown')
+
+#THIS MIGHT RUIN THE DATA; SINCE THE STATE REFERS TO THE TANSACTION LOCATION NOT TE ORIGIN OF THE USER
+#bank_df['state'].fillna(value = 'MA')
+#bank_df['city'].fillna(value = 'unknown')
 
 #bank_df['factual_category'].fillna(value = 'unknown')
 #bank_df['factual_id'].fillna(value = 'unknown')
@@ -114,7 +124,7 @@ bank_df['city'].fillna(value = 'unknown')
 #prepare numeric and string columns
 bank_df['unique_bank_account_id'].astype('str', errors = 'ignore')
 bank_df['unique_bank_transaction_id'].astype('str', errors = 'ignore')
-bank_df['amount'].astype('int64')
+bank_df['amount'].astype('float64')
 bank_df['currency'].astype('str', errors = 'ignore')
 bank_df['description'].astype('str')
 bank_df['transaction_base_type'].astype('str')
