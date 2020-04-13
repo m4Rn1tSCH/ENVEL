@@ -82,7 +82,7 @@ except OperationalError as e:
 # ax[0].legend(loc = 'upper right')
 # ax[1].legend(loc = 'lower center')
 
-# #Pie chart template
+#Pie chart template
 # labels, values = zip(*tx_types.items())
 # # Pie chart, where the slices will be ordered and plotted counter-clockwise:
 # fig1, ax1 = plt.subplots()
@@ -90,6 +90,14 @@ except OperationalError as e:
 #         shadow=True, startangle=90)
 # ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
 # plt.show()
+
+#Boxplot template
+# cat_var = ["type", "check", "institutionName", "feeDescription", "Student", "isCredit", "CS_FICO_str"]
+# quant_var = ["Age", "amount"]
+# for c_var in cat_var:
+#     for q_var in quant_var:
+#         df.boxplot(column=q_var, by=c_var)
+#         plt.xticks([])
 #%%
 '''
 After successfully loading the data, columns that are of no importance will be removed and missing values replaced
@@ -105,9 +113,9 @@ bank_df = bank_df.dropna(subset=['x'])
 bank_df['x'] = bank_df['x'].astype(int)
 
 try:
-        bank_df['city'].replace("None", "UNKNOWN")
-        bank_df['state'].replace("None", "UNKNOWN")
-#        bank_df.fillna(value = 'unknown')
+    bank_df['city'].replace("None", "UNKNOWN")
+    bank_df['state'].replace("None", "UNKNOWN")
+#    bank_df.fillna(value = 'unknown')
 except TypeError as e:
     print(e)
     pass
@@ -135,13 +143,6 @@ bank_df['state'].astype('str')
 #bank_df['zip_code'].astype('str')
 bank_df['transaction_origin'].astype('str')
 
-#convert all datetime columns
-pd.to_datetime(bank_df['transaction_date'])
-pd.to_datetime(bank_df['post_date'])
-pd.to_datetime(bank_df['file_created_date'])
-pd.to_datetime(bank_df['optimized_transaction_date'])
-pd.to_datetime(bank_df['panel_file_created_date'])
-bank_df.reset_index()
 
 #key error shows a weird \n new line operator after is outlier
 #this might block stuff
@@ -154,45 +155,70 @@ bank_df.reset_index()
 #%%
 '''
 add label encoder first
-add select k best
+add select K BEST
 '''
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder
-
-# UNKNOWN_TOKEN = '<unknown>'
-# cities = bank_df['city'].unique().astype('str').tolist()
-# a = pd.Series(['A', 'B', 'C', 'D', 'A'], dtype=str).unique().tolist()
-# a.append(UNKNOWN_TOKEN)
-# cities.append(UNKNOWN_TOKEN)
-# le = LabelEncoder()
-# le.fit_transform(cities)
-# embedding_map = dict(zip(le.classes_, le.transform(le.classes_)))
-
-# #and when applying to new test data:
-# bank_df = bank_df.apply(lambda x: x if x in embedding_map else UNKNOWN_TOKEN)
-# le.transform(bank_df)
-# for col in bank_df:
-#     bank_df[col] = bank_df[col].map(lambda x: le.transform([x])[0] if type(x)==str else x)
-
+#WORKS
+#encoding merchants
+UNKNOWN_TOKEN = '<unknown>'
+merchants = bank_df['primary_merchant_name'].unique().astype('str').tolist()
+#a = pd.Series(['A', 'B', 'C', 'D', 'A'], dtype=str).unique().tolist()
+merchants.append(UNKNOWN_TOKEN)
 le = LabelEncoder()
-le_count = 0
-try:
-    for col in bank_df:
-        if bank_df[col].dtype == 'object':
-            le.fit(bank_df[col])
-            bank_df[col] = le.transform(bank_df[col])
-            le_count += 1
-    print('%d columns were converted.' % le_count)
-except TypeError as e:
-    print(e)
-    pass
+le.fit_transform(merchants)
+embedding_map_merchants = dict(zip(le.classes_, le.transform(le.classes_)))
 
-#for comparison of the old data frame and the new one
-print("PROCESSED DATA FRAME:")
-print(bank_df.head(3))
+#FOR NEW DATA
+#and when applying to new test data:
+bank_df['primary_merchant_name'] = bank_df['primary_merchant_name'].apply(lambda x: x if x in embedding_map_merchants else UNKNOWN_TOKEN)
+#le.transform(bank_df)
+bank_df['primary_merchant_name'] = bank_df['primary_merchant_name'].map(lambda x: le.transform([x])[0] if type(x)==str else x)
+
+#encoding cities
+UNKNOWN_TOKEN = '<unknown>'
+cities = bank_df['city'].unique().astype('str').tolist()
+cities.append(UNKNOWN_TOKEN)
+le_2 = LabelEncoder()
+le_2.fit_transform(cities)
+embedding_map_cities = dict(zip(le_2.classes_, le_2.transform(le_2.classes_)))
+
+#and when applying to new test data:
+bank_df['city'] = bank_df['city'].apply(lambda x: x if x in embedding_map_cities else UNKNOWN_TOKEN)
+#le_2.transform(bank_df)
+bank_df['city'] = bank_df['city'].map(lambda x: le_2.transform([x])[0] if type(x)==str else x)
+
+
+#encoding states
+#UNKNOWN_TOKEN = '<unknown>'
+states = bank_df['state'].unique().astype('str').tolist()
+states.append(UNKNOWN_TOKEN)
+le_3 = LabelEncoder()
+le_3.fit_transform(states)
+embedding_map_states = dict(zip(le_3.classes_, le_3.transform(le.classes_)))
+
+#and when applying to new test data:
+bank_df['state'] = bank_df['state'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
+#le_3.transform(bank_df)
+bank_df['state'] = bank_df['state'].map(lambda x: le_3.transform([x])[0] if type(x)==str else x)
+
+
+# le = LabelEncoder()
+# le_count = 0
+# try:
+#     for col in bank_df:
+#         if bank_df[col].dtype == 'object':
+#             bank_df[col] = le.fit_transform(bank_df[col])
+#             le_count += 1
+#     print('%d columns were converted.' % le_count)
+# except TypeError as e:
+#     print(e)
+#     pass
+
+# #for comparison of the old data frame and the new one
+# print("PROCESSED DATA FRAME:")
+# print(bank_df.head(3))
 #%%
-k_best = SelectKBest(score_func = f_classif, k = 12)
-k_best.fit(bank_df, bank_df['amount'])
+k_best = SelectKBest(score_func = f_classif, k = 10)
+k_best.fit(bank_df, bank_df['primary_merchant_name'])
 k_best.get_params()
 
 # isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
