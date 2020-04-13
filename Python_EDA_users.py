@@ -76,37 +76,46 @@ except OperationalError as e:
         connection.rollback
 #%%
 #Plot template
-
 # fig, ax = plt.subplots(2, 1, figsize = (25, 25))
 # ax[0].plot(df.index.values, df['x'], color = 'green', lw = 4, ls = '-.', marker = 'o', label = 'line_1')
 # ax[1].plot(df.index.values, df['y'], color = 'orange', lw = 0, marker = 'o', label = 'line_2')
 # ax[0].legend(loc = 'upper right')
 # ax[1].legend(loc = 'lower center')
+
+# #Pie chart template
+# labels, values = zip(*tx_types.items())
+# # Pie chart, where the slices will be ordered and plotted counter-clockwise:
+# fig1, ax1 = plt.subplots()
+# ax1.pie(values, labels=labels, autopct='%1.1f%%',
+#         shadow=True, startangle=90)
+# ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+# plt.show()
 #%%
 '''
 After successfully loading the data, columns that are of no importance will be removed and missing values replaced
 Then the dataframe is ready to be encoded to get rid of all non-numerical data
 add preprocessing
 '''
-#key error shows a weird \n new line operator after is outlier
-#this might block stuff
-#dealing with missing data to prepare a smooth label encoding
-print("Following columns will be filled up with UNKNOWN values:")
-for col in bank_df:
-    if bank_df[col].isnull().sum().any() > 0:
-        print(col)
-        bank_df[col].fillna(value = 'unknown')
+print(bank_df[bank_df['city'].isnull()])
+#Then for remove all not numeric values use to_numeric with parameetr errors='coerce' - it replace non numeric to NaNs:
+bank_df['x'] = pd.to_numeric(bank_df['x'], errors='coerce')
+#And for remove all rows with NaNs in column x use dropna:
+bank_df = bank_df.dropna(subset=['x'])
+#Last convert values to ints:
+bank_df['x'] = bank_df['x'].astype(int)
 
+bank_df['primary_merchant_name'].fillna(value = 'unknown')
 bank_df['state'].fillna(value = 'MA')
 bank_df['city'].fillna(value = 'unknown')
-bank_df['primary_merchant_name'].fillna(value = 'unknown')
+
 #bank_df['factual_category'].fillna(value = 'unknown')
 #bank_df['factual_id'].fillna(value = 'unknown')
+
 #prepare numeric and string columns
-bank_df['unique_bank_account_id'].astype('str')
-bank_df['unique_bank_transaction_id'].astype('str')
+bank_df['unique_bank_account_id'].astype('str', errors = 'ignore')
+bank_df['unique_bank_transaction_id'].astype('str', errors = 'ignore')
 bank_df['amount'].astype('int64')
-bank_df['currency'].astype('str')
+bank_df['currency'].astype('str', errors = 'ignore')
 bank_df['description'].astype('str')
 bank_df['transaction_base_type'].astype('str')
 bank_df['transaction_category_name'].astype('str')
@@ -123,6 +132,15 @@ pd.to_datetime(bank_df['file_created_date'])
 pd.to_datetime(bank_df['optimized_transaction_date'])
 pd.to_datetime(bank_df['panel_file_created_date'])
 bank_df.reset_index()
+
+#key error shows a weird \n new line operator after is outlier
+#this might block stuff
+#dealing with missing data to prepare a smooth label encoding
+#print("Following columns will be filled up with UNKNOWN values:")
+#for col in bank_df:
+#    if bank_df[col].isnull().sum().any() > 0:
+#        print(col)
+#        bank_df[col].fillna(value = 'unknown')
 #%%
 '''
 add label encoder first
@@ -148,14 +166,16 @@ from sklearn.preprocessing import LabelEncoder
 
 le = LabelEncoder()
 le_count = 0
-
-for col in bank_df:
-    if bank_df[col].dtype == 'object':
-        le.fit(bank_df[col])
-        bank_df[col] = le.transform(bank_df[col])
-        le_count += 1
-
-print('%d columns were converted.' % le_count)
+try:
+    for col in bank_df:
+        if bank_df[col].dtype == 'object':
+            le.fit(bank_df[col])
+            bank_df[col] = le.transform(bank_df[col])
+            le_count += 1
+    print('%d columns were converted.' % le_count)
+except TypeError as e:
+    print(e)
+    pass
 
 #for comparison of the old data frame and the new one
 print("PROCESSED DATA FRAME:")
@@ -164,3 +184,6 @@ print(bank_df.head(3))
 k_best = SelectKBest(score_func = f_classif, k = 12)
 k_best.fit(bank_df, bank_df['amount'])
 k_best.get_params()
+
+# isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
+# np.corrcoef(np.array(isCredit_num), amounts)
