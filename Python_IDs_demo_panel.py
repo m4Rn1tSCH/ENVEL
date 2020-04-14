@@ -12,9 +12,11 @@ and then passes it as a list/array
 
 import os
 import pandas as pd
+from collections import Counter
 
-transactions = os.path.relpath(r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\DEMO_PANEL_FULL.csv')
-demo_full = pd.read_csv(transactions,
+transactions_win = os.path.relpath(r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\DEMO_PANEL_FULL.csv')
+transactions_mac = os.path.relpath(r'/Users/bill/OneDrive - Envel/user_demographic.csv')
+demo_full = pd.read_csv(transactions_mac,
                         index_col = None,
                         header = None,
                         usecols = [0, 1, 2, 4, 5, 6],
@@ -28,3 +30,15 @@ id_array = demo_full['unique_mem_id'].unique()[:5]
 id_list = list(demo_full['unique_mem_id'].unique()[:5])
 
 #print(demo_full.head(10))
+#%%
+#Pie chart transaction type -works
+demo_ct = Counter(list(demo_full['state']))
+#asterisk look up, what is that?
+labels, values = zip(*demo_ct.items())
+#Pie chart, where the slices will be ordered and plotted counter-clockwise:
+fig1, ax1 = plt.subplots()
+ax1.pie(values, labels = labels, autopct = '%1.1f%%',
+        shadow = True, startangle = 90)
+#Equal aspect ratio ensures that pie is drawn as a circle.
+ax1.axis('equal')
+plt.show()

@@ -192,6 +192,7 @@ bank_df['state'].astype('str')
 bank_df['transaction_origin'].astype('str')
 
 #concert all datetime columns
+bank_df['post_date'] = pd.to_datetime(bank_df['post_date'])
 bank_df['transaction_date'] = pd.to_datetime(bank_df['transaction_date'])
 bank_df['optimized_transaction_date'] = pd.to_datetime(bank_df['optimized_transaction_date'])
 bank_df['file_created_date'] = pd.to_datetime(bank_df['file_created_date'])
