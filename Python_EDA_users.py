@@ -17,6 +17,7 @@ import os
 import csv
 import matplotlib.pyplot as plt
 from collections import Counter
+from datetime import datetime as dt
 
 from sklearn.feature_selection import SelectKBest , chi2, f_classif
 from sklearn.preprocessing import LabelEncoder
@@ -122,23 +123,25 @@ state_ct = Counter(list(bank_df['state']))
 #asterisk look up, what is that?
 labels, values = zip(*state_ct.items())
 #Pie chart, where the slices will be ordered and plotted counter-clockwise:
-fig1, ax1 = plt.subplots()
-ax1.pie(values, labels = labels, autopct = '%1.1f%%',
+fig1, ax = plt.subplots(figsize = (18, 12))
+ax.pie(values, labels = labels, autopct = '%1.1f%%',
         shadow = True, startangle = 90)
 #Equal aspect ratio ensures that pie is drawn as a circle.
-ax1.axis('equal')
+ax.axis('equal')
+ax.legend(loc = 'center right')
 plt.show()
 
 #Pie chart transaction type -works
 trans_ct = Counter(list(bank_df['transaction_category_name']))
 #asterisk look up, what is that?
-labels, values = zip(*trans_ct.items())
+labels_2, values_2 = zip(*trans_ct.items())
 #Pie chart, where the slices will be ordered and plotted counter-clockwise:
-fig1, ax1 = plt.subplots()
-ax1.pie(values, labels = labels, autopct = '%1.1f%%',
+fig1, ax = plt.subplots(figsize = (20, 12))
+ax.pie(values_2, labels = labels_2, autopct = '%1.1f%%',
         shadow = True, startangle = 90)
 #Equal aspect ratio ensures that pie is drawn as a circle.
-ax1.axis('equal')
+ax.axis('equal')
+ax.legend(loc = 'center right')
 plt.show()
 
 #Boxplot template - bugged
@@ -180,25 +183,32 @@ bank_df['primary_merchant_name'].fillna(value = 'unknown')
 #bank_df['factual_id'].fillna(value = 'unknown')
 
 #prepare numeric and string columns
+#some of them are being encoded later manually
 bank_df['unique_bank_account_id'] = bank_df['unique_bank_account_id'].astype('str', errors = 'ignore')
 bank_df['unique_bank_transaction_id'] = bank_df['unique_bank_transaction_id'].astype('str', errors = 'ignore')
 bank_df['amount'] = bank_df['amount'].astype('float64')
-bank_df['currency'].astype('str', errors = 'ignore')
-bank_df['description'] = bank_df['description'].astype('str')
-bank_df['transaction_base_type'] = bank_df['transaction_base_type'].astype('str')
-bank_df['transaction_category_name'].astype('str')
-bank_df['primary_merchant_name'].astype('str')
-bank_df['city'].astype('str')
-bank_df['state'].astype('str')
+
+#bank_df['description'] = bank_df['description'].astype('str')
+bank_df['transaction_origin'] = bank_df['transaction_origin'].replace(to_replace = ["Non-Physical", "Physical", "ATM"], value = [1, 2, 3])
+bank_df['transaction_base_type'] = bank_df['transaction_base_type'].replace(to_replace = ["debit", "credit"], value = [1, 0])
+#bank_df['transaction_category_name'].astype('str')
+#bank_df['primary_merchant_name'].astype('str')
 #bank_df['zip_code'].astype('str')
 bank_df['transaction_origin'].astype('str')
 
-#concert all datetime columns
-bank_df['post_date'] = pd.to_datetime(bank_df['post_date'])
-bank_df['transaction_date'] = pd.to_datetime(bank_df['transaction_date'])
-bank_df['optimized_transaction_date'] = pd.to_datetime(bank_df['optimized_transaction_date'])
-bank_df['file_created_date'] = pd.to_datetime(bank_df['file_created_date'])
-bank_df['panel_file_created_date'] = pd.to_datetime(bank_df['panel_file_created_date'])
+#conversion of dates to unix timestamps as numeric value (fl64)
+bank_df['post_date'] = bank_df['post_date'].apply(lambda x: dt.timestamp(x))
+bank_df['transaction_date'] = bank_df['transaction_date'].apply(lambda x: dt.timestamp(x))
+bank_df['optimized_transaction_date'] = bank_df['optimized_transaction_date'].apply(lambda x: dt.timestamp(x))
+bank_df['file_created_date'] = bank_df['file_created_date'].apply(lambda x: dt.timestamp(x))
+bank_df['panel_file_created_date'] = bank_df['panel_file_created_date'].apply(lambda x: dt.timestamp(x))
+#convert all datetime columns
+#inactivated because it blocks select kbest module; convert dates to int64 instead OR drop them all together
+#bank_df['post_date'] = pd.to_datetime(bank_df['post_date'])
+#bank_df['transaction_date'] = pd.to_datetime(bank_df['transaction_date'])
+#bank_df['optimized_transaction_date'] = pd.to_datetime(bank_df['optimized_transaction_date'])
+#bank_df['file_created_date'] = pd.to_datetime(bank_df['file_created_date'])
+#bank_df['panel_file_created_date'] = pd.to_datetime(bank_df['panel_file_created_date'])
 #%%
 '''
 add label encoder first
@@ -258,6 +268,35 @@ embedding_map_desc = dict(zip(le_4.classes_, le_4.transform(le_4.classes_)))
 bank_df['description'] = bank_df['description'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
 #le_3.transform(bank_df)
 bank_df['description'] = bank_df['description'].map(lambda x: le_4.transform([x])[0] if type(x)==str else x)
+
+#encoding descriptions
+#UNKNOWN_TOKEN = '<unknown>'
+desc = bank_df['description'].unique().astype('str').tolist()
+desc.append(UNKNOWN_TOKEN)
+le_5 = LabelEncoder()
+le_5.fit_transform(desc)
+embedding_map_tcat = dict(zip(le_5.classes_, le_5.transform(le_5.classes_)))
+
+#APPLICATION TO OUR DATASET
+bank_df['transaction_category_name'] = bank_df['transaction_category_name'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
+#le_3.transform(bank_df)
+bank_df['transaction_category_name'] = bank_df['transaction_category_name'].map(lambda x: le_5.transform([x])[0] if type(x)==str else x)
+
+#encoding currency if there is more than one in use
+try:
+    if len(bank_df['currency'].value_counts()) == 1:
+        bank_df.drop(columns = ['currency'], axis = 1)
+    else:
+        #encoding merchants
+        UNKNOWN_TOKEN = '<unknown>'
+        currencies = bank_df['currency'].unique().astype('str').tolist()
+        #a = pd.Series(['A', 'B', 'C', 'D', 'A'], dtype=str).unique().tolist()
+        currencies.append(UNKNOWN_TOKEN)
+        le_6 = LabelEncoder()
+        le_6.fit_transform(merchants)
+        embedding_map_merchants = dict(zip(le_6.classes_, le_6.transform(le_6.classes_)))
+        bank_df['currency'] = bank_df['currency'].apply(lambda x: x if x in embedding_map_merchants else UNKNOWN_TOKEN)
+        bank_df['currency'] = bank_df['currency'].map(lambda x: le_6.transform([x])[0] if type(x)==str else x)
 #%%
 #TEMPORARY SOLUTION; TURN INTO FUNCTION FOR SQL DATA
 for col in list(bank_df):
@@ -303,6 +342,7 @@ for feature in lag_features:
 bank_df.fillna(bank_df.mean(), inplace = True)
 #associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
 bank_df.set_index("transaction_date", drop = False, inplace = True)
+
 #%%
 y = bank_df['primary_merchant_name']
 X = bank_df.drop(columns = ['currency', 'transaction_date',
@@ -319,11 +359,11 @@ k_best.get_params()
 #pick feature columns to predict the label
 #y_train/test is the target label that is to be predicted
 #PICKED LABEL = FICO numeric
-cols = ["type", "amount", "isCredit", "returnCode", "feeCode", "subTypeCode", "subType", "check", "Student", "account_balance", "Age", "CS_FICO_str", "CS_internal"]
+cols = ["", "", ""]
 X_train = train[cols]
-y_train = train['CS_FICO_num']
+y_train = train['']
 X_test = test[cols]
-y_test = test['CS_FICO_num']
+y_test = test['']
 #build a logistic regression and use recursive feature elimination to exclude trivial features
 log_reg = LogisticRegression()
 # create the RFE model and select the eight most striking attributes

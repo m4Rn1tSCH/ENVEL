@@ -13,10 +13,11 @@ and then passes it as a list/array
 import os
 import pandas as pd
 from collections import Counter
+import matplotlib.pyplot as plt
 
 transactions_win = os.path.relpath(r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\DEMO_PANEL_FULL.csv')
 transactions_mac = os.path.relpath(r'/Users/bill/OneDrive - Envel/user_demographic.csv')
-demo_full = pd.read_csv(transactions_mac,
+demo_full = pd.read_csv(transactions_win,
                         index_col = None,
                         header = None,
                         usecols = [0, 1, 2, 4, 5, 6],
@@ -35,10 +36,12 @@ id_list = list(demo_full['unique_mem_id'].unique()[:5])
 demo_ct = Counter(list(demo_full['state']))
 #asterisk look up, what is that?
 labels, values = zip(*demo_ct.items())
-#Pie chart, where the slices will be ordered and plotted counter-clockwise:
-fig1, ax1 = plt.subplots()
+#Pie chart, where the slices will be ordered and plotted counter-clockwise
+#figsize (20,15) works best for legend on the right side and keeps it readable
+fig1, ax1 = plt.subplots(figsize = (20, 15))
 ax1.pie(values, labels = labels, autopct = '%1.1f%%',
         shadow = True, startangle = 90)
 #Equal aspect ratio ensures that pie is drawn as a circle.
 ax1.axis('equal')
+ax1.legend(loc = 'upper right')
 plt.show()
