@@ -312,3 +312,65 @@ k_best.get_params()
 
 # isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
 # np.corrcoef(np.array(isCredit_num), amounts)
+#%%
+#pick feature columns to predict the label
+#y_train/test is the target label that is to be predicted
+#PICKED LABEL = FICO numeric
+cols = ["type", "amount", "isCredit", "returnCode", "feeCode", "subTypeCode", "subType", "check", "Student", "account_balance", "Age", "CS_FICO_str", "CS_internal"]
+X_train = train[cols]
+y_train = train['CS_FICO_num']
+X_test = test[cols]
+y_test = test['CS_FICO_num']
+#build a logistic regression and use recursive feature elimination to exclude trivial features
+log_reg = LogisticRegression()
+# create the RFE model and select the eight most striking attributes
+rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+rfe = rfe.fit(X_train, y_train)
+#selected attributes
+print('Selected features: %s' % list(X_train.columns[rfe.support_]))
+print(rfe.ranking_)
+
+#Use the Cross-Validation function of the RFE modul
+#accuracy describes the number of correct classifications
+rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring='accuracy')
+rfecv.fit(X_train, y_train)
+
+print("Optimal number of features: %d" % rfecv.n_features_)
+print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
+
+#plot number of features VS. cross-validation scores
+plt.figure(figsize = (10,6))
+plt.xlabel("Number of features selected")
+plt.ylabel("Cross validation score (nb of correct classifications)")
+plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+plt.show()
+#%%
+#SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
+#funtion of Selecr K Best is here f_classifier; determines features based on the f-values between features & labels
+#other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.ensemble import GradientBoostingClassifier
+
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
+#Create pipeline with feature selector and classifier
+#replace with gradient boosted at this point or regressor
+pipe = Pipeline([
+    ('feature_selection', SelectKBest(score_func = f_classif)),
+    ('clf', GradientBoostingClassifier(random_state = 42))])
+
+#Create a parameter grid
+#parameter grids provide the values for the models to try
+#PARAMETERs NEED TO HAVE THE SAME LENGTH
+params = {
+   'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
+   'clf__n_estimators':[15, 25, 50, 75, 120, 200, 350]}
+
+#Initialize the grid search object
+grid_search = GridSearchCV(pipe, param_grid = params)
+
+#Fit it to the data and print the best value combination
+print(grid_search.fit(X_train, y_train).best_params_)
+##RESULT
+#the labels only provide one member per class, that makes the current data set
+#unsuitable for a pickle file
