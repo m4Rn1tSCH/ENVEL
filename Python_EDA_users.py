@@ -185,7 +185,7 @@ bank_df['primary_merchant_name'].fillna(value = 'unknown')
 bank_df['unique_bank_account_id'] = bank_df['unique_bank_account_id'].astype('str', errors = 'ignore')
 bank_df['unique_bank_transaction_id'] = bank_df['unique_bank_transaction_id'].astype('str', errors = 'ignore')
 bank_df['amount'] = bank_df['amount'].astype('float64')
-bank_df['currency'].astype('str', errors = 'ignore')
+
 #bank_df['description'] = bank_df['description'].astype('str')
 bank_df['transaction_origin'] = bank_df['transaction_origin'].replace(to_replace = ["Non-Physical", "Physical", "ATM"], value = [1, 2, 3])
 bank_df['transaction_base_type'] = bank_df['transaction_base_type'].replace(to_replace = ["debit", "credit"], value = [1, 0])
@@ -279,6 +279,22 @@ embedding_map_tcat = dict(zip(le_5.classes_, le_5.transform(le_5.classes_)))
 bank_df['transaction_category_name'] = bank_df['transaction_category_name'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
 #le_3.transform(bank_df)
 bank_df['transaction_category_name'] = bank_df['transaction_category_name'].map(lambda x: le_5.transform([x])[0] if type(x)==str else x)
+
+#encoding currency if there is more than one in use
+try:
+    if len(bank_df['currency'].value_counts()) == 1:
+        bank_df.drop(columns = ['currency'], axis = 1)
+    else:
+        #encoding merchants
+        UNKNOWN_TOKEN = '<unknown>'
+        currencies = bank_df['currency'].unique().astype('str').tolist()
+        #a = pd.Series(['A', 'B', 'C', 'D', 'A'], dtype=str).unique().tolist()
+        currencies.append(UNKNOWN_TOKEN)
+        le_6 = LabelEncoder()
+        le_6.fit_transform(merchants)
+        embedding_map_merchants = dict(zip(le_6.classes_, le_6.transform(le_6.classes_)))
+        bank_df['currency'] = bank_df['currency'].apply(lambda x: x if x in embedding_map_merchants else UNKNOWN_TOKEN)
+        bank_df['currency'] = bank_df['currency'].map(lambda x: le_6.transform([x])[0] if type(x)==str else x)
 #%%
 #TEMPORARY SOLUTION; TURN INTO FUNCTION FOR SQL DATA
 for col in list(bank_df):
