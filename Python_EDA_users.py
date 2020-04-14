@@ -115,7 +115,7 @@ except OperationalError as e:
 '''
 Plotting of various relations
 '''
-#Pie chart States
+#Pie chart States - works
 state_ct = Counter(list(bank_df['state']))
 #asterisk look up, what is that?
 labels, values = zip(*state_ct.items())
@@ -127,7 +127,7 @@ ax1.pie(values, labels = labels, autopct = '%1.1f%%',
 ax1.axis('equal')
 plt.show()
 
-#Pie chart transaction type
+#Pie chart transaction type -works
 trans_ct = Counter(list(bank_df['transaction_category_name']))
 #asterisk look up, what is that?
 labels, values = zip(*trans_ct.items())
@@ -139,13 +139,13 @@ ax1.pie(values, labels = labels, autopct = '%1.1f%%',
 ax1.axis('equal')
 plt.show()
 
-#Boxplot template
-cat_var = ["unique_mem_id", "primary_merchant_name"]
-quant_var = ["amount", "state"]
-for c_var in cat_var:
-    for q_var in quant_var:
-        bank_df.boxplot(column=q_var, by=c_var)
-        plt.xticks([])
+#Boxplot template - bugged
+# cat_var = ["unique_mem_id", "primary_merchant_name"]
+# quant_var = ["amount", "state"]
+# for c_var in cat_var:
+#     for q_var in quant_var:
+#         bank_df.boxplot(column=q_var, by=c_var)
+#         plt.xticks([])
 #%%
 '''
 After successfully loading the data, columns that are of no importance will be removed and missing values replaced
