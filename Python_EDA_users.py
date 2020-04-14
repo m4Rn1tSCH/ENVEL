@@ -374,3 +374,21 @@ print(grid_search.fit(X_train, y_train).best_params_)
 ##RESULT
 #the labels only provide one member per class, that makes the current data set
 #unsuitable for a pickle file
+#%%
+'''
+                APPLICATION OF SKLEARN NEURAL NETWORK
+'''
+
+#NEURAL NETWORK
+#NO GPU SUPPORT FOR SKLEARN
+from sklearn.neural_network import MLPClassifier
+
+#adam: all-round solver for data
+#hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
+#match with input features
+#alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
+MLP = MLPClassifier(hidden_layer_sizes = 1000, solver='adam', alpha=0.001 )
+MLP.fit(X_train, y_train)
+y_val = MLP.predict(X_test)
+#y_val.reshape(-1, 1)
+print(f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}")
