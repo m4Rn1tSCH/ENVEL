@@ -21,6 +21,11 @@ from datetime import datetime as dt
 
 from sklearn.feature_selection import SelectKBest , chi2, f_classif
 from sklearn.preprocessing import LabelEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.feature_selection import RFE
+from sklearn.feature_selection import RFECV
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import GridSearchCV
 
 #imported custom function
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
@@ -187,14 +192,19 @@ bank_df['primary_merchant_name'].fillna(value = 'unknown')
 bank_df['unique_bank_account_id'] = bank_df['unique_bank_account_id'].astype('str', errors = 'ignore')
 bank_df['unique_bank_transaction_id'] = bank_df['unique_bank_transaction_id'].astype('str', errors = 'ignore')
 bank_df['amount'] = bank_df['amount'].astype('float64')
-
-#bank_df['description'] = bank_df['description'].astype('str')
 bank_df['transaction_origin'] = bank_df['transaction_origin'].replace(to_replace = ["Non-Physical", "Physical", "ATM"], value = [1, 2, 3])
 bank_df['transaction_base_type'] = bank_df['transaction_base_type'].replace(to_replace = ["debit", "credit"], value = [1, 0])
-#bank_df['transaction_category_name'].astype('str')
-#bank_df['primary_merchant_name'].astype('str')
-#bank_df['zip_code'].astype('str')
 bank_df['transaction_origin'].astype('str')
+
+
+#convert all date col from date to datetime objects
+#inactivated because it blocks select kbest module; convert dates to int64 instead OR drop them all together
+#if kept; first conversion from date to datetime objects; then conversion to unix possible
+bank_df['post_date'] = pd.to_datetime(bank_df['post_date'])
+bank_df['transaction_date'] = pd.to_datetime(bank_df['transaction_date'])
+bank_df['optimized_transaction_date'] = pd.to_datetime(bank_df['optimized_transaction_date'])
+bank_df['file_created_date'] = pd.to_datetime(bank_df['file_created_date'])
+bank_df['panel_file_created_date'] = pd.to_datetime(bank_df['panel_file_created_date'])
 
 #conversion of dates to unix timestamps as numeric value (fl64)
 bank_df['post_date'] = bank_df['post_date'].apply(lambda x: dt.timestamp(x))
@@ -202,13 +212,6 @@ bank_df['transaction_date'] = bank_df['transaction_date'].apply(lambda x: dt.tim
 bank_df['optimized_transaction_date'] = bank_df['optimized_transaction_date'].apply(lambda x: dt.timestamp(x))
 bank_df['file_created_date'] = bank_df['file_created_date'].apply(lambda x: dt.timestamp(x))
 bank_df['panel_file_created_date'] = bank_df['panel_file_created_date'].apply(lambda x: dt.timestamp(x))
-#convert all datetime columns
-#inactivated because it blocks select kbest module; convert dates to int64 instead OR drop them all together
-#bank_df['post_date'] = pd.to_datetime(bank_df['post_date'])
-#bank_df['transaction_date'] = pd.to_datetime(bank_df['transaction_date'])
-#bank_df['optimized_transaction_date'] = pd.to_datetime(bank_df['optimized_transaction_date'])
-#bank_df['file_created_date'] = pd.to_datetime(bank_df['file_created_date'])
-#bank_df['panel_file_created_date'] = pd.to_datetime(bank_df['panel_file_created_date'])
 #%%
 '''
 add label encoder first
@@ -286,7 +289,7 @@ bank_df['transaction_category_name'] = bank_df['transaction_category_name'].map(
 try:
     if len(bank_df['currency'].value_counts()) == 1:
         bank_df.drop(columns = ['currency'], axis = 1)
-    else:
+except:
         #encoding merchants
         UNKNOWN_TOKEN = '<unknown>'
         currencies = bank_df['currency'].unique().astype('str').tolist()
@@ -297,6 +300,8 @@ try:
         embedding_map_merchants = dict(zip(le_6.classes_, le_6.transform(le_6.classes_)))
         bank_df['currency'] = bank_df['currency'].apply(lambda x: x if x in embedding_map_merchants else UNKNOWN_TOKEN)
         bank_df['currency'] = bank_df['currency'].map(lambda x: le_6.transform([x])[0] if type(x)==str else x)
+        pass
+
 #%%
 #TEMPORARY SOLUTION; TURN INTO FUNCTION FOR SQL DATA
 for col in list(bank_df):
@@ -342,28 +347,70 @@ for feature in lag_features:
 bank_df.fillna(bank_df.mean(), inplace = True)
 #associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
 bank_df.set_index("transaction_date", drop = False, inplace = True)
-
+#all preprocessing finished at this point
 #%%
-y = bank_df['primary_merchant_name']
-X = bank_df.drop(columns = ['currency', 'transaction_date',
-                            'file_created_date',
-                            'optimized_transaction_date',
-                            'panel_file_created_date'], axis = 1)
+#this squares the entire df and gets rid of non-negative values;
+#chi2 should be applicable
+df_sqr = bank_df.copy()
+for col in df_sqr:
+    if df_sqr[col].dtype == 'int32' or df_sqr[col].dtype == 'float64':
+        df_sqr[col].apply(lambda x: np.square(x))
+#%%
+#scaling before applying the training split
+#STD SCALING
+# >>> scaler = preprocessing.StandardScaler().fit(X_train)
+# >>> scaler
+# StandardScaler()
+
+# >>> scaler.mean_
+# array([1. ..., 0. ..., 0.33...])
+
+# >>> scaler.scale_
+# array([0.81..., 0.81..., 1.24...])
+
+# >>> scaler.transform(X_train)
+# array([[ 0.  ..., -1.22...,  1.33...],
+#        [ 1.22...,  0.  ..., -0.26...],
+#        [-1.22...,  1.22..., -1.06...]])
+
+#MINMAX
+# >>> X_train = np.array([[ 1., -1.,  2.],
+# ...                     [ 2.,  0.,  0.],
+# ...                     [ 0.,  1., -1.]])
+# ...
+# >>> max_abs_scaler = preprocessing.MaxAbsScaler()
+# >>> X_train_maxabs = max_abs_scaler.fit_transform(X_train)
+# >>> X_train_maxabs
+# array([[ 0.5, -1. ,  1. ],
+#        [ 1. ,  0. ,  0. ],
+#        [ 0. ,  1. , -0.5]])
+# >>> X_test = np.array([[ -3., -1.,  4.]])
+# >>> X_test_maxabs = max_abs_scaler.transform(X_test)
+# >>> X_test_maxabs
+# array([[-1.5, -1. ,  2. ]])
+# >>> max_abs_scaler.scale_
+# array([2.,  1.,  2.])
+#%%
+#cannot run k best since some features have stdev
+#set variance threshold or square everything
+y = df_sqr['primary_merchant_name']
+X = df_sqr.drop(columns = 'currency', axis = 1)
+#f_classif for regression
+#chi-sqr for classification but requires non-neg values
 k_best = SelectKBest(score_func = f_classif, k = 10)
 k_best.fit(X, y)
 k_best.get_params()
-
 # isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
 # np.corrcoef(np.array(isCredit_num), amounts)
 #%%
 #pick feature columns to predict the label
 #y_train/test is the target label that is to be predicted
 #PICKED LABEL = FICO numeric
-cols = ["", "", ""]
-X_train = train[cols]
-y_train = train['']
-X_test = test[cols]
-y_test = test['']
+cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
+X_train = bank_df[cols].drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
+y_train = bank_df['primary_merchant_name']
+X_test = bank_df[cols].drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
+y_test = bank_df['primary_merchant_name']
 #build a logistic regression and use recursive feature elimination to exclude trivial features
 log_reg = LogisticRegression()
 # create the RFE model and select the eight most striking attributes
