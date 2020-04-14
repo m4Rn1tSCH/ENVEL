@@ -114,6 +114,8 @@ except OperationalError as e:
 #%%
 '''
 Plotting of various relations
+The Counter object keep track of permutations in a dictionary which can ten be read and
+used as labels
 '''
 #Pie chart States - works
 state_ct = Counter(list(bank_df['state']))
