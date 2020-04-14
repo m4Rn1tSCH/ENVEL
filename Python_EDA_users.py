@@ -16,6 +16,7 @@ from flask import Flask
 import os
 import csv
 import matplotlib.pyplot as plt
+from collections import Counter
 
 from sklearn.feature_selection import SelectKBest , chi2, f_classif
 from sklearn.preprocessing import LabelEncoder
@@ -91,6 +92,18 @@ except OperationalError as e:
 # ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
 # plt.show()
 
+# #Pie chart States
+# state_ct = Counter(list(bank_df['state']))
+# #asterisk look up, what is that?
+# labels, values = zip(*state_ct.items())
+# #Pie chart, where the slices will be ordered and plotted counter-clockwise:
+# fig1, ax1 = plt.subplots()
+# ax1.pie(values, labels = labels, autopct = '%1.1f%%',
+#         shadow = True, startangle = 90)
+# #Equal aspect ratio ensures that pie is drawn as a circle.
+# ax1.axis('equal')
+# plt.show()
+
 #Boxplot template
 # cat_var = ["type", "check", "institutionName", "feeDescription", "Student", "isCredit", "CS_FICO_str"]
 # quant_var = ["Age", "amount"]
@@ -98,6 +111,33 @@ except OperationalError as e:
 #     for q_var in quant_var:
 #         df.boxplot(column=q_var, by=c_var)
 #         plt.xticks([])
+#%%
+'''
+Plotting of various relations
+'''
+#Pie chart States
+state_ct = Counter(list(bank_df['state']))
+#asterisk look up, what is that?
+labels, values = zip(*state_ct.items())
+#Pie chart, where the slices will be ordered and plotted counter-clockwise:
+fig1, ax1 = plt.subplots()
+ax1.pie(values, labels = labels, autopct = '%1.1f%%',
+        shadow = True, startangle = 90)
+#Equal aspect ratio ensures that pie is drawn as a circle.
+ax1.axis('equal')
+plt.show()
+
+#Pie chart transaction type
+trans_ct = Counter(list(bank_df['transaction_category_name']))
+#asterisk look up, what is that?
+labels, values = zip(*trans_ct.items())
+#Pie chart, where the slices will be ordered and plotted counter-clockwise:
+fig1, ax1 = plt.subplots()
+ax1.pie(values, labels = labels, autopct = '%1.1f%%',
+        shadow = True, startangle = 90)
+#Equal aspect ratio ensures that pie is drawn as a circle.
+ax1.axis('equal')
+plt.show()
 #%%
 '''
 After successfully loading the data, columns that are of no importance will be removed and missing values replaced
