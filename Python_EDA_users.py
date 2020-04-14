@@ -256,8 +256,56 @@ bank_df['description'] = bank_df['description'].apply(lambda x: x if x in embedd
 #le_3.transform(bank_df)
 bank_df['description'] = bank_df['description'].map(lambda x: le_4.transform([x])[0] if type(x)==str else x)
 #%%
+#TEMPORARY SOLUTION; TURN INTO FUNCTION FOR SQL DATA
+for col in list(bank_df):
+    if bank_df[col].dtype == 'datetime64[ns]':
+        bank_df[f"{col}_month"] = bank_df[col].dt.month
+        bank_df[f"{col}_week"] = bank_df[col].dt.week
+        bank_df[f"{col}_weekday"] = bank_df[col].dt.weekday
+#FEATURE ENGINEERING II
+#typical engineered features based on lagging metrics
+#mean + stdev of past 3d/7d/30d/ + rolling volume
+bank_df.reset_index(drop = True, inplace = True)
+#pick lag features to iterate through and calculate features
+lag_features = ["amount"]
+#set up time frames; how many days/months back/forth
+t1 = 3
+t2 = 7
+t3 = 30
+#rolling values for all columns ready to be processed
+bank_df_rolled_3d = bank_df[lag_features].rolling(window = t1, min_periods = 0)
+bank_df_rolled_7d = bank_df[lag_features].rolling(window = t2, min_periods = 0)
+bank_df_rolled_30d = bank_df[lag_features].rolling(window = t3, min_periods = 0)
+
+#calculate the mean with a shifting time window
+bank_df_mean_3d = bank_df_rolled_3d.mean().shift(periods = 1).reset_index().astype(np.float32)
+bank_df_mean_7d = bank_df_rolled_7d.mean().shift(periods = 1).reset_index().astype(np.float32)
+bank_df_mean_30d = bank_df_rolled_30d.mean().shift(periods = 1).reset_index().astype(np.float32)
+
+#calculate the std dev with a shifting time window
+bank_df_std_3d = bank_df_rolled_3d.std().shift(periods = 1).reset_index().astype(np.float32)
+bank_df_std_7d = bank_df_rolled_7d.std().shift(periods = 1).reset_index().astype(np.float32)
+bank_df_std_30d = bank_df_rolled_30d.std().shift(periods = 1).reset_index().astype(np.float32)
+
+for feature in lag_features:
+    bank_df[f"{feature}_mean_lag{t1}"] = bank_df_mean_3d[feature]
+    bank_df[f"{feature}_mean_lag{t2}"] = bank_df_mean_7d[feature]
+    bank_df[f"{feature}_mean_lag{t3}"] = bank_df_mean_30d[feature]
+
+    bank_df[f"{feature}_std_lag{t1}"] = bank_df_std_3d[feature]
+    bank_df[f"{feature}_std_lag{t2}"] = bank_df_std_7d[feature]
+    bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
+
+#fill missing values with the mean to keep distortion very low and allow prediction
+bank_df.fillna(bank_df.mean(), inplace = True)
+#associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
+bank_df.set_index("transaction_date", drop = False, inplace = True)
+#%%
 y = bank_df['primary_merchant_name']
-X = bank_df.drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
+X = bank_df.drop(columns = ['currency', 'transaction_date',
+                            'file_created_date',
+                            'optimized_transaction_date',
+                            'panel_file_created_date'], axis = 1)
 k_best = SelectKBest(score_func = f_classif, k = 10)
 k_best.fit(X, y)
 k_best.get_params()
