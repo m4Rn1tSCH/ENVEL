@@ -188,7 +188,7 @@ states = bank_df['state'].unique().astype('str').tolist()
 states.append(UNKNOWN_TOKEN)
 le_3 = LabelEncoder()
 le_3.fit_transform(states)
-embedding_map_states = dict(zip(le_3.classes_, le_3.transform(le.classes_)))
+embedding_map_states = dict(zip(le_3.classes_, le_3.transform(le_3.classes_)))
 
 #APPLICATION TO OUR DATASET
 bank_df['state'] = bank_df['state'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
