@@ -138,6 +138,14 @@ ax1.pie(values, labels = labels, autopct = '%1.1f%%',
 #Equal aspect ratio ensures that pie is drawn as a circle.
 ax1.axis('equal')
 plt.show()
+
+#Boxplot template
+cat_var = ["unique_mem_id", "primary_merchant_name"]
+quant_var = ["amount", "state"]
+for c_var in cat_var:
+    for q_var in quant_var:
+        bank_df.boxplot(column=q_var, by=c_var)
+        plt.xticks([])
 #%%
 '''
 After successfully loading the data, columns that are of no importance will be removed and missing values replaced
@@ -234,9 +242,22 @@ embedding_map_states = dict(zip(le_3.classes_, le_3.transform(le_3.classes_)))
 bank_df['state'] = bank_df['state'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
 #le_3.transform(bank_df)
 bank_df['state'] = bank_df['state'].map(lambda x: le_3.transform([x])[0] if type(x)==str else x)
+
+#encoding descriptions
+#UNKNOWN_TOKEN = '<unknown>'
+desc = bank_df['description'].unique().astype('str').tolist()
+desc.append(UNKNOWN_TOKEN)
+le_4 = LabelEncoder()
+le_4.fit_transform(desc)
+embedding_map_desc = dict(zip(le_4.classes_, le_4.transform(le_4.classes_)))
+
+#APPLICATION TO OUR DATASET
+bank_df['description'] = bank_df['description'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
+#le_3.transform(bank_df)
+bank_df['description'] = bank_df['description'].map(lambda x: le_4.transform([x])[0] if type(x)==str else x)
 #%%
 y = bank_df['primary_merchant_name']
-X = bank_df.drop(columns = 'primary_merchant_name', axis = 1)
+X = bank_df.drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
 k_best = SelectKBest(score_func = f_classif, k = 10)
 k_best.fit(X, y)
 k_best.get_params()
