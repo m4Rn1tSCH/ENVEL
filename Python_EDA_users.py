@@ -20,13 +20,11 @@ from collections import Counter
 from datetime import datetime as dt
 
 from sklearn.feature_selection import SelectKBest , chi2, f_classif
-from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
-from sklearn.feature_selection import RFE
-from sklearn.feature_selection import RFECV
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.feature_selection import RFE, RFECV
 from sklearn.model_selection import GridSearchCV
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 
 #imported custom function
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
@@ -342,40 +340,31 @@ for col in df_sqr:
     if df_sqr[col].dtype == 'int32' or df_sqr[col].dtype == 'float64':
         df_sqr[col].apply(lambda x: np.square(x))
 #%%
-#scaling before applying the training split
+#Scaling before applying the training split
 #STD SCALING
-# >>> scaler = preprocessing.StandardScaler().fit(X_train)
-# >>> scaler
-# StandardScaler()
+scaler = preprocessing.StandardScaler().fit(X_train)
+scaler = StandardScaler()
 
-# >>> scaler.mean_
-# array([1. ..., 0. ..., 0.33...])
+scaler.mean_
 
-# >>> scaler.scale_
-# array([0.81..., 0.81..., 1.24...])
+scaler.scale_
 
-# >>> scaler.transform(X_train)
-# array([[ 0.  ..., -1.22...,  1.33...],
-#        [ 1.22...,  0.  ..., -0.26...],
-#        [-1.22...,  1.22..., -1.06...]])
+scaler.transform(X_train)
 
-#MINMAX
-# >>> X_train = np.array([[ 1., -1.,  2.],
-# ...                     [ 2.,  0.,  0.],
-# ...                     [ 0.,  1., -1.]])
-# ...
-# >>> max_abs_scaler = preprocessing.MaxAbsScaler()
-# >>> X_train_maxabs = max_abs_scaler.fit_transform(X_train)
-# >>> X_train_maxabs
-# array([[ 0.5, -1. ,  1. ],
-#        [ 1. ,  0. ,  0. ],
-#        [ 0. ,  1. , -0.5]])
-# >>> X_test = np.array([[ -3., -1.,  4.]])
-# >>> X_test_maxabs = max_abs_scaler.transform(X_test)
-# >>> X_test_maxabs
-# array([[-1.5, -1. ,  2. ]])
-# >>> max_abs_scaler.scale_
-# array([2.,  1.,  2.])
+#MINMAX SCALING
+X_train = np.array([[ 1., -1.,  2.],
+                    [ 2.,  0.,  0.],
+                    [ 0.,  1., -1.]])
+
+min_max_scaler = MinMaxScaler()
+X_train_minmax = min_max_scaler.fit_transform(X_train)
+
+X_test = np.array([[-3., -1.,  4.]])
+X_test_minmax = min_max_scaler.transform(X_test)
+X_test_minmax
+
+min_max_scaler.scale_
+min_max_scaler.min_
 #%%
 #cannot run k best since some features have stdev
 #set variance threshold or square everything
