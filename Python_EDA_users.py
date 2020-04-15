@@ -22,7 +22,8 @@ from datetime import datetime as dt
 from sklearn.feature_selection import SelectKBest , chi2, f_classif
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_selection import RFE, RFECV
-from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 
@@ -335,45 +336,57 @@ for feature in lag_features:
 #BUGGED
 #this squares the entire df and gets rid of non-negative values;
 #chi2 should be applicable
-df_sqr = bank_df.copy()
-for col in df_sqr:
-    if df_sqr[col].dtype == 'int32' or df_sqr[col].dtype == 'float64':
-        df_sqr[col].apply(lambda x: np.square(x))
+# df_sqr = bank_df.copy()
+# for col in df_sqr:
+#     if df_sqr[col].dtype == 'int32' or df_sqr[col].dtype == 'float64':
+#         df_sqr[col].apply(lambda x: np.square(x))
+#%%
+###################SPLITTING UP THE DATA###########################
+#predicting STUDENT with all other columns as features EXCEPT STUDENT
+#drop the students column which is the target to avoid overfitting
+#all remaining columns will be the features
+model_features = bank_df.drop(['primary_merchant_name', 'currency'], axis = 1)
+model_label = bank_df['primary_merchant_name']
+
+X_train, X_test, y_train, y_test = train_test_split(model_features,
+                                                    model_label,
+                                                    shuffle = True,
+                                                    test_size = 0.3)
+
+#create a validation set from the training set
+print(f"Shape of the split training data set X_train:{X_train.shape}")
+print(f"Shape of the split training data set X_test: {X_test.shape}")
+print(f"Shape of the split training data set y_train: {y_train.shape}")
+print(f"Shape of the split training data set y_test: {y_test.shape}")
 #%%
 #Scaling before applying the training split
 #STD SCALING
-scaler = preprocessing.StandardScaler().fit(X_train)
+#fit the scaler to the training data first
 scaler = StandardScaler()
+X_train_scaled = StandardScaler().fit(X_train)
 
 scaler.mean_
-
 scaler.scale_
-
-scaler.transform(X_train)
-
+#transform data in the same way learned from the training data
+X_test_scaled = scaler.transform(X_test)
+#%%
 #MINMAX SCALING
-X_train = np.array([[ 1., -1.,  2.],
-                    [ 2.,  0.,  0.],
-                    [ 0.,  1., -1.]])
-
 min_max_scaler = MinMaxScaler()
 X_train_minmax = min_max_scaler.fit_transform(X_train)
 
-X_test = np.array([[-3., -1.,  4.]])
+#X_test = np.array([[-3., -1.,  4.]])
 X_test_minmax = min_max_scaler.transform(X_test)
-X_test_minmax
 
 min_max_scaler.scale_
 min_max_scaler.min_
 #%%
 #cannot run k best since some features have stdev
 #set variance threshold or square everything
-y = df_sqr['primary_merchant_name']
-X = df_sqr.drop(columns = 'currency', axis = 1)
+
 #f_classif for regression
 #chi-sqr for classification but requires non-neg values
 k_best = SelectKBest(score_func = f_classif, k = 10)
-k_best.fit(X, y)
+k_best.fit(X_train_scaled, y_train)
 k_best.get_params()
 
 # isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
