@@ -369,6 +369,8 @@ scaler.mean_
 scaler.scale_
 #transform data in the same way learned from the training data
 X_test_scaled = scaler.transform(X_test)
+#X_train_scaled = np.asarray(X_train_scaled).reshape(1, -1)
+#X_test_scaled = np.asarray(X_test_scaled).reshape(1, -1)
 #%%
 #MINMAX SCALING
 min_max_scaler = MinMaxScaler()
