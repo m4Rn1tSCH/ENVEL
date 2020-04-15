@@ -26,6 +26,7 @@ from sklearn.feature_selection import RFE
 from sklearn.feature_selection import RFECV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import GradientBoostingClassifier
 
 #imported custom function
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
@@ -170,25 +171,12 @@ add preprocessing
 # #Last convert values to ints:
 # bank_df['x'] = bank_df['x'].astype(int)
 
-# try:
-#     bank_df['city'].replace("None", "UNKNOWN")
-#     bank_df['state'].replace("None", "UNKNOWN")
-# #    bank_df.fillna(value = 'unknown')
-# except TypeError as e:
-#     print(e)
-#     pass
-
 bank_df['primary_merchant_name'].fillna(value = 'unknown')
-
-#THIS MIGHT RUIN THE DATA; SINCE THE STATE REFERS TO THE TANSACTION LOCATION NOT TE ORIGIN OF THE USER
-#bank_df['state'].fillna(value = 'MA')
-#bank_df['city'].fillna(value = 'unknown')
-
 #bank_df['factual_category'].fillna(value = 'unknown')
 #bank_df['factual_id'].fillna(value = 'unknown')
 
 #prepare numeric and string columns
-#some of them are being encoded later manually
+bank_df['unique_mem_id'] = bank_df['unique_mem_id'].astype('str', errors = 'ignore')
 bank_df['unique_bank_account_id'] = bank_df['unique_bank_account_id'].astype('str', errors = 'ignore')
 bank_df['unique_bank_transaction_id'] = bank_df['unique_bank_transaction_id'].astype('str', errors = 'ignore')
 bank_df['amount'] = bank_df['amount'].astype('float64')
@@ -196,10 +184,9 @@ bank_df['transaction_origin'] = bank_df['transaction_origin'].replace(to_replace
 bank_df['transaction_base_type'] = bank_df['transaction_base_type'].replace(to_replace = ["debit", "credit"], value = [1, 0])
 bank_df['transaction_origin'].astype('str')
 
-
 #convert all date col from date to datetime objects
-#inactivated because it blocks select kbest module; convert dates to int64 instead OR drop them all together
-#if kept; first conversion from date to datetime objects; then conversion to unix possible
+#date objects will block Selekct K Best if not converted
+#first conversion from date to datetime objects; then conversion to unix
 bank_df['post_date'] = pd.to_datetime(bank_df['post_date'])
 bank_df['transaction_date'] = pd.to_datetime(bank_df['transaction_date'])
 bank_df['optimized_transaction_date'] = pd.to_datetime(bank_df['optimized_transaction_date'])
@@ -214,8 +201,8 @@ bank_df['file_created_date'] = bank_df['file_created_date'].apply(lambda x: dt.t
 bank_df['panel_file_created_date'] = bank_df['panel_file_created_date'].apply(lambda x: dt.timestamp(x))
 #%%
 '''
-add label encoder first
-add select K BEST
+The columns PRIMARY_MERCHANT_NAME; CITY, STATE, DESCRIPTION, TRANSACTION_CATEGORY_NAME, CURRENCY
+are encoded manually and cleared of empty values
 '''
 #WORKS
 #encoding merchants
@@ -400,85 +387,82 @@ X = df_sqr.drop(columns = 'currency', axis = 1)
 k_best = SelectKBest(score_func = f_classif, k = 10)
 k_best.fit(X, y)
 k_best.get_params()
+
 # isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
 # np.corrcoef(np.array(isCredit_num), amounts)
 #%%
 #pick feature columns to predict the label
 #y_train/test is the target label that is to be predicted
-#PICKED LABEL = FICO numeric
-cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
-X_train = bank_df[cols].drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
-y_train = bank_df['primary_merchant_name']
-X_test = bank_df[cols].drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
-y_test = bank_df['primary_merchant_name']
-#build a logistic regression and use recursive feature elimination to exclude trivial features
-log_reg = LogisticRegression()
-# create the RFE model and select the eight most striking attributes
-rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-rfe = rfe.fit(X_train, y_train)
-#selected attributes
-print('Selected features: %s' % list(X_train.columns[rfe.support_]))
-print(rfe.ranking_)
 
-#Use the Cross-Validation function of the RFE modul
-#accuracy describes the number of correct classifications
-rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring='accuracy')
-rfecv.fit(X_train, y_train)
+# cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
+# X_train = bank_df[cols].drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
+# y_train = bank_df['primary_merchant_name']
+# X_test = bank_df[cols].drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
+# y_test = bank_df['primary_merchant_name']
+# #build a logistic regression and use recursive feature elimination to exclude trivial features
+# log_reg = LogisticRegression()
+# # create the RFE model and select the eight most striking attributes
+# rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+# rfe = rfe.fit(X_train, y_train)
+# #selected attributes
+# print('Selected features: %s' % list(X_train.columns[rfe.support_]))
+# print(rfe.ranking_)
 
-print("Optimal number of features: %d" % rfecv.n_features_)
-print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
+# #Use the Cross-Validation function of the RFE modul
+# #accuracy describes the number of correct classifications
+# rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring='accuracy')
+# rfecv.fit(X_train, y_train)
 
-#plot number of features VS. cross-validation scores
-plt.figure(figsize = (10,6))
-plt.xlabel("Number of features selected")
-plt.ylabel("Cross validation score (nb of correct classifications)")
-plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-plt.show()
+# print("Optimal number of features: %d" % rfecv.n_features_)
+# print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
+
+# #plot number of features VS. cross-validation scores
+# plt.figure(figsize = (10,6))
+# plt.xlabel("Number of features selected")
+# plt.ylabel("Cross validation score (nb of correct classifications)")
+# plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+# plt.show()
 #%%
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #funtion of Selecr K Best is here f_classifier; determines features based on the f-values between features & labels
 #other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
-from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.ensemble import GradientBoostingClassifier
 
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import GridSearchCV
-#Create pipeline with feature selector and classifier
-#replace with gradient boosted at this point or regressor
-pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = f_classif)),
-    ('clf', GradientBoostingClassifier(random_state = 42))])
 
-#Create a parameter grid
-#parameter grids provide the values for the models to try
-#PARAMETERs NEED TO HAVE THE SAME LENGTH
-params = {
-   'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
-   'clf__n_estimators':[15, 25, 50, 75, 120, 200, 350]}
+# from sklearn.pipeline import Pipeline
+# from sklearn.model_selection import GridSearchCV
+# #Create pipeline with feature selector and classifier
+# #replace with gradient boosted at this point or regressor
+# pipe = Pipeline([
+#     ('feature_selection', SelectKBest(score_func = f_classif)),
+#     ('clf', GradientBoostingClassifier(random_state = 42))])
 
-#Initialize the grid search object
-grid_search = GridSearchCV(pipe, param_grid = params)
+# #Create a parameter grid
+# #parameter grids provide the values for the models to try
+# #PARAMETERs NEED TO HAVE THE SAME LENGTH
+# params = {
+#    'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
+#    'clf__n_estimators':[15, 25, 50, 75, 120, 200, 350]}
 
-#Fit it to the data and print the best value combination
-print(grid_search.fit(X_train, y_train).best_params_)
-##RESULT
-#the labels only provide one member per class, that makes the current data set
-#unsuitable for a pickle file
+# #Initialize the grid search object
+# grid_search = GridSearchCV(pipe, param_grid = params)
+
+# #Fit it to the data and print the best value combination
+# print(grid_search.fit(X_train, y_train).best_params_)
 #%%
 '''
                 APPLICATION OF SKLEARN NEURAL NETWORK
 '''
 
-#NEURAL NETWORK
-#NO GPU SUPPORT FOR SKLEARN
-from sklearn.neural_network import MLPClassifier
+# #NEURAL NETWORK
+# #NO GPU SUPPORT FOR SKLEARN
+# from sklearn.neural_network import MLPClassifier
 
-#adam: all-round solver for data
-#hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
-#match with input features
-#alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
-MLP = MLPClassifier(hidden_layer_sizes = 1000, solver='adam', alpha=0.001 )
-MLP.fit(X_train, y_train)
-y_val = MLP.predict(X_test)
-#y_val.reshape(-1, 1)
-print(f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}")
+# #adam: all-round solver for data
+# #hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
+# #match with input features
+# #alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
+# MLP = MLPClassifier(hidden_layer_sizes = 1000, solver='adam', alpha=0.001 )
+# MLP.fit(X_train, y_train)
+# y_val = MLP.predict(X_test)
+# #y_val.reshape(-1, 1)
+# print(f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}")
