@@ -63,7 +63,7 @@ def df_preprocessor(rng = 2):
     #dateframe to gather MA bank data from one randomly chosen user
     #std random_state is 2
     try:
-        for i in query_df['unique_mem_id'].sample(n = 1, random_state = rng):
+        for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n = 1, random_state = rng):
             print(i)
             filter_query = f"SELECT * FROM bank_record WHERE unique_mem_id = '{i}'"
             transaction_query = execute_read_query(connection, filter_query)
