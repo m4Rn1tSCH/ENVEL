@@ -288,9 +288,11 @@ except:
         bank_df['currency'] = bank_df['currency'].apply(lambda x: x if x in embedding_map_merchants else UNKNOWN_TOKEN)
         bank_df['currency'] = bank_df['currency'].map(lambda x: le_6.transform([x])[0] if type(x)==str else x)
         pass
-
 #%%
-#TEMPORARY SOLUTION; TURN INTO FUNCTION FOR SQL DATA
+'''
+TEMPORARY SOLUTION; Add date columns for more accurate overview
+Set up a rolling time window that is calculating lagging cumulative spending
+'''
 for col in list(bank_df):
     if bank_df[col].dtype == 'datetime64[ns]':
         bank_df[f"{col}_month"] = bank_df[col].dt.month
@@ -330,12 +332,9 @@ for feature in lag_features:
     bank_df[f"{feature}_std_lag{t2}"] = bank_df_std_7d[feature]
     bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
 
-#fill missing values with the mean to keep distortion very low and allow prediction
-bank_df.fillna(bank_df.mean(), inplace = True)
-#associate date as the index columns to columns (especially the newly generated ones to allow navigating and slicing)
-bank_df.set_index("transaction_date", drop = False, inplace = True)
-#all preprocessing finished at this point
+#bank_df.set_index("transaction_date", drop = False, inplace = True)
 #%%
+#BUGGED
 #this squares the entire df and gets rid of non-negative values;
 #chi2 should be applicable
 df_sqr = bank_df.copy()
