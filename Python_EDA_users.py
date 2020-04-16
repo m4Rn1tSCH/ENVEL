@@ -386,6 +386,7 @@ def df_preprocessor(rng = 2):
 ###################SPLITTING UP THE DATA###########################
 #drop target variable in feature df
 #all remaining columns will be the features
+bank_df = bank_df.dropna()
 model_features = np.array(bank_df.drop(['primary_merchant_name', 'currency'], axis = 1))
 model_label = np.array(bank_df['primary_merchant_name'])
 
@@ -433,8 +434,8 @@ y_train_rs = np.array(y_train).reshape(-1, 1)
 X_train_scl_rs = np.array(X_train_scaled).reshape(-1, 1)
 X_test_scl_rs = np.array(X_test_scaled).reshape(-1, 1)
 
-X_train_minmax_rs = np.array(X_train_minmax).reshape(-1, 1)
-X_test_minmax_rs = np.array(X_test_minmax).reshape(-1, 1)
+X_train_minmax_rs = X_train_minmax.reshape(-1, 1)
+X_test_minmax_rs = X_test_minmax.reshape(-1, 1)
 
 k_best = SelectKBest(score_func = f_classif, k = 10)
 k_best.fit(X_train_minmax_rs, y_train_rs)
@@ -456,11 +457,11 @@ y_test = bank_df['primary_merchant_name']
 log_reg = LogisticRegression()
 # create the RFE model and select the eight most striking attributes
 rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-rfe = rfe.fit(X_train, y_train)
+rfe = rfe.fit(X_train_scl_rs, y_train)
 #selected attributes
-print('Selected features: %s' % list(X_train.columns[rfe.support_]))
+print('Selected features: %s' % list(X_train_scaled.columns[rfe.support_]))
 print(rfe.ranking_)
-
+#%%
 #Use the Cross-Validation function of the RFE modul
 #accuracy describes the number of correct classifications
 rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring='accuracy')
