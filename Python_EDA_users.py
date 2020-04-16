@@ -386,54 +386,54 @@ def df_preprocessor(rng = 2):
 ###################SPLITTING UP THE DATA###########################
 #drop target variable in feature df
 #all remaining columns will be the features
-# model_features = bank_df.drop(['primary_merchant_name', 'currency'], axis = 1)
-# model_label = bank_df['primary_merchant_name']
+model_features = bank_df.drop(['primary_merchant_name', 'currency'], axis = 1)
+model_label = bank_df['primary_merchant_name']
 
-# X_train, X_test, y_train, y_test = train_test_split(model_features,
-#                                                     model_label,
-#                                                     shuffle = True,
-#                                                     test_size = 0.3)
+X_train, X_test, y_train, y_test = train_test_split(model_features,
+                                                    model_label,
+                                                    shuffle = True,
+                                                    test_size = 0.3)
 
-# #create a validation set from the training set
-# print(f"Shape of the split training data set X_train:{X_train.shape}")
-# print(f"Shape of the split training data set X_test: {X_test.shape}")
-# print(f"Shape of the split training data set y_train: {y_train.shape}")
-# print(f"Shape of the split training data set y_test: {y_test.shape}")
+#create a validation set from the training set
+print(f"Shape of the split training data set X_train:{X_train.shape}")
+print(f"Shape of the split training data set X_test: {X_test.shape}")
+print(f"Shape of the split training data set y_train: {y_train.shape}")
+print(f"Shape of the split training data set y_test: {y_test.shape}")
 #%%
 #Scaling before applying the training split
 #STD SCALING
 #fit the scaler to the training data first
-# scaler = StandardScaler()
-# X_train_scaled = StandardScaler().fit(X_train)
+scaler = StandardScaler()
+X_train_scaled = StandardScaler().fit(X_train)
 
-# scaler.mean_
-# scaler.scale_
-# #transform data in the same way learned from the training data
-# X_test_scaled = scaler.transform(X_test)
-# #X_train_scaled = np.asarray(X_train_scaled).reshape(1, -1)
-# #X_test_scaled = np.asarray(X_test_scaled).reshape(1, -1)
-# #%%
-# #MINMAX SCALING
-# min_max_scaler = MinMaxScaler()
-# X_train_minmax = min_max_scaler.fit_transform(X_train)
+scaler.mean_
+scaler.scale_
+#transform data in the same way learned from the training data
+X_test_scaled = scaler.transform(X_test)
+#X_train_scaled = np.asarray(X_train_scaled).reshape(1, -1)
+#X_test_scaled = np.asarray(X_test_scaled).reshape(1, -1)
+#%%
+#MINMAX SCALING
+min_max_scaler = MinMaxScaler()
+X_train_minmax = min_max_scaler.fit_transform(X_train)
 
-# #X_test = np.array([[-3., -1.,  4.]])
-# X_test_minmax = min_max_scaler.transform(X_test)
+#X_test = np.array([[-3., -1.,  4.]])
+X_test_minmax = min_max_scaler.transform(X_test)
 
-# min_max_scaler.scale_
-# min_max_scaler.min_
-# #%%
-# #cannot run k best since some features have stdev
-# #set variance threshold or square everything
+min_max_scaler.scale_
+min_max_scaler.min_
+#%%
+#cannot run k best since some features have stdev
+#set variance threshold or square everything
 
-# #f_classif for regression
-# #chi-sqr for classification but requires non-neg values
-# k_best = SelectKBest(score_func = f_classif, k = 10)
-# k_best.fit(X_train_scaled, y_train)
-# k_best.get_params()
+#f_classif for regression
+#chi-sqr for classification but requires non-neg values
+k_best = SelectKBest(score_func = f_classif, k = 10)
+k_best.fit(X_train_scaled, y_train)
+k_best.get_params()
 
-# isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
-# np.corrcoef(np.array(isCredit_num), amounts)
+isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
+np.corrcoef(np.array(isCredit_num), amounts)
 #%%
 #BUGGED
 #pick feature columns to predict the label
