@@ -386,8 +386,8 @@ def df_preprocessor(rng = 2):
 ###################SPLITTING UP THE DATA###########################
 #drop target variable in feature df
 #all remaining columns will be the features
-model_features = bank_df.drop(['primary_merchant_name', 'currency'], axis = 1)
-model_label = bank_df['primary_merchant_name']
+model_features = np.array(bank_df.drop(['primary_merchant_name', 'currency'], axis = 1))
+model_label = np.array(bank_df['primary_merchant_name'])
 
 X_train, X_test, y_train, y_test = train_test_split(model_features,
                                                     model_label,
@@ -403,13 +403,14 @@ print(f"Shape of the split training data set y_test: {y_test.shape}")
 #Scaling before applying the training split
 #STD SCALING
 #fit the scaler to the training data first
-scaler = StandardScaler()
+#standard scaler works only with maximum 2 dimensions
+scaler_obj = StandardScaler().fit(X_train)
 X_train_scaled = StandardScaler().fit(X_train)
 
-scaler.mean_
-scaler.scale_
+scaler_obj.mean_
+scaler_obj.scale_
 #transform data in the same way learned from the training data
-X_test_scaled = scaler.transform(X_test)
+X_test_scaled = scaler_obj.transform(X_test)
 #X_train_scaled = np.asarray(X_train_scaled).reshape(1, -1)
 #X_test_scaled = np.asarray(X_test_scaled).reshape(1, -1)
 #%%
@@ -428,45 +429,52 @@ min_max_scaler.min_
 
 #f_classif for regression
 #chi-sqr for classification but requires non-neg values
+y_train_rs = np.array(y_train).reshape(-1, 1)
+X_train_scl_rs = np.array(X_train_scaled).reshape(-1, 1)
+X_test_scl_rs = np.array(X_test_scaled).reshape(-1, 1)
+
+X_train_minmax_rs = np.array(X_train_minmax).reshape(-1, 1)
+X_test_minmax_rs = np.array(X_test_minmax).reshape(-1, 1)
+
 k_best = SelectKBest(score_func = f_classif, k = 10)
-k_best.fit(X_train_scaled, y_train)
+k_best.fit(X_train_minmax_rs, y_train_rs)
 k_best.get_params()
 
-isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
-np.corrcoef(np.array(isCredit_num), amounts)
+# isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
+# np.corrcoef(np.array(isCredit_num), amounts)
 #%%
 #BUGGED
 #pick feature columns to predict the label
 #y_train/test is the target label that is to be predicted
 
-# cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
-# X_train = bank_df[cols].drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
-# y_train = bank_df['primary_merchant_name']
-# X_test = bank_df[cols].drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
-# y_test = bank_df['primary_merchant_name']
-# #build a logistic regression and use recursive feature elimination to exclude trivial features
-# log_reg = LogisticRegression()
-# # create the RFE model and select the eight most striking attributes
-# rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-# rfe = rfe.fit(X_train, y_train)
-# #selected attributes
-# print('Selected features: %s' % list(X_train.columns[rfe.support_]))
-# print(rfe.ranking_)
+cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
+X_train = bank_df[cols].drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
+y_train = bank_df['primary_merchant_name']
+X_test = bank_df[cols].drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
+y_test = bank_df['primary_merchant_name']
+#build a logistic regression and use recursive feature elimination to exclude trivial features
+log_reg = LogisticRegression()
+# create the RFE model and select the eight most striking attributes
+rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+rfe = rfe.fit(X_train, y_train)
+#selected attributes
+print('Selected features: %s' % list(X_train.columns[rfe.support_]))
+print(rfe.ranking_)
 
-# #Use the Cross-Validation function of the RFE modul
-# #accuracy describes the number of correct classifications
-# rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring='accuracy')
-# rfecv.fit(X_train, y_train)
+#Use the Cross-Validation function of the RFE modul
+#accuracy describes the number of correct classifications
+rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring='accuracy')
+rfecv.fit(X_train, y_train)
 
-# print("Optimal number of features: %d" % rfecv.n_features_)
-# print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
+print("Optimal number of features: %d" % rfecv.n_features_)
+print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
 
-# #plot number of features VS. cross-validation scores
-# plt.figure(figsize = (10,6))
-# plt.xlabel("Number of features selected")
-# plt.ylabel("Cross validation score (nb of correct classifications)")
-# plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-# plt.show()
+#plot number of features VS. cross-validation scores
+plt.figure(figsize = (10,6))
+plt.xlabel("Number of features selected")
+plt.ylabel("Cross validation score (nb of correct classifications)")
+plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+plt.show()
 #%%
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #funtion of Selecr K Best is here f_classifier; determines features based on the f-values between features & labels
