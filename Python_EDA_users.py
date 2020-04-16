@@ -62,7 +62,7 @@ def df_preprocessor(rng = 2):
     #%%
     #dateframe to gather MA bank data from one randomly chosen user
     #std random_state is 2
-    #rng = 8
+    rng = 8
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n = 1, random_state = rng):
             print(i)
@@ -188,6 +188,7 @@ def df_preprocessor(rng = 2):
     bank_df['file_created_date'] = pd.to_datetime(bank_df['file_created_date'])
     bank_df['panel_file_created_date'] = pd.to_datetime(bank_df['panel_file_created_date'])
     #generate the spending report with a randomly picked user ID
+    #when datetime columns are still datetime objects the spending report works
     '''
     Weekday legend
     Mo: 0
@@ -221,7 +222,7 @@ def df_preprocessor(rng = 2):
     bank_df['amount'] = bank_df['amount'].astype('float64')
     bank_df['transaction_origin'] = bank_df['transaction_origin'].replace(to_replace = ["Non-Physical", "Physical", "ATM"], value = [1, 2, 3])
     bank_df['transaction_base_type'] = bank_df['transaction_base_type'].replace(to_replace = ["debit", "credit"], value = [1, 0])
-    bank_df['transaction_origin'].astype('str')
+    #bank_df['transaction_origin'].astype('str')
     #conversion of dates to unix timestamps as numeric value (fl64)
     bank_df['post_date'] = bank_df['post_date'].apply(lambda x: dt.timestamp(x))
     bank_df['transaction_date'] = bank_df['transaction_date'].apply(lambda x: dt.timestamp(x))
@@ -286,15 +287,27 @@ def df_preprocessor(rng = 2):
 
     #encoding descriptions
     #UNKNOWN_TOKEN = '<unknown>'
-    desc = bank_df['description'].unique().astype('str').tolist()
+    desc = bank_df['transaction_category_name'].unique().astype('str').tolist()
     desc.append(UNKNOWN_TOKEN)
     le_5 = LabelEncoder()
     le_5.fit_transform(desc)
     embedding_map_tcat = dict(zip(le_5.classes_, le_5.transform(le_5.classes_)))
 
     #APPLICATION TO OUR DATASET
-    bank_df['transaction_category_name'] = bank_df['transaction_category_name'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
+    bank_df['transaction_category_name'] = bank_df['transaction_category_name'].apply(lambda x: x if x in embedding_map_tcat else UNKNOWN_TOKEN)
     bank_df['transaction_category_name'] = bank_df['transaction_category_name'].map(lambda x: le_5.transform([x])[0] if type(x)==str else x)
+
+    #encoding transaction origin
+    #UNKNOWN_TOKEN = '<unknown>'
+    desc = bank_df['transaction_origin'].unique().astype('str').tolist()
+    desc.append(UNKNOWN_TOKEN)
+    le_6 = LabelEncoder()
+    le_6.fit_transform(desc)
+    embedding_map_tori = dict(zip(le_6.classes_, le_6.transform(le_6.classes_)))
+
+    #APPLICATION TO OUR DATASET
+    bank_df['transaction_origin'] = bank_df['transaction_origin'].apply(lambda x: x if x in embedding_map_tori else UNKNOWN_TOKEN)
+    bank_df['transaction_origin'] = bank_df['transaction_origin'].map(lambda x: le_6.transform([x])[0] if type(x)==str else x)
 
     #encoding currency if there is more than one in use
     try:
@@ -306,11 +319,11 @@ def df_preprocessor(rng = 2):
             currencies = bank_df['currency'].unique().astype('str').tolist()
             #a = pd.Series(['A', 'B', 'C', 'D', 'A'], dtype=str).unique().tolist()
             currencies.append(UNKNOWN_TOKEN)
-            le_6 = LabelEncoder()
-            le_6.fit_transform(merchants)
-            embedding_map_currency = dict(zip(le_6.classes_, le_6.transform(le_6.classes_)))
+            le_7 = LabelEncoder()
+            le_7.fit_transform(merchants)
+            embedding_map_currency = dict(zip(le_7.classes_, le_7.transform(le_7.classes_)))
             bank_df['currency'] = bank_df['currency'].apply(lambda x: x if x in embedding_map_currency else UNKNOWN_TOKEN)
-            bank_df['currency'] = bank_df['currency'].map(lambda x: le_6.transform([x])[0] if type(x)==str else x)
+            bank_df['currency'] = bank_df['currency'].map(lambda x: le_7.transform([x])[0] if type(x)==str else x)
     except:
         print("Column currency was not converted.")
         pass
@@ -360,7 +373,7 @@ def df_preprocessor(rng = 2):
         bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
 
     #bank_df.set_index("transaction_date", drop = False, inplace = True)
-    return bank_df
+    #return bank_df
 #%%
 #BUGGED
 #this squares the entire df and gets rid of non-negative values;
