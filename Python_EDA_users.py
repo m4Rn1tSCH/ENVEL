@@ -387,6 +387,7 @@ def df_preprocessor(rng = 2):
 #drop target variable in feature df
 #all remaining columns will be the features
 bank_df = bank_df.dropna()
+bank_df.drop(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id'], axis = 1)
 model_features = np.array(bank_df.drop(['primary_merchant_name', 'currency'], axis = 1))
 model_label = np.array(bank_df['primary_merchant_name'])
 
@@ -430,12 +431,14 @@ min_max_scaler.min_
 
 #f_classif for regression
 #chi-sqr for classification but requires non-neg values
-y_train_rs = np.array(y_train).reshape(-1, 1)
-X_train_scl_rs = np.array(X_train_scaled).reshape(-1, 1)
-X_test_scl_rs = np.array(X_test_scaled).reshape(-1, 1)
+####syntax of reshape(n_samples, n_features)
+#### value of -1 allows for adaptation to shape needed
+y_train_rs = np.array(y_train).reshape(1, -1)
+X_train_scl_rs = np.array(X_train_scaled).reshape(1, -1)
+X_test_scl_rs = np.array(X_test_scaled).reshape(1, -1)
 
-X_train_minmax_rs = X_train_minmax.reshape(-1, 1)
-X_test_minmax_rs = X_test_minmax.reshape(-1, 1)
+X_train_minmax_rs = X_train_minmax.reshape(1, -1)
+X_test_minmax_rs = X_test_minmax.reshape(1, -1)
 
 k_best = SelectKBest(score_func = f_classif, k = 10)
 k_best.fit(X_train_minmax_rs, y_train_rs)
@@ -457,11 +460,12 @@ y_test = bank_df['primary_merchant_name']
 log_reg = LogisticRegression()
 # create the RFE model and select the eight most striking attributes
 rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-rfe = rfe.fit(X_train_scl_rs, y_train)
+rfe = rfe.fit(X_train_scl_rs, y_train_rs)
 #selected attributes
 print('Selected features: %s' % list(X_train_scaled.columns[rfe.support_]))
 print(rfe.ranking_)
 #%%
+#works
 #Use the Cross-Validation function of the RFE modul
 #accuracy describes the number of correct classifications
 rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring='accuracy')
@@ -471,11 +475,11 @@ print("Optimal number of features: %d" % rfecv.n_features_)
 print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
 
 #plot number of features VS. cross-validation scores
-plt.figure(figsize = (10,6))
-plt.xlabel("Number of features selected")
-plt.ylabel("Cross validation score (nb of correct classifications)")
-plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-plt.show()
+# plt.figure(figsize = (10,6))
+# plt.xlabel("Number of features selected")
+# plt.ylabel("Cross validation score (nb of correct classifications)")
+# plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+# plt.show()
 #%%
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #funtion of Selecr K Best is here f_classifier; determines features based on the f-values between features & labels
