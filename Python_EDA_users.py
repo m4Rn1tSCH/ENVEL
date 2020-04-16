@@ -62,6 +62,7 @@ def df_preprocessor(rng = 2):
     #%%
     #dateframe to gather MA bank data from one randomly chosen user
     #std random_state is 2
+    #rng = 8
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n = 1, random_state = rng):
             print(i)
@@ -244,7 +245,6 @@ def df_preprocessor(rng = 2):
 
     #APPLICATION TO OUR DATASET
     bank_df['primary_merchant_name'] = bank_df['primary_merchant_name'].apply(lambda x: x if x in embedding_map_merchants else UNKNOWN_TOKEN)
-    #le.transform(bank_df)
     bank_df['primary_merchant_name'] = bank_df['primary_merchant_name'].map(lambda x: le.transform([x])[0] if type(x)==str else x)
 
     #encoding cities
@@ -257,7 +257,6 @@ def df_preprocessor(rng = 2):
 
     #APPLICATION TO OUR DATASET
     bank_df['city'] = bank_df['city'].apply(lambda x: x if x in embedding_map_cities else UNKNOWN_TOKEN)
-    #le_2.transform(bank_df)
     bank_df['city'] = bank_df['city'].map(lambda x: le_2.transform([x])[0] if type(x)==str else x)
 
 
@@ -271,7 +270,6 @@ def df_preprocessor(rng = 2):
 
     #APPLICATION TO OUR DATASET
     bank_df['state'] = bank_df['state'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
-    #le_3.transform(bank_df)
     bank_df['state'] = bank_df['state'].map(lambda x: le_3.transform([x])[0] if type(x)==str else x)
 
     #encoding descriptions
@@ -283,8 +281,7 @@ def df_preprocessor(rng = 2):
     embedding_map_desc = dict(zip(le_4.classes_, le_4.transform(le_4.classes_)))
 
     #APPLICATION TO OUR DATASET
-    bank_df['description'] = bank_df['description'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
-    #le_3.transform(bank_df)
+    bank_df['description'] = bank_df['description'].apply(lambda x: x if x in embedding_map_desc else UNKNOWN_TOKEN)
     bank_df['description'] = bank_df['description'].map(lambda x: le_4.transform([x])[0] if type(x)==str else x)
 
     #encoding descriptions
@@ -297,7 +294,6 @@ def df_preprocessor(rng = 2):
 
     #APPLICATION TO OUR DATASET
     bank_df['transaction_category_name'] = bank_df['transaction_category_name'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
-    #le_3.transform(bank_df)
     bank_df['transaction_category_name'] = bank_df['transaction_category_name'].map(lambda x: le_5.transform([x])[0] if type(x)==str else x)
 
     #encoding currency if there is more than one in use
@@ -312,8 +308,8 @@ def df_preprocessor(rng = 2):
             currencies.append(UNKNOWN_TOKEN)
             le_6 = LabelEncoder()
             le_6.fit_transform(merchants)
-            embedding_map_merchants = dict(zip(le_6.classes_, le_6.transform(le_6.classes_)))
-            bank_df['currency'] = bank_df['currency'].apply(lambda x: x if x in embedding_map_merchants else UNKNOWN_TOKEN)
+            embedding_map_currency = dict(zip(le_6.classes_, le_6.transform(le_6.classes_)))
+            bank_df['currency'] = bank_df['currency'].apply(lambda x: x if x in embedding_map_currency else UNKNOWN_TOKEN)
             bank_df['currency'] = bank_df['currency'].map(lambda x: le_6.transform([x])[0] if type(x)==str else x)
     except:
         print("Column currency was not converted.")
