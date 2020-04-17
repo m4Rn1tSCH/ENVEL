@@ -218,18 +218,18 @@ def df_preprocessor(rng = 2):
         bank_df.set_index('transaction_date')
         print("Index is transaction_date")
     else:
-        bank_df.drop(columns = 'transaction_date', axis = 1)
-        bank_df = bank_df.set_index('optimized_transaction_date')
-        print("Index changed to optimized_transaction_date")
+        bank_df = bank_df.drop(columns = 'transaction_date', axis = 1)
+        print("Column transaction_date dropped")
+        #bank_df = bank_df.set_index('optimized_transaction_date')
+        #print("Index changed to optimized_transaction_date")
 
     try:
         bank_df['unique_mem_id'] = bank_df['unique_mem_id'].astype('str', errors = 'ignore')
         bank_df['unique_bank_account_id'] = bank_df['unique_bank_account_id'].astype('str', errors = 'ignore')
         bank_df['unique_bank_transaction_id'] = bank_df['unique_bank_transaction_id'].astype('str', errors = 'ignore')
         bank_df['amount'] = bank_df['amount'].astype('float64')
-        bank_df['transaction_origin'] = bank_df['transaction_origin'].replace(to_replace = ["Non-Physical", "Physical", "ATM"], value = [1, 2, 3])
         bank_df['transaction_base_type'] = bank_df['transaction_base_type'].replace(to_replace = ["debit", "credit"], value = [1, 0])
-        #bank_df['transaction_origin'].astype('str')
+
         #conversion of dates to unix timestamps as numeric value (fl64)
         bank_df['post_date'] = bank_df['post_date'].apply(lambda x: dt.timestamp(x))
         bank_df['transaction_date'] = bank_df['transaction_date'].apply(lambda x: dt.timestamp(x))
@@ -322,7 +322,7 @@ def df_preprocessor(rng = 2):
     #encoding currency if there is more than one in use
     try:
         if len(bank_df['currency'].value_counts()) == 1:
-            bank_df.drop(columns = ['currency'], axis = 1)
+            bank_df = bank_df.drop(columns = ['currency'], axis = 1)
         elif len(bank_df['currency'].value_counts()) > 1:
             #encoding merchants
             UNKNOWN_TOKEN = '<unknown>'
@@ -383,7 +383,7 @@ def df_preprocessor(rng = 2):
         bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
 
     #bank_df.set_index("transaction_date", drop = False, inplace = True)
-    yield bank_df
+    #yield bank_df
 #%%
 #BUGGED
 #this squares the entire df and gets rid of non-negative values;
@@ -397,7 +397,7 @@ def df_preprocessor(rng = 2):
 #drop target variable in feature df
 #all remaining columns will be the features
 #bank_df.dropna()
-bank_df.drop(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id'], axis = 1)
+bank_df = bank_df.drop(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id'], axis = 1)
 model_features = np.array(bank_df.drop(['primary_merchant_name', 'currency'], axis = 1))
 model_label = np.array(bank_df['primary_merchant_name'])
 
