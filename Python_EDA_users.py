@@ -192,8 +192,8 @@ def df_preprocessor(rng = 2):
     #when datetime columns are still datetime objects the spending report works
     '''
     Weekday legend
-    Mo: 0
-    Tu: 1
+    Mon: 0
+    Tue: 1
     Wed: 2
     Thu: 3
     Fri: 4
@@ -212,16 +212,6 @@ def df_preprocessor(rng = 2):
     # #Last convert values to ints:
     # bank_df['x'] = bank_df['x'].astype(int)
         #prepare numeric and string columns
-    #for some users there is no transaction_date available;
-    #check will then make the optimized transaction date the column
-    if bank_df['transaction_date'].isnull().sum() == 0:
-        bank_df.set_index('transaction_date')
-        print("Index is transaction_date")
-    else:
-        bank_df = bank_df.drop(columns = 'transaction_date', axis = 1)
-        print("Column transaction_date dropped")
-        #bank_df = bank_df.set_index('optimized_transaction_date')
-        #print("Index changed to optimized_transaction_date")
 
     try:
         bank_df['unique_mem_id'] = bank_df['unique_mem_id'].astype('str', errors = 'ignore')
@@ -229,13 +219,41 @@ def df_preprocessor(rng = 2):
         bank_df['unique_bank_transaction_id'] = bank_df['unique_bank_transaction_id'].astype('str', errors = 'ignore')
         bank_df['amount'] = bank_df['amount'].astype('float64')
         bank_df['transaction_base_type'] = bank_df['transaction_base_type'].replace(to_replace = ["debit", "credit"], value = [1, 0])
+    except (TypeError, OSError, ValueError) as e:
+        print("Problem with conversion:")
+        print(e)
 
+    try:
         #conversion of dates to unix timestamps as numeric value (fl64)
-        bank_df['post_date'] = bank_df['post_date'].apply(lambda x: dt.timestamp(x))
-        bank_df['transaction_date'] = bank_df['transaction_date'].apply(lambda x: dt.timestamp(x))
-        bank_df['optimized_transaction_date'] = bank_df['optimized_transaction_date'].apply(lambda x: dt.timestamp(x))
-        bank_df['file_created_date'] = bank_df['file_created_date'].apply(lambda x: dt.timestamp(x))
-        bank_df['panel_file_created_date'] = bank_df['panel_file_created_date'].apply(lambda x: dt.timestamp(x))
+        if bank_df['post_date'].isnull().sum() == 0:
+            bank_df['post_date'] = bank_df['post_date'].apply(lambda x: dt.timestamp(x))
+        else:
+            bank_df = bank_df.drop(columns = 'post_date', axis = 1)
+            print("Column post_date dropped")
+
+        if bank_df['transaction_date'].isnull().sum() == 0:
+            bank_df['transaction_date'] = bank_df['transaction_date'].apply(lambda x: dt.timestamp(x))
+        else:
+            bank_df = bank_df.drop(columns = 'transaction_date', axis = 1)
+            print("Column transaction_date dropped")
+
+        if bank_df['optimized_transaction_date'].isnull().sum() == 0:
+            bank_df['optimized_transaction_date'] = bank_df['optimized_transaction_date'].apply(lambda x: dt.timestamp(x))
+        else:
+            bank_df = bank_df.drop(columns = 'optimized_transaction_date', axis = 1)
+            print("Column optimized_transaction_date dropped")
+
+        if bank_df['file_created_date'].isnull().sum() == 0:
+            bank_df['file_created_date'] = bank_df['file_created_date'].apply(lambda x: dt.timestamp(x))
+        else:
+            bank_df = bank_df.drop(columns = 'file_created_date', axis = 1)
+            print("Column file_created_date dropped")
+
+        if bank_df['panel_file_created_date'].isnull().sum() == 0:
+            bank_df['panel_file_created_date'] = bank_df['panel_file_created_date'].apply(lambda x: dt.timestamp(x))
+        else:
+            bank_df = bank_df.drop(columns = 'panel_file_created_date', axis = 1)
+            print("Column panel_file_created_date dropped")
     except (TypeError, OSError, ValueError) as e:
         print("Problem with conversion:")
         print(e)
@@ -269,7 +287,6 @@ def df_preprocessor(rng = 2):
     #APPLICATION TO OUR DATASET
     bank_df['city'] = bank_df['city'].apply(lambda x: x if x in embedding_map_cities else UNKNOWN_TOKEN)
     bank_df['city'] = bank_df['city'].map(lambda x: le_2.transform([x])[0] if type(x)==str else x)
-
 
     #encoding states
     #UNKNOWN_TOKEN = '<unknown>'
@@ -396,7 +413,6 @@ def df_preprocessor(rng = 2):
 ###################SPLITTING UP THE DATA###########################
 #drop target variable in feature df
 #all remaining columns will be the features
-#bank_df.dropna()
 bank_df = bank_df.drop(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id'], axis = 1)
 model_features = np.array(bank_df.drop(['primary_merchant_name'], axis = 1))
 model_label = np.array(bank_df['primary_merchant_name'])
@@ -412,7 +428,6 @@ print(f"Shape of the split training data set X_test: {X_test.shape}")
 print(f"Shape of the split training data set y_train: {y_train.shape}")
 print(f"Shape of the split training data set y_test: {y_test.shape}")
 #%%
-#Scaling before applying the training split
 #STD SCALING
 #fit the scaler to the training data first
 #standard scaler works only with maximum 2 dimensions
@@ -430,9 +445,7 @@ X_test_scaled = scaler_obj.transform(X_test)
 min_max_scaler = MinMaxScaler()
 X_train_minmax = min_max_scaler.fit_transform(X_train)
 
-#X_test = np.array([[-3., -1.,  4.]])
 X_test_minmax = min_max_scaler.transform(X_test)
-
 min_max_scaler.scale_
 min_max_scaler.min_
 #%%
@@ -462,10 +475,11 @@ k_best.get_params()
 #y_train/test is the target label that is to be predicted
 
 cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
-X_train = bank_df[cols].drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
+X_train = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
 y_train = bank_df['primary_merchant_name']
-X_test = bank_df[cols].drop(columns = ['primary_merchant_name', 'currency'], axis = 1)
+X_test = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
 y_test = bank_df['primary_merchant_name']
+
 #build a logistic regression and use recursive feature elimination to exclude trivial features
 log_reg = LogisticRegression()
 # create the RFE model and select the eight most striking attributes
