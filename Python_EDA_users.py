@@ -48,6 +48,7 @@ def df_preprocessor(rng = 2):
     None.
 
     '''
+    #%%
     connection = create_connection(db_name = acc.YDB_name,
                                    db_user = acc.YDB_user,
                                    db_password = acc.YDB_password,
@@ -62,7 +63,7 @@ def df_preprocessor(rng = 2):
     #%%
     #dateframe to gather MA bank data from one randomly chosen user
     #std random_state is 2
-    rng = 8
+    rng = 4
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n = 1, random_state = rng):
             print(i)
@@ -210,25 +211,34 @@ def df_preprocessor(rng = 2):
     # bank_df = bank_df.dropna(subset=['x'])
     # #Last convert values to ints:
     # bank_df['x'] = bank_df['x'].astype(int)
+        #prepare numeric and string columns
+    #for some users there is no transaction_date available;
+    #check will then make the optimized transaction date the column
+    if bank_df['transaction_date'].isnull().sum() == 0:
+        bank_df.set_index('transaction_date')
+        print("Index is transaction_date")
+    else:
+        bank_df.drop(columns = 'transaction_date', axis = 1)
+        bank_df = bank_df.set_index('optimized_transaction_date')
+        print("Index changed to optimized_transaction_date")
 
-    #bank_df['primary_merchant_name'].fillna(value = 'unknown')
-    #bank_df['factual_category'].fillna(value = 'unknown')
-    #bank_df['factual_id'].fillna(value = 'unknown')
-
-    #prepare numeric and string columns
-    bank_df['unique_mem_id'] = bank_df['unique_mem_id'].astype('str', errors = 'ignore')
-    bank_df['unique_bank_account_id'] = bank_df['unique_bank_account_id'].astype('str', errors = 'ignore')
-    bank_df['unique_bank_transaction_id'] = bank_df['unique_bank_transaction_id'].astype('str', errors = 'ignore')
-    bank_df['amount'] = bank_df['amount'].astype('float64')
-    bank_df['transaction_origin'] = bank_df['transaction_origin'].replace(to_replace = ["Non-Physical", "Physical", "ATM"], value = [1, 2, 3])
-    bank_df['transaction_base_type'] = bank_df['transaction_base_type'].replace(to_replace = ["debit", "credit"], value = [1, 0])
-    #bank_df['transaction_origin'].astype('str')
-    #conversion of dates to unix timestamps as numeric value (fl64)
-    bank_df['post_date'] = bank_df['post_date'].apply(lambda x: dt.timestamp(x))
-    bank_df['transaction_date'] = bank_df['transaction_date'].apply(lambda x: dt.timestamp(x))
-    bank_df['optimized_transaction_date'] = bank_df['optimized_transaction_date'].apply(lambda x: dt.timestamp(x))
-    bank_df['file_created_date'] = bank_df['file_created_date'].apply(lambda x: dt.timestamp(x))
-    bank_df['panel_file_created_date'] = bank_df['panel_file_created_date'].apply(lambda x: dt.timestamp(x))
+    try:
+        bank_df['unique_mem_id'] = bank_df['unique_mem_id'].astype('str', errors = 'ignore')
+        bank_df['unique_bank_account_id'] = bank_df['unique_bank_account_id'].astype('str', errors = 'ignore')
+        bank_df['unique_bank_transaction_id'] = bank_df['unique_bank_transaction_id'].astype('str', errors = 'ignore')
+        bank_df['amount'] = bank_df['amount'].astype('float64')
+        bank_df['transaction_origin'] = bank_df['transaction_origin'].replace(to_replace = ["Non-Physical", "Physical", "ATM"], value = [1, 2, 3])
+        bank_df['transaction_base_type'] = bank_df['transaction_base_type'].replace(to_replace = ["debit", "credit"], value = [1, 0])
+        #bank_df['transaction_origin'].astype('str')
+        #conversion of dates to unix timestamps as numeric value (fl64)
+        bank_df['post_date'] = bank_df['post_date'].apply(lambda x: dt.timestamp(x))
+        bank_df['transaction_date'] = bank_df['transaction_date'].apply(lambda x: dt.timestamp(x))
+        bank_df['optimized_transaction_date'] = bank_df['optimized_transaction_date'].apply(lambda x: dt.timestamp(x))
+        bank_df['file_created_date'] = bank_df['file_created_date'].apply(lambda x: dt.timestamp(x))
+        bank_df['panel_file_created_date'] = bank_df['panel_file_created_date'].apply(lambda x: dt.timestamp(x))
+    except (TypeError, OSError, ValueError) as e:
+        print("Problem with conversion:")
+        print(e)
     #%%
     '''
     The columns PRIMARY_MERCHANT_NAME; CITY, STATE, DESCRIPTION, TRANSACTION_CATEGORY_NAME, CURRENCY
@@ -373,7 +383,7 @@ def df_preprocessor(rng = 2):
         bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
 
     #bank_df.set_index("transaction_date", drop = False, inplace = True)
-    #return bank_df
+    yield bank_df
 #%%
 #BUGGED
 #this squares the entire df and gets rid of non-negative values;
@@ -386,7 +396,7 @@ def df_preprocessor(rng = 2):
 ###################SPLITTING UP THE DATA###########################
 #drop target variable in feature df
 #all remaining columns will be the features
-bank_df = bank_df.dropna()
+#bank_df.dropna()
 bank_df.drop(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id'], axis = 1)
 model_features = np.array(bank_df.drop(['primary_merchant_name', 'currency'], axis = 1))
 model_label = np.array(bank_df['primary_merchant_name'])

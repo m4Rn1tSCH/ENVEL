@@ -77,19 +77,19 @@ def spending_report(df):
     #report for users about their spending patterns, given in various intervals
     try:
         print(f"The total turnover on your account has been ${total_throughput}")
-        print("................................................................")
+        #print("................................................................")
         spending_metrics_monthly = pd.DataFrame(data = {'Average Monthly Spending':avg_monthly_throughput,
                                                         'Monthly Turnover':net_monthly_throughput,
                                                         'Monthly Inflow':monthly_gain,
                                                         'Monthly Outflow':monthly_expenses})
         #print(spending_metrics_monthly)
-        print(".................................................................")
+        #print(".................................................................")
         spending_metrics_weekly = pd.DataFrame(data = {'Average Weekly Spending':avg_weekly_throughput,
                                                        'Weekly Turnover':net_weekly_throughput,
                                                        'Weekly Inflow':weekly_gain,
                                                        'Weekly Outflow':weekly_expenses})
         #print(spending_metrics_weekly)
-        print(".................................................................")
+        #print(".................................................................")
         spending_metrics_daily = pd.DataFrame(data = {'Average Daily Spending':avg_daily_spending,
                                                       'Daily Turnover':net_daily_spending,
                                                       'Daily Inflow':daily_gain,
