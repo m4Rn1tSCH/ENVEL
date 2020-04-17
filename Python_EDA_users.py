@@ -398,7 +398,7 @@ def df_preprocessor(rng = 2):
 #all remaining columns will be the features
 #bank_df.dropna()
 bank_df = bank_df.drop(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id'], axis = 1)
-model_features = np.array(bank_df.drop(['primary_merchant_name', 'currency'], axis = 1))
+model_features = np.array(bank_df.drop(['primary_merchant_name'], axis = 1))
 model_label = np.array(bank_df['primary_merchant_name'])
 
 X_train, X_test, y_train, y_test = train_test_split(model_features,
