@@ -1,6 +1,10 @@
 #required package
 import pdf2image
 import os
+'''
+Pdf2image and PyPDF are more suitable to extract tables and entire pages
+'''
+
 #LEAVE r IN FRONT
 #filename of your PDF/directory where your PDF is stored
 link = r"C:\Users\bill-\Desktop\test_pic.pdf"

@@ -5,6 +5,9 @@ Created on Thu Feb 27 11:38:15 2020
 @author: bill-
 """
 '''
+
+Pdf2image and PyPDF are more suitable to extract tables and entire pages
+
 This script reads all files of a folder and converts them to a PNG picture;
 eventually it reads all pictures with optical character recognition and searches for keywords
 '''

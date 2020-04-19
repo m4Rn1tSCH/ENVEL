@@ -55,7 +55,7 @@ for header in ['age', 'trestbps', 'chol', 'thalach', 'oldpeak', 'slope', 'ca']:
   feature_columns.append(feature_column.numeric_column(header))
 
 # bucketized cols
-age_buckets = feature_column.bucketized_column(age, boundaries=[18, 25, 30, 35, 40, 45, 50, 55, 60, 65])
+age_buckets = feature_column.bucketized_column(feature_column.numeric_column('age'), boundaries=[18, 25, 30, 35, 40, 45, 50, 55, 60, 65])
 feature_columns.append(age_buckets)
 
 # indicator cols

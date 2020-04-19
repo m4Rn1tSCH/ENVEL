@@ -15,7 +15,7 @@ pytesseract.pytesseract.tesseract_cmd = 'C:/Program Files/Tesseract-OCR/'
 os.chdir(r'C:/Users/bill-/Desktop')
 #######################################################################################
 #switching the backslashes to slashes
-link = r"C:\Users\bill-\Desktop\TransactionsD.csv"
+link = r"C:\Users\bill-\Desktop"
 new_link = link.replace(os.sep, '/')
 file = ''.join(('', new_link,''))
 #SPECIFY PATH FOR CSV OUTPUT
