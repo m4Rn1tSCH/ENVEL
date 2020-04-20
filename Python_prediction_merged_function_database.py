@@ -34,6 +34,61 @@ from sklearn.metrics import accuracy_score
 #plt.rcParams["figure.dpi"] = 600
 #plt.rcParams['figure.figsize'] = [12, 10]
 #%%
+'''
+Setup of the function to merge every single operation into one function that is then called by the flask connection/or SQL
+contains: preprocessing, splitting, training and eventually prediction
+'''
+#CONNECTION TO FLASK/SQL
+#INSERT FLASK CONNECTION SCRIPT HERE
+###########################################
+#loading the simplified applications
+#from flask import Flask
+#app = Flask(__Preprocessor__)
+
+##put address here
+#@app.route('/')
+#def hello_world():
+#    return 'Hello, World!'
+#route tells what URL should trigger the function
+#use __main__ only for the actual core of the application
+# pick unique names for particular functions if these are imported later
+#DONT CALL APPLICATIONS FLASK.PY TO AVOID CONFLICTS WITH FLASK
+
+#RUN THE APPLICATION
+#flask command or -m swith in Python
+
+########SETTING THE ENVIRONMENT VARIABLE#######
+#$ export FLASK_APP = C:\Users\bill-\OneDrive\Dokumente\Docs Bill\TA_files\functions_scripts_storage\Python_prediction_merged_function_database.py
+#$ flask run
+# * Running on http://127.0.0.1:5000/
+
+####COMMAND PROMPT#####
+#C:\path\to\app>set FLASK_APP=hello.py
+
+####for production use##
+#$ flask run --host=0.0.0.0
+############################################
+
+
+#INSERT SQL CONNECTION HERE
+############################################
+###SQL-CONNECTION TO QUERY THE VENDOR FILE
+###Create engine
+##engine = create_engine('sqlite:///Chinook.sqlite')
+
+##Open engine connection: con
+##con = engine.connect()
+
+##Perform query: rs
+##rs = con.execute("SELECT * from <<DB_FOLDER>>")
+
+#Save results df
+##df = pd.DataFrame(rs.fetchall())
+
+##Close connection
+##con.close()
+##############################################
+#%%
 ######LOADING THE TRANSACTION FILE#####
 #transaction_file = r"C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx"
 #path_1 = transaction_file.replace(os.sep,'/')

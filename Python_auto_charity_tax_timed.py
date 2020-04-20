@@ -2,7 +2,7 @@
 # coding: utf-8
 # Packages
 import pandas as pd
-import datetime
+from datetime import datetime
 import os
 #%%
 # converting file link
@@ -15,10 +15,11 @@ new_link_2 = new_link.replace('"', '')
 file_in = ''.join(('', new_link_2, ''))
 #%%
 # Importing data
-data=pd.read_csv(file_in, delimiter = ',')
-
+data = pd.read_csv(file_in, delimiter = ',')
+for i in range(len(data)):
+    data['Day of the month'] = data['Day of the month'].asdatetime()
 # converting date of month to proper date
-
+data['Day of the month'] = data['Day of the month'].asdatetime
 # iterate through all rows until the end of the data frame
 for i in range(len(data)):
     data['Day of the month'][i] = datetime.datetime(datetime.datetime.now().year, datetime.datetime.now().month, data['Day of the month'][i])

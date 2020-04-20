@@ -13,8 +13,8 @@ from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 import re
 import os
-import csv
 import pandas as pd
+from datetime import datetime as dt
 import shutil
 #%%
 #set csv_path
@@ -95,9 +95,6 @@ for link in path_list:
         error_list.append(link)
         #shutil.move(source_folder,destination_failed)
         pass
-print("Following motherfuckers were either too fucking dumb to create a properly readable PDF or there was another error:")
-print("-------------------------------------------------------------------------------")
-print(error_list)
 '''
 Convert it to a dataframe, drop duplicated mails that were found by more than just one pattern and convert a CSV
 '''
@@ -120,6 +117,7 @@ except FileExistsError as exc:
     print("File already exists and will be appended instead...")
     pd.DataFrame(pure_email_list).drop_duplicates().to_csv(path_mail, mode = 'a', header = False)
     pd.DataFrame(error_list).drop_duplicates().to_csv(path_fail, mode = 'a', header = False)
+
 
 #%%
 pure_email_list = []
