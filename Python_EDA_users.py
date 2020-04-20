@@ -532,7 +532,7 @@ print('Selected features: %s' % list(X_train_minmax.columns[rfecv.support_]))
 # plt.show()
 #%%
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
-#funtion of Selecr K Best is here f_classifier; determines features based on the f-values between features & labels
+#funtion of Select K Best is here f_classifier; determines features based on the f-values between features & labels
 #other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
 
 
