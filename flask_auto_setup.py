@@ -13,7 +13,8 @@ This module sets and activates the flask app in windows
 #run a string in the command shell
 #here to set up flask on the machine
 import os
-script_path = os.path.abspath(r'Python_inc_exp_bal_database_test.py')
-os.system(f"env FLASK_APP={script_path} flask run")
-# or
-#os.system('sh file.sh')
+
+def activate_flask():
+    script_path = os.path.abspath(r'Python_inc_exp_bal_database_test.py')
+    os.system(f"env FLASK_APP={script_path} flask run")
+    return 'environment variable set; Flask is being executed...'
