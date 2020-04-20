@@ -29,6 +29,8 @@ from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
+from sklearn.neural_network import MLPClassifier
+from sklearn.pipeline import Pipeline
 
 #imported custom function
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
@@ -452,7 +454,8 @@ print(f"Shape of the split training data set X_test: {X_test.shape}")
 print(f"Shape of the split training data set y_train: {y_train.shape}")
 print(f"Shape of the split training data set y_test: {y_test.shape}")
 #%%
-#STD SCALING
+#BUGGED
+#STD SCALING - does not work yet
 #fit the scaler to the training data first
 #standard scaler works only with maximum 2 dimensions
 scaler_obj = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
@@ -463,7 +466,7 @@ scaler_obj.scale_
 #transform data in the same way learned from the training data
 X_test_scaled = scaler_obj.transform(X_test)
 #%%
-#MINMAX SCALING
+#MINMAX SCALING - works with Select K Best
 min_max_scaler = MinMaxScaler()
 X_train_minmax = min_max_scaler.fit_transform(X_train)
 
@@ -471,9 +474,6 @@ X_test_minmax = min_max_scaler.transform(X_test)
 min_max_scaler.scale_
 min_max_scaler.min_
 #%%
-#cannot run k best since some features have stdev
-#set variance threshold or square everything
-
 #f_classif for regression
 #chi-sqr for classification but requires non-neg values
 ####syntax of reshape(n_samples, n_features)
@@ -484,9 +484,13 @@ X_test_scl_rs = np.array(X_test_scaled).reshape(-1, 1)
 
 X_train_minmax_rs = X_train_minmax.reshape(-1, 1)
 X_test_minmax_rs = X_test_minmax.reshape(-1, 1)
+#%%
 #fed variables cannot have missing values
+'''
+takes unscaled numerical so far and minmax scaled arguments
+'''
 k_best = SelectKBest(score_func = f_classif, k = 10)
-k_best.fit(X_train_scaled, y_train)
+k_best.fit(X_train_minmax, y_train)
 k_best.get_params()
 
 # isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
@@ -506,19 +510,19 @@ y_test = bank_df['primary_merchant_name']
 log_reg = LogisticRegression()
 # create the RFE model and select the eight most striking attributes
 rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-rfe = rfe.fit(X_train_scaled, y_train)
+rfe = rfe.fit(X_train_minmax, y_train)
 #selected attributes
-print('Selected features: %s' % list(X_train_scaled.columns[rfe.support_]))
+print('Selected features: %s' % list(X_train_minmax.columns[rfe.support_]))
 print(rfe.ranking_)
 #%%
-#works
+#BUGGED
 #Use the Cross-Validation function of the RFE modul
 #accuracy describes the number of correct classifications
-rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = 8, scoring='accuracy')
-rfecv.fit(X_train, y_train)
+rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = None, scoring='accuracy')
+rfecv.fit(X_train_minmax, y_train)
 
 print("Optimal number of features: %d" % rfecv.n_features_)
-print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
+print('Selected features: %s' % list(X_train_minmax.columns[rfecv.support_]))
 
 #plot number of features VS. cross-validation scores
 # plt.figure(figsize = (10,6))
@@ -532,41 +536,37 @@ print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
 #other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
 
 
-# from sklearn.pipeline import Pipeline
-# from sklearn.model_selection import GridSearchCV
-# #Create pipeline with feature selector and classifier
-# #replace with gradient boosted at this point or regressor
-# pipe = Pipeline([
-#     ('feature_selection', SelectKBest(score_func = f_classif)),
-#     ('clf', GradientBoostingClassifier(random_state = 42))])
 
-# #Create a parameter grid
-# #parameter grids provide the values for the models to try
-# #PARAMETERs NEED TO HAVE THE SAME LENGTH
-# params = {
-#    'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
-#    'clf__n_estimators':[15, 25, 50, 75, 120, 200, 350]}
+#Create pipeline with feature selector and classifier
+#replace with gradient boosted at this point or regressor
+pipe = Pipeline([
+    ('feature_selection', SelectKBest(score_func = f_classif)),
+    ('clf', GradientBoostingClassifier(random_state = 42))])
 
-# #Initialize the grid search object
-# grid_search = GridSearchCV(pipe, param_grid = params)
+#Create a parameter grid
+#parameter grids provide the values for the models to try
+#PARAMETERs NEED TO HAVE THE SAME LENGTH
+params = {
+    'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
+    'clf__n_estimators':[15, 25, 50, 75, 120, 200, 350]}
 
-# #Fit it to the data and print the best value combination
-# print(grid_search.fit(X_train, y_train).best_params_)
+#Initialize the grid search object
+grid_search = GridSearchCV(pipe, param_grid = params)
+
+#Fit it to the data and print the best value combination
+print(grid_search.fit(X_train, y_train).best_params_)
 #%%
 '''
                 APPLICATION OF SKLEARN NEURAL NETWORK
+works with minmax scaled version and  has very little accuracy depsite having 1000 layers
+Training set accuracy: 0.002171552660152009; Test set accuracy: 0.0
 '''
-
-# #NEURAL NETWORK
-# #NO GPU SUPPORT FOR SKLEARN
-# from sklearn.neural_network import MLPClassifier
-
-# #adam: all-round solver for data
-# #hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
-# #match with input features
-# #alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
-# MLP = MLPClassifier(hidden_layer_sizes = 1000, solver='adam', alpha=0.001 )
-# MLP.fit(X_train, y_train)
-# y_val = MLP.predict(X_test)
-# #y_val.reshape(-1, 1)
-# print(f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}")
+#adam: all-round solver for data
+#hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
+#match with input features
+#alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
+MLP = MLPClassifier(hidden_layer_sizes = 1000, solver='adam', alpha=0.001 )
+MLP.fit(X_train_minmax, y_train)
+y_val = MLP.predict(X_test)
+#y_val.reshape(-1, 1)
+print(f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}")
