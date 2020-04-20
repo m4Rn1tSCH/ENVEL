@@ -456,7 +456,7 @@ print(f"Shape of the split training data set y_test: {y_test.shape}")
 #fit the scaler to the training data first
 #standard scaler works only with maximum 2 dimensions
 scaler_obj = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-X_train_scaled = StandardScaler().fit(X_train)
+X_train_scaled = scaler_obj.transform(X_train)
 
 scaler_obj.mean_
 scaler_obj.scale_
@@ -486,7 +486,7 @@ X_train_minmax_rs = X_train_minmax.reshape(-1, 1)
 X_test_minmax_rs = X_test_minmax.reshape(-1, 1)
 #fed variables cannot have missing values
 k_best = SelectKBest(score_func = f_classif, k = 10)
-k_best.fit(X_train, y_train)
+k_best.fit(X_train_scaled, y_train)
 k_best.get_params()
 
 # isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
@@ -506,7 +506,7 @@ y_test = bank_df['primary_merchant_name']
 log_reg = LogisticRegression()
 # create the RFE model and select the eight most striking attributes
 rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-rfe = rfe.fit(X_train, y_train)
+rfe = rfe.fit(X_train_scaled, y_train)
 #selected attributes
 print('Selected features: %s' % list(X_train_scaled.columns[rfe.support_]))
 print(rfe.ranking_)
