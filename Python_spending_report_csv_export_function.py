@@ -56,23 +56,23 @@ def spending_report(df):
     #total throughput of money
     total_throughput = df['amount'].sum()
     #monthly figures
-    net_monthly_throughput = df['amount'].groupby(df['transaction_date_month']).sum()
-    avg_monthly_throughput = df['amount'].groupby(df['transaction_date_month']).apply(lambda x: x.mean())
+    net_monthly_throughput = df['amount'].groupby(df['optimized_transaction_date_month']).sum()
+    avg_monthly_throughput = df['amount'].groupby(df['optimized_transaction_date_month']).apply(lambda x: x.mean())
     #CHECK VIABILITY OF SUCH VARIABLES
-    monthly_gain = df['amount'][df['transaction_base_type'] == 'credit'].groupby(df['transaction_date_month']).sum()
-    monthly_expenses = df['amount'][df['transaction_base_type'] == 'debit'].groupby(df['transaction_date_month']).sum()
+    monthly_gain = df['amount'][df['transaction_base_type'] == 'credit'].groupby(df['optimized_transaction_date_month']).sum()
+    monthly_expenses = df['amount'][df['transaction_base_type'] == 'debit'].groupby(df['optimized_transaction_date_month']).sum()
     #weekly figures
-    net_weekly_throughput = df['amount'].groupby(df['transaction_date_week']).sum()
-    avg_weekly_throughput = df['amount'].groupby(df['transaction_date_week']).apply(lambda x: x.mean())
+    net_weekly_throughput = df['amount'].groupby(df['optimized_transaction_date_week']).sum()
+    avg_weekly_throughput = df['amount'].groupby(df['optimized_transaction_date_week']).apply(lambda x: x.mean())
     #CHECK VIABILITY OF SUCH VARIABLES
-    weekly_gain = df['amount'][df['transaction_base_type'] == "credit"].groupby(df['transaction_date_week']).sum()
-    weekly_expenses = df['amount'][df['transaction_base_type'] == "debit"].groupby(df['transaction_date_week']).sum()
+    weekly_gain = df['amount'][df['transaction_base_type'] == "credit"].groupby(df['optimized_transaction_date_week']).sum()
+    weekly_expenses = df['amount'][df['transaction_base_type'] == "debit"].groupby(df['optimized_transaction_date_week']).sum()
     #daily figures
-    net_daily_spending = df['amount'].groupby(df['transaction_date_weekday']).sum()
-    avg_daily_spending = df['amount'].groupby(df['transaction_date_weekday']).apply(lambda x: x.mean())
+    net_daily_spending = df['amount'].groupby(df['optimized_transaction_date_weekday']).sum()
+    avg_daily_spending = df['amount'].groupby(df['optimized_transaction_date_weekday']).apply(lambda x: x.mean())
     #CHECK VIABILITY OF SUCH VARIABLES
-    daily_gain = df['amount'][df['transaction_base_type'] == "credit"].groupby(df['transaction_date_weekday']).sum()
-    daily_expenses = df['amount'][df['transaction_base_type'] == "debit"].groupby(df['transaction_date_weekday']).sum()
+    daily_gain = df['amount'][df['transaction_base_type'] == "credit"].groupby(df['optimized_transaction_date_weekday']).sum()
+    daily_expenses = df['amount'][df['transaction_base_type'] == "debit"].groupby(df['optimized_transaction_date_weekday']).sum()
 
     #report for users about their spending patterns, given in various intervals
     try:

@@ -15,7 +15,7 @@ import pandas as pd
 pd.set_option('display.width', 1000)
 import numpy as np
 from datetime import datetime as dt
-from flask import Flask
+#from flask import Flask
 import os
 import csv
 import matplotlib.pyplot as plt
@@ -202,7 +202,7 @@ def df_preprocessor(rng = 2):
     Thu: 3
     Fri: 4
     '''
-    #spending_report(df = bank_df.copy())
+    spending_report(df = bank_df.copy())
     #%%
     '''
     After successfully loading the data, columns that are of no importance have been removed and missing values replaced
