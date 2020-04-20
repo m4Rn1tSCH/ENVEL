@@ -570,3 +570,72 @@ MLP.fit(X_train_minmax, y_train)
 y_val = MLP.predict(X_test)
 #y_val.reshape(-1, 1)
 print(f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}")
+#%%
+from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error
+#y_val = y_pred as the split is still unfisnished
+print('R2 score = ', r2_score(y_val, y_test), '/ 1.0')
+print('MSE score = ', mean_squared_error(y_val, y_test), '/ 0.0')
+#%%
+'''
+                        APPLICATION OF KERAS
+'''
+#features: X
+#target: Y
+import keras
+features = np.array(X_train_scaled)
+targets = np.array(y_train)
+features_validation = np.array(X_test_scaled)
+targets_validation = np.array(y_test)
+
+print(features[:10])
+print(targets[:10])
+####
+#%%
+from keras.models import Sequential
+from keras.layers.core import Dense, Dropout, Activation
+
+#building the model
+model = Sequential()
+model.add(Dense(32, activation='relu', input_shape=(X_train.shape[1],)))
+model.add(Dropout(.2))
+model.add(Dense(16, activation='relu'))
+model.add(Dropout(.1))
+model.add(Dense(1))
+
+#compiling the model
+model.compile(loss = 'mse', optimizer='adam', metrics=['mse']) #mse: mean_square_error
+model.summary()
+#%%
+
+#training of the model
+epochs_total = 1000
+epochs_step = 250
+epochs_ratio = int(epochs_total / epochs_step)
+hist = np.array([])
+#######
+#building the epochs
+for i in range(epochs_ratio):
+    history = model.fit(features, targets, epochs=epochs_step, batch_size=100, verbose=0)
+
+    #evaluating the model on the training and testing set
+    print("Step : " , i * epochs_step, "/", epochs_total)
+    score = model.evaluate(features, targets)
+    print("Training MSE:", score[1])
+    score = model.evaluate(features_validation, targets_validation)
+    print("Validation MSE:", score[1], "\n")
+    hist = np.concatenate((hist, np.array(history.history['mean_squared_error'])), axis = 0)
+#%%
+
+#plot metrics
+plt.plot(hist)
+plt.show()
+
+predictions = model.predict(features_validation, verbose=0)
+print('R2 score = ',r2_score(y_test, predictions), '/ 1.0')
+print('MSE score = ',mean_squared_error(y_validation_RF, predictions), '/ 0.0')
+#######
+plt.plot(y_test.as_matrix()[0:50], '+', color ='blue', alpha=0.7)
+plt.plot(predictions[0:50], 'ro', color ='red', alpha=0.5)
+plt.show()
+#%%
