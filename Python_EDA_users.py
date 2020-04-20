@@ -486,7 +486,7 @@ X_train_minmax_rs = X_train_minmax.reshape(-1, 1)
 X_test_minmax_rs = X_test_minmax.reshape(-1, 1)
 #fed variables cannot have missing values
 k_best = SelectKBest(score_func = f_classif, k = 10)
-k_best.fit(X_train_scl_rs, y_train_rs)
+k_best.fit(X_train, y_train)
 k_best.get_params()
 
 # isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
