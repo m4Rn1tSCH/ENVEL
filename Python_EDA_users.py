@@ -6,10 +6,13 @@ Created on Fri Apr 10 10:51:04 2020
 """
 '''
 EDA module for various Yodlee dataframes
+FIRST STAGE: retrieve the user ID dataframe with all user IDs with given filter
+SECOND STAGE: randomly pick a user ID; encode thoroughly and yield the df
 '''
 
 #load needed packages
 import pandas as pd
+pd.set_option('display.width', 1000)
 import numpy as np
 from datetime import datetime as dt
 from flask import Flask
@@ -166,7 +169,8 @@ def df_preprocessor(rng = 2):
     ax.legend(loc = 'center right')
     plt.show()
 
-    #Boxplot template - bugged
+#BUGGED
+    #Boxplot template
     # cat_var = ["unique_mem_id", "primary_merchant_name"]
     # quant_var = ["amount"]
     # for c_var in cat_var:
@@ -198,7 +202,7 @@ def df_preprocessor(rng = 2):
     Thu: 3
     Fri: 4
     '''
-    spending_report(df = bank_df.copy())
+    #spending_report(df = bank_df.copy())
     #%%
     '''
     After successfully loading the data, columns that are of no importance have been removed and missing values replaced
@@ -223,6 +227,7 @@ def df_preprocessor(rng = 2):
         print("Problem with conversion:")
         print(e)
 
+#attempt to convert date objects if they have no missing values; otherwise they are being dropped
     try:
         #conversion of dates to unix timestamps as numeric value (fl64)
         if bank_df['post_date'].isnull().sum() == 0:
@@ -273,8 +278,10 @@ def df_preprocessor(rng = 2):
     embedding_map_merchants = dict(zip(le.classes_, le.transform(le.classes_)))
 
     #APPLICATION TO OUR DATASET
-    bank_df['primary_merchant_name'] = bank_df['primary_merchant_name'].apply(lambda x: x if x in embedding_map_merchants else UNKNOWN_TOKEN)
-    bank_df['primary_merchant_name'] = bank_df['primary_merchant_name'].map(lambda x: le.transform([x])[0] if type(x)==str else x)
+    bank_df['primary_merchant_name'] = bank_df['primary_merchant_name'].apply(lambda x:
+                                                                              x if x in embedding_map_merchants else UNKNOWN_TOKEN)
+    bank_df['primary_merchant_name'] = bank_df['primary_merchant_name'].map(lambda x:
+                                                                            le.transform([x])[0] if type(x)==str else x)
 
     #encoding cities
     UNKNOWN_TOKEN = '<unknown>'
@@ -321,8 +328,10 @@ def df_preprocessor(rng = 2):
     embedding_map_tcat = dict(zip(le_5.classes_, le_5.transform(le_5.classes_)))
 
     #APPLICATION TO OUR DATASET
-    bank_df['transaction_category_name'] = bank_df['transaction_category_name'].apply(lambda x: x if x in embedding_map_tcat else UNKNOWN_TOKEN)
-    bank_df['transaction_category_name'] = bank_df['transaction_category_name'].map(lambda x: le_5.transform([x])[0] if type(x)==str else x)
+    bank_df['transaction_category_name'] = bank_df['transaction_category_name'].apply(lambda x:
+                                                                                      x if x in embedding_map_tcat else UNKNOWN_TOKEN)
+    bank_df['transaction_category_name'] = bank_df['transaction_category_name'].map(lambda x:
+                                                                                    le_5.transform([x])[0] if type(x)==str else x)
 
     #encoding transaction origin
     #UNKNOWN_TOKEN = '<unknown>'
@@ -333,8 +342,10 @@ def df_preprocessor(rng = 2):
     embedding_map_tori = dict(zip(le_6.classes_, le_6.transform(le_6.classes_)))
 
     #APPLICATION TO OUR DATASET
-    bank_df['transaction_origin'] = bank_df['transaction_origin'].apply(lambda x: x if x in embedding_map_tori else UNKNOWN_TOKEN)
-    bank_df['transaction_origin'] = bank_df['transaction_origin'].map(lambda x: le_6.transform([x])[0] if type(x)==str else x)
+    bank_df['transaction_origin'] = bank_df['transaction_origin'].apply(lambda x:
+                                                                        x if x in embedding_map_tori else UNKNOWN_TOKEN)
+    bank_df['transaction_origin'] = bank_df['transaction_origin'].map(lambda x:
+                                                                      le_6.transform([x])[0] if type(x)==str else x)
 
     #encoding currency if there is more than one in use
     try:
@@ -349,13 +360,20 @@ def df_preprocessor(rng = 2):
             le_7 = LabelEncoder()
             le_7.fit_transform(merchants)
             embedding_map_currency = dict(zip(le_7.classes_, le_7.transform(le_7.classes_)))
-            bank_df['currency'] = bank_df['currency'].apply(lambda x: x if x in embedding_map_currency else UNKNOWN_TOKEN)
-            bank_df['currency'] = bank_df['currency'].map(lambda x: le_7.transform([x])[0] if type(x)==str else x)
+            bank_df['currency'] = bank_df['currency'].apply(lambda x:
+                                                            x if x in embedding_map_currency else UNKNOWN_TOKEN)
+            bank_df['currency'] = bank_df['currency'].map(lambda x:
+                                                          le_7.transform([x])[0] if type(x)==str else x)
     except:
         print("Column currency was not converted.")
         pass
     #%%
-    # '''
+    '''
+    IMPORTANT
+    The lagging features produce NaN for the very first rows due to unavailability
+    of values
+    NaNs need to be dropped to make scaling and selection of features working
+    '''
     # TEMPORARY SOLUTION; Add date columns for more accurate overview
     # Set up a rolling time window that is calculating lagging cumulative spending
     # '''
@@ -401,6 +419,12 @@ def df_preprocessor(rng = 2):
 
     #bank_df.set_index("transaction_date", drop = False, inplace = True)
     #yield bank_df
+
+#%%
+#the first two rows of algging values have NaNs which need to be dropped
+#drop the first and second row
+bank_df = bank_df.drop([0, 1])
+bank_df.reset_index(drop = True, inplace = True)
 #%%
 #BUGGED
 #this squares the entire df and gets rid of non-negative values;
@@ -431,15 +455,13 @@ print(f"Shape of the split training data set y_test: {y_test.shape}")
 #STD SCALING
 #fit the scaler to the training data first
 #standard scaler works only with maximum 2 dimensions
-scaler_obj = StandardScaler().fit(X_train)
+scaler_obj = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
 X_train_scaled = StandardScaler().fit(X_train)
 
 scaler_obj.mean_
 scaler_obj.scale_
 #transform data in the same way learned from the training data
 X_test_scaled = scaler_obj.transform(X_test)
-#X_train_scaled = np.asarray(X_train_scaled).reshape(1, -1)
-#X_test_scaled = np.asarray(X_test_scaled).reshape(1, -1)
 #%%
 #MINMAX SCALING
 min_max_scaler = MinMaxScaler()
@@ -456,15 +478,15 @@ min_max_scaler.min_
 #chi-sqr for classification but requires non-neg values
 ####syntax of reshape(n_samples, n_features)
 #### value of -1 allows for adaptation to shape needed
-y_train_rs = np.array(y_train).reshape(1, -1)
-X_train_scl_rs = np.array(X_train_scaled).reshape(1, -1)
-X_test_scl_rs = np.array(X_test_scaled).reshape(1, -1)
+y_train_rs = np.array(y_train).reshape(-1, 1)
+X_train_scl_rs = np.array(X_train_scaled).reshape(-1, 1)
+X_test_scl_rs = np.array(X_test_scaled).reshape(-1, 1)
 
-X_train_minmax_rs = X_train_minmax.reshape(1, -1)
-X_test_minmax_rs = X_test_minmax.reshape(1, -1)
-
+X_train_minmax_rs = X_train_minmax.reshape(-1, 1)
+X_test_minmax_rs = X_test_minmax.reshape(-1, 1)
+#fed variables cannot have missing values
 k_best = SelectKBest(score_func = f_classif, k = 10)
-k_best.fit(X_train_minmax_rs, y_train_rs)
+k_best.fit(X_train_scl_rs, y_train_rs)
 k_best.get_params()
 
 # isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
@@ -484,7 +506,7 @@ y_test = bank_df['primary_merchant_name']
 log_reg = LogisticRegression()
 # create the RFE model and select the eight most striking attributes
 rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-rfe = rfe.fit(X_train_scl_rs, y_train_rs)
+rfe = rfe.fit(X_train, y_train)
 #selected attributes
 print('Selected features: %s' % list(X_train_scaled.columns[rfe.support_]))
 print(rfe.ranking_)
