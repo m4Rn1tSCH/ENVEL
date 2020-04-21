@@ -180,7 +180,7 @@ add preprocessing
 
 bank_df['primary_merchant_name'].fillna(value = 'unknown')
 
-#THIS MIGHT RUIN THE DATA; SINCE THE STATE REFERS TO THE TANSACTION LOCATION NOT TE ORIGIN OF THE USER
+#THIS MIGHT RUIN THE DATA; SINCE THE STATE REFERS TO THE TRANSACTION LOCATION NOT TE ORIGIN OF THE USER
 #bank_df['state'].fillna(value = 'MA')
 #bank_df['city'].fillna(value = 'unknown')
 
@@ -214,7 +214,7 @@ bank_df['file_created_date'] = bank_df['file_created_date'].apply(lambda x: dt.t
 bank_df['panel_file_created_date'] = bank_df['panel_file_created_date'].apply(lambda x: dt.timestamp(x))
 #%%
 '''
-add label encoder first
+Following Section manually
 add select K BEST
 '''
 #WORKS
@@ -351,10 +351,10 @@ bank_df.set_index("transaction_date", drop = False, inplace = True)
 #%%
 #this squares the entire df and gets rid of non-negative values;
 #chi2 should be applicable
-df_sqr = bank_df.copy()
-for col in df_sqr:
-    if df_sqr[col].dtype == 'int32' or df_sqr[col].dtype == 'float64':
-        df_sqr[col].apply(lambda x: np.square(x))
+# df_sqr = bank_df.copy()
+# for col in df_sqr:
+#     if df_sqr[col].dtype == 'int32' or df_sqr[col].dtype == 'float64':
+#         df_sqr[col].apply(lambda x: np.square(x))
 #%%
 #scaling before applying the training split
 #STD SCALING
