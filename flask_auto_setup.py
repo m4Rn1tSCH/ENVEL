@@ -18,3 +18,8 @@ def activate_flask():
     script_path = os.path.abspath(r'Python_inc_exp_bal_database_test.py')
     os.system(f"env FLASK_APP={script_path} flask run")
     return 'environment variable set; Flask is being executed...'
+
+def activate_flask_2():
+    script_path = os.path.abspath(r'Python_EDA_users_test.py')
+    os.system(f"env FLASK_APP={script_path} flask run")
+    return 'environment variable set; Flask is being executed...'

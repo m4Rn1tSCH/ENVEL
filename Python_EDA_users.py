@@ -39,7 +39,19 @@ from Python_spending_report_csv_export_function import spending_report
 from Python_SQL_connection import execute_read_query, create_connection, close_connection
 #contains all credentials
 import PostgreSQL_credentials as acc
+from flask_auto_setup import activate_flask
 #%%
+#set up flask first as environment variable and start with the command console
+activate_flask()
+    #CONNECTION TO FLASK/SQL
+app = Flask(__name__)
+
+##put address here
+#function can be bound to the script by adding a new URL
+#e.g. route('/start') would then start the entire function that follows
+#same can be split up
+@app.route('/start')
+
 def df_preprocessor(rng = 2):
     '''
 
@@ -420,13 +432,12 @@ def df_preprocessor(rng = 2):
         bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
 
     #bank_df.set_index("transaction_date", drop = False, inplace = True)
-    #yield bank_df
 
-#%%
-#the first two rows of algging values have NaNs which need to be dropped
-#drop the first and second row
-bank_df = bank_df.drop([0, 1])
-bank_df.reset_index(drop = True, inplace = True)
+    #%%
+    #the first two rows of lagging values have NaNs which need to be dropped
+    #drop the first and second row since the indicators refer to previous non-existant days
+    bank_df = bank_df.drop([0, 1])
+    bank_df.reset_index(drop = True, inplace = True)
 #%%
 #BUGGED
 #this squares the entire df and gets rid of non-negative values;
