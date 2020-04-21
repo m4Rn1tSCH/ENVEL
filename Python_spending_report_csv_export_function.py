@@ -19,14 +19,13 @@ AWS:the CSV is saved in ././injection/*.csv
 import os
 from datetime import datetime as dt
 import pandas as pd
-#import Python_IDs_demo_panel
 
 #in flask body with variable input
 #allows to input file
 #self in python: self is updating an instance variable of its own function
-#in this case the instance is the dataframe fed to the method and that is upposed to be processed
+#in this case the instance is the dataframe fed to the method and that is supposed to be processed
 
-def spending_report(self):
+def spending_report(df):
     #%%
     #temporary test section
 #    test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
@@ -38,15 +37,15 @@ def spending_report(self):
     #%%
     '''
     Datetime engineering for card and bank panel
-    These columns help for reporting like weekly or monthly expenses and
+    These columns help with reporting like weekly or monthly expenses and
     improve prediction of re-occurring transactions
     '''
-    for col in list(self):
-        if self[col].dtype == 'datetime64[ns]':
-            self[f"{col}_month"] = self[col].dt.month
-            self[f"{col}_week"] = self[col].dt.week
-            self[f"{col}_weekday"] = self[col].dt.weekday
-
+    for col in list(df):
+        if df[col].dtype == 'datetime64[ns]':
+            df[f"{col}_month"] = df[col].dt.month
+            df[f"{col}_week"] = df[col].dt.week
+            df[f"{col}_weekday"] = df[col].dt.weekday
+    df.reset_index(drop = True, inplace = True)
     '''
     Addition of feature columns for additive spending on a weekly; monthly; daily basis
     These dataframes are then convertable to a CSV for reporting purposes or could be shown in the app
@@ -55,42 +54,42 @@ def spending_report(self):
     IN BANK PANEL: debit will decrease its balance and credit will increase it (liability on the bank's part)
     '''
     #total throughput of money
-    total_throughput = self['amount'].sum()
+    total_throughput = df['amount'].sum()
     #monthly figures
-    net_monthly_throughput = self['amount'].groupby(self['transaction_date_month']).sum()
-    avg_monthly_throughput = self['amount'].groupby(self['transaction_date_month']).mean()
+    net_monthly_throughput = df['amount'].groupby(df['optimized_transaction_date_month']).sum()
+    avg_monthly_throughput = df['amount'].groupby(df['optimized_transaction_date_month']).apply(lambda x: x.mean())
     #CHECK VIABILITY OF SUCH VARIABLES
-    monthly_gain = self['amount'][self['transaction_base_type'] == 'credit'].groupby(self['transaction_date_month']).sum()
-    monthly_expenses = self['amount'][self['transaction_base_type'] == 'debit'].groupby(self['transaction_date_month']).sum()
+    monthly_gain = df['amount'][df['transaction_base_type'] == 'credit'].groupby(df['optimized_transaction_date_month']).sum()
+    monthly_expenses = df['amount'][df['transaction_base_type'] == 'debit'].groupby(df['optimized_transaction_date_month']).sum()
     #weekly figures
-    net_weekly_throughput = self['amount'].groupby(self['transaction_date_week']).sum()
-    avg_weekly_throughput = self['amount'].groupby(self['transaction_date_week']).mean()
+    net_weekly_throughput = df['amount'].groupby(df['optimized_transaction_date_week']).sum()
+    avg_weekly_throughput = df['amount'].groupby(df['optimized_transaction_date_week']).apply(lambda x: x.mean())
     #CHECK VIABILITY OF SUCH VARIABLES
-    weekly_gain = self['amount'][self['transaction_base_type'] == "credit"].groupby(self['transaction_date_week']).sum()
-    weekly_expenses = self['amount'][self['transaction_base_type'] == "debit"].groupby(self['transaction_date_week']).sum()
+    weekly_gain = df['amount'][df['transaction_base_type'] == "credit"].groupby(df['optimized_transaction_date_week']).sum()
+    weekly_expenses = df['amount'][df['transaction_base_type'] == "debit"].groupby(df['optimized_transaction_date_week']).sum()
     #daily figures
-    net_daily_spending = self['amount'].groupby(self['transaction_date_weekday']).sum()
-    avg_daily_spending = self['amount'].groupby(self['transaction_date_weekday']).mean()
+    net_daily_spending = df['amount'].groupby(df['optimized_transaction_date_weekday']).sum()
+    avg_daily_spending = df['amount'].groupby(df['optimized_transaction_date_weekday']).apply(lambda x: x.mean())
     #CHECK VIABILITY OF SUCH VARIABLES
-    daily_gain = self['amount'][self['transaction_base_type'] == "credit"].groupby(self['transaction_date_weekday']).sum()
-    daily_expenses = self['amount'][self['transaction_base_type'] == "debit"].groupby(self['transaction_date_weekday']).sum()
+    daily_gain = df['amount'][df['transaction_base_type'] == "credit"].groupby(df['optimized_transaction_date_weekday']).sum()
+    daily_expenses = df['amount'][df['transaction_base_type'] == "debit"].groupby(df['optimized_transaction_date_weekday']).sum()
 
     #report for users about their spending patterns, given in various intervals
     try:
         print(f"The total turnover on your account has been ${total_throughput}")
-        print("................................................................")
+        #print("................................................................")
         spending_metrics_monthly = pd.DataFrame(data = {'Average Monthly Spending':avg_monthly_throughput,
                                                         'Monthly Turnover':net_monthly_throughput,
                                                         'Monthly Inflow':monthly_gain,
-                                                        'MonthlyOutflow':monthly_expenses})
+                                                        'Monthly Outflow':monthly_expenses})
         #print(spending_metrics_monthly)
-        print(".................................................................")
+        #print(".................................................................")
         spending_metrics_weekly = pd.DataFrame(data = {'Average Weekly Spending':avg_weekly_throughput,
                                                        'Weekly Turnover':net_weekly_throughput,
                                                        'Weekly Inflow':weekly_gain,
                                                        'Weekly Outflow':weekly_expenses})
         #print(spending_metrics_weekly)
-        print(".................................................................")
+        #print(".................................................................")
         spending_metrics_daily = pd.DataFrame(data = {'Average Daily Spending':avg_daily_spending,
                                                       'Daily Turnover':net_daily_spending,
                                                       'Daily Inflow':daily_gain,
@@ -105,14 +104,14 @@ def spending_report(self):
     calculations are incorporating all users simultaneously!
     '''
     #local working directory
-    #raw = os.getcwd()
+    raw = os.getcwd()
     #folder when executed on the AWS instance
-    aws = os.mkdir('/injection')
+    #aws = os.mkdir('/injection')
     date_of_creation = dt.today().strftime('%m-%d-%Y_%Hh-%mmin')
 
-    csv_path_msp = os.path.abspath(os.path.join(aws, date_of_creation + '_MONTHLY_REPORT_ALL_USERS' + '.csv'))
-    csv_path_wsp = os.path.abspath(os.path.join(aws, date_of_creation + '_WEEKLY_REPORT_ALL_USERS' + '.csv'))
-    csv_path_dsp = os.path.abspath(os.path.join(aws, date_of_creation + '_DAILY_REPORT_ALL_USERS' + '.csv'))
+    csv_path_msp = os.path.abspath(os.path.join(raw, date_of_creation + '_MONTHLY_REPORT' + '.csv'))
+    csv_path_wsp = os.path.abspath(os.path.join(raw, date_of_creation + '_WEEKLY_REPORT' + '.csv'))
+    csv_path_dsp = os.path.abspath(os.path.join(raw, date_of_creation + '_DAILY_REPORT' + '.csv'))
 
     try:
         spending_metrics_monthly.to_csv(csv_path_msp)
@@ -129,7 +128,7 @@ def spending_report(self):
     return 'Spending report generated; CSV-file in current working directory.'
 
 #add this part at the end to make the module executable as script
-#takes arguments here (self)
+#takes arguments here (df)
 #
     if __name__ == "__main__":
         import sys

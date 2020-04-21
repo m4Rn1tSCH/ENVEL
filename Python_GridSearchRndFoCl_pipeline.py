@@ -73,7 +73,7 @@ pipe = Pipeline([
 
 #Create a parameter grid
 #parameter grids provide the values for the models to try
-#PARAMETERs NEED TO HAVE THE SAME LENGTH
+#PARAMETERS NEED TO HAVE THE SAME LENGTH
 params = {
    'feature_selection__k':[1, 2],
    'clf__n_estimators':[20, 50, 75, 150]}
