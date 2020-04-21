@@ -15,7 +15,7 @@ import pandas as pd
 pd.set_option('display.width', 1000)
 import numpy as np
 from datetime import datetime as dt
-#from flask import Flask
+from flask import Flask
 import os
 import csv
 import matplotlib.pyplot as plt
@@ -39,20 +39,21 @@ from Python_spending_report_csv_export_function import spending_report
 from Python_SQL_connection import execute_read_query, create_connection, close_connection
 #contains all credentials
 import PostgreSQL_credentials as acc
+#loads flask into the environment variables
 from flask_auto_setup import activate_flask
 #%%
 #set up flask first as environment variable and start with the command console
-activate_flask()
+#activate_flask()
     #CONNECTION TO FLASK/SQL
-app = Flask(__name__)
+#app = Flask(__name__)
 
 ##put address here
 #function can be bound to the script by adding a new URL
 #e.g. route('/start') would then start the entire function that follows
 #same can be split up
-@app.route('/start')
+#@app.route('/encode')
 
-def df_preprocessor(rng = 2):
+def df_preprocessor(rng = 4):
     '''
 
     Parameters
@@ -113,6 +114,7 @@ def df_preprocessor(rng = 2):
     except OperationalError as e:
             print(f"The error '{e}' occurred")
             connection.rollback
+
     #%%
     #Plot template
     # fig, ax = plt.subplots(2, 1, figsize = (25, 25))
@@ -430,14 +432,13 @@ def df_preprocessor(rng = 2):
         bank_df[f"{feature}_std_lag{t1}"] = bank_df_std_3d[feature]
         bank_df[f"{feature}_std_lag{t2}"] = bank_df_std_7d[feature]
         bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
-
-    #bank_df.set_index("transaction_date", drop = False, inplace = True)
-
     #%%
     #the first two rows of lagging values have NaNs which need to be dropped
     #drop the first and second row since the indicators refer to previous non-existant days
     bank_df = bank_df.drop([0, 1])
     bank_df.reset_index(drop = True, inplace = True)
+
+    return 'dataframe encoding complete'
 #%%
 #BUGGED
 #this squares the entire df and gets rid of non-negative values;
@@ -551,7 +552,7 @@ print('Selected features: %s' % list(X_train_minmax.columns[rfecv.support_]))
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = f_classif)),
+    ('feature_selection', SelectKBest(score_func = chi2)),
     ('clf', GradientBoostingClassifier(random_state = 42))])
 
 #Create a parameter grid
@@ -643,8 +644,8 @@ plt.plot(hist)
 plt.show()
 
 predictions = model.predict(features_validation, verbose=0)
-print('R2 score = ',r2_score(y_test, predictions), '/ 1.0')
-print('MSE score = ',mean_squared_error(y_validation_RF, predictions), '/ 0.0')
+print('R2 score = ', r2_score(y_test, predictions), '/ 1.0')
+print('MSE score = ', mean_squared_error(y_validation_RF, predictions), '/ 0.0')
 #######
 plt.plot(y_test.as_matrix()[0:50], '+', color ='blue', alpha=0.7)
 plt.plot(predictions[0:50], 'ro', color ='red', alpha=0.5)
