@@ -38,7 +38,7 @@ from keras.layers.core import Dense, Dropout, Activation
 
 #imported custom function
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
-from Python_spending_report_csv_export_function import spending_report
+from Python_spending_report_csv_function import spending_report
 #contains the connection script
 from Python_SQL_connection import execute_read_query, create_connection, close_connection
 #contains all credentials
