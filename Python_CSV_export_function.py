@@ -39,4 +39,4 @@ def csv_export(df):
 #
     if __name__ == "__main__":
         import sys
-        spending_report(int(sys.argv[1]))
+        csv_export(int(sys.argv[1]))

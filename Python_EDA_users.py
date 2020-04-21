@@ -41,6 +41,8 @@ from Python_SQL_connection import execute_read_query, create_connection, close_c
 import PostgreSQL_credentials as acc
 #loads flask into the environment variables
 from flask_auto_setup import activate_flask
+#csv export with optional append-mode
+from Python_CSV_export_function import csv_export
 #%%
 #set up flask first as environment variable and start with the command console
 #activate_flask()
@@ -114,7 +116,7 @@ def df_preprocessor(rng = 4):
     except OperationalError as e:
             print(f"The error '{e}' occurred")
             connection.rollback
-
+    csv_export(df=bank_df)
     #%%
     #Plot template
     # fig, ax = plt.subplots(2, 1, figsize = (25, 25))
@@ -437,7 +439,7 @@ def df_preprocessor(rng = 4):
     #drop the first and second row since the indicators refer to previous non-existant days
     bank_df = bank_df.drop([0, 1])
     bank_df.reset_index(drop = True, inplace = True)
-
+    csv_export(df=bank_df)
     return 'dataframe encoding complete'
 #%%
 #BUGGED
@@ -451,7 +453,7 @@ def df_preprocessor(rng = 4):
 ###################SPLITTING UP THE DATA###########################
 #drop target variable in feature df
 #all remaining columns will be the features
-bank_df = bank_df.drop(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id'], axis = 1)
+# bank_df = bank_df.drop(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id'], axis = 1)
 model_features = np.array(bank_df.drop(['primary_merchant_name'], axis = 1))
 model_label = np.array(bank_df['primary_merchant_name'])
 
