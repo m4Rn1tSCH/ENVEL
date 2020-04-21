@@ -449,207 +449,207 @@ def df_preprocessor(rng = 4):
 # for col in df_sqr:
 #     if df_sqr[col].dtype == 'int32' or df_sqr[col].dtype == 'float64':
 #         df_sqr[col].apply(lambda x: np.square(x))
-#%%
-###################SPLITTING UP THE DATA###########################
-#drop target variable in feature df
-#all remaining columns will be the features
+# #%%
+# ###################SPLITTING UP THE DATA###########################
+# #drop target variable in feature df
+# #all remaining columns will be the features
 # bank_df = bank_df.drop(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id'], axis = 1)
-model_features = np.array(bank_df.drop(['primary_merchant_name'], axis = 1))
-model_label = np.array(bank_df['primary_merchant_name'])
+# model_features = np.array(bank_df.drop(['primary_merchant_name'], axis = 1))
+# model_label = np.array(bank_df['primary_merchant_name'])
 
-X_train, X_test, y_train, y_test = train_test_split(model_features,
-                                                    model_label,
-                                                    shuffle = True,
-                                                    test_size = 0.3)
+# X_train, X_test, y_train, y_test = train_test_split(model_features,
+#                                                     model_label,
+#                                                     shuffle = True,
+#                                                     test_size = 0.3)
 
-#create a validation set from the training set
-print(f"Shape of the split training data set X_train:{X_train.shape}")
-print(f"Shape of the split training data set X_test: {X_test.shape}")
-print(f"Shape of the split training data set y_train: {y_train.shape}")
-print(f"Shape of the split training data set y_test: {y_test.shape}")
-#%%
-#BUGGED
-#STD SCALING - does not work yet
-#fit the scaler to the training data first
-#standard scaler works only with maximum 2 dimensions
-scaler_obj = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-X_train_scaled = scaler_obj.transform(X_train)
+# #create a validation set from the training set
+# print(f"Shape of the split training data set X_train:{X_train.shape}")
+# print(f"Shape of the split training data set X_test: {X_test.shape}")
+# print(f"Shape of the split training data set y_train: {y_train.shape}")
+# print(f"Shape of the split training data set y_test: {y_test.shape}")
+# #%%
+# #BUGGED
+# #STD SCALING - does not work yet
+# #fit the scaler to the training data first
+# #standard scaler works only with maximum 2 dimensions
+# scaler_obj = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
+# X_train_scaled = scaler_obj.transform(X_train)
 
-scaler_obj.mean_
-scaler_obj.scale_
-#transform data in the same way learned from the training data
-X_test_scaled = scaler_obj.transform(X_test)
-#%%
-#MINMAX SCALING - works with Select K Best
-min_max_scaler = MinMaxScaler()
-X_train_minmax = min_max_scaler.fit_transform(X_train)
+# scaler_obj.mean_
+# scaler_obj.scale_
+# #transform data in the same way learned from the training data
+# X_test_scaled = scaler_obj.transform(X_test)
+# #%%
+# #MINMAX SCALING - works with Select K Best
+# min_max_scaler = MinMaxScaler()
+# X_train_minmax = min_max_scaler.fit_transform(X_train)
 
-X_test_minmax = min_max_scaler.transform(X_test)
-min_max_scaler.scale_
-min_max_scaler.min_
-#%%
-#f_classif for regression
-#chi-sqr for classification but requires non-neg values
-####syntax of reshape(n_samples, n_features)
-#### value of -1 allows for adaptation to shape needed
-y_train_rs = np.array(y_train).reshape(-1, 1)
-X_train_scl_rs = np.array(X_train_scaled).reshape(-1, 1)
-X_test_scl_rs = np.array(X_test_scaled).reshape(-1, 1)
+# X_test_minmax = min_max_scaler.transform(X_test)
+# min_max_scaler.scale_
+# min_max_scaler.min_
+# #%%
+# #f_classif for regression
+# #chi-sqr for classification but requires non-neg values
+# ####syntax of reshape(n_samples, n_features)
+# #### value of -1 allows for adaptation to shape needed
+# y_train_rs = np.array(y_train).reshape(-1, 1)
+# X_train_scl_rs = np.array(X_train_scaled).reshape(-1, 1)
+# X_test_scl_rs = np.array(X_test_scaled).reshape(-1, 1)
 
-X_train_minmax_rs = X_train_minmax.reshape(-1, 1)
-X_test_minmax_rs = X_test_minmax.reshape(-1, 1)
-#%%
-#fed variables cannot have missing values
-'''
-takes unscaled numerical so far and minmax scaled arguments
-'''
-k_best = SelectKBest(score_func = f_classif, k = 10)
-k_best.fit(X_train_minmax, y_train)
-k_best.get_params()
+# X_train_minmax_rs = X_train_minmax.reshape(-1, 1)
+# X_test_minmax_rs = X_test_minmax.reshape(-1, 1)
+# #%%
+# #fed variables cannot have missing values
+# '''
+# takes unscaled numerical so far and minmax scaled arguments
+# '''
+# k_best = SelectKBest(score_func = f_classif, k = 10)
+# k_best.fit(X_train_minmax, y_train)
+# k_best.get_params()
 
-# isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
-# np.corrcoef(np.array(isCredit_num), amounts)
-#%%
-#BUGGED
-#pick feature columns to predict the label
-#y_train/test is the target label that is to be predicted
+# # isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
+# # np.corrcoef(np.array(isCredit_num), amounts)
+# #%%
+# #BUGGED
+# #pick feature columns to predict the label
+# #y_train/test is the target label that is to be predicted
 
-cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
-X_train = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
-y_train = bank_df['primary_merchant_name']
-X_test = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
-y_test = bank_df['primary_merchant_name']
+# cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
+# X_train = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
+# y_train = bank_df['primary_merchant_name']
+# X_test = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
+# y_test = bank_df['primary_merchant_name']
 
-#build a logistic regression and use recursive feature elimination to exclude trivial features
-log_reg = LogisticRegression()
-# create the RFE model and select the eight most striking attributes
-rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-rfe = rfe.fit(X_train_minmax, y_train)
-#selected attributes
-print('Selected features: %s' % list(X_train_minmax.columns[rfe.support_]))
-print(rfe.ranking_)
-#%%
-#BUGGED
-#Use the Cross-Validation function of the RFE modul
-#accuracy describes the number of correct classifications
-rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = None, scoring='accuracy')
-rfecv.fit(X_train_minmax, y_train)
+# #build a logistic regression and use recursive feature elimination to exclude trivial features
+# log_reg = LogisticRegression()
+# # create the RFE model and select the eight most striking attributes
+# rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+# rfe = rfe.fit(X_train_minmax, y_train)
+# #selected attributes
+# print('Selected features: %s' % list(X_train_minmax.columns[rfe.support_]))
+# print(rfe.ranking_)
+# #%%
+# #BUGGED
+# #Use the Cross-Validation function of the RFE modul
+# #accuracy describes the number of correct classifications
+# rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = None, scoring='accuracy')
+# rfecv.fit(X_train_minmax, y_train)
 
-print("Optimal number of features: %d" % rfecv.n_features_)
-print('Selected features: %s' % list(X_train_minmax.columns[rfecv.support_]))
+# print("Optimal number of features: %d" % rfecv.n_features_)
+# print('Selected features: %s' % list(X_train_minmax.columns[rfecv.support_]))
 
-#plot number of features VS. cross-validation scores
-# plt.figure(figsize = (10,6))
-# plt.xlabel("Number of features selected")
-# plt.ylabel("Cross validation score (nb of correct classifications)")
-# plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+# #plot number of features VS. cross-validation scores
+# # plt.figure(figsize = (10,6))
+# # plt.xlabel("Number of features selected")
+# # plt.ylabel("Cross validation score (nb of correct classifications)")
+# # plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+# # plt.show()
+# #%%
+# #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
+# #funtion of Select K Best is here f_classifier; determines features based on the f-values between features & labels
+# #other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
+
+
+
+# #Create pipeline with feature selector and classifier
+# #replace with gradient boosted at this point or regressor
+# pipe = Pipeline([
+#     ('feature_selection', SelectKBest(score_func = chi2)),
+#     ('clf', GradientBoostingClassifier(random_state = 42))])
+
+# #Create a parameter grid
+# #parameter grids provide the values for the models to try
+# #PARAMETERs NEED TO HAVE THE SAME LENGTH
+# params = {
+#     'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
+#     'clf__n_estimators':[15, 25, 50, 75, 120, 200, 350]}
+
+# #Initialize the grid search object
+# grid_search = GridSearchCV(pipe, param_grid = params)
+
+# #Fit it to the data and print the best value combination
+# print(grid_search.fit(X_train, y_train).best_params_)
+# #%%
+# '''
+#                 APPLICATION OF SKLEARN NEURAL NETWORK
+# works with minmax scaled version and  has very little accuracy depsite having 1000 layers
+# Training set accuracy: 0.002171552660152009; Test set accuracy: 0.0
+# '''
+# #adam: all-round solver for data
+# #hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
+# #match with input features
+# #alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
+# MLP = MLPClassifier(hidden_layer_sizes = 1000, solver='adam', alpha=0.001 )
+# MLP.fit(X_train_minmax, y_train)
+# y_val = MLP.predict(X_test)
+# #y_val.reshape(-1, 1)
+# print(f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}")
+# #%%
+# from sklearn.metrics import r2_score
+# from sklearn.metrics import mean_squared_error
+# #y_val = y_pred as the split is still unfisnished
+# print('R2 score = ', r2_score(y_val, y_test), '/ 1.0')
+# print('MSE score = ', mean_squared_error(y_val, y_test), '/ 0.0')
+# #%%
+# '''
+#                         APPLICATION OF KERAS
+# '''
+# #features: X
+# #target: Y
+# import keras
+# features = np.array(X_train_scaled)
+# targets = np.array(y_train)
+# features_validation = np.array(X_test_scaled)
+# targets_validation = np.array(y_test)
+
+# print(features[:10])
+# print(targets[:10])
+# ####
+# #%%
+# from keras.models import Sequential
+# from keras.layers.core import Dense, Dropout, Activation
+
+# #building the model
+# model = Sequential()
+# model.add(Dense(32, activation='relu', input_shape=(X_train.shape[1],)))
+# model.add(Dropout(.2))
+# model.add(Dense(16, activation='relu'))
+# model.add(Dropout(.1))
+# model.add(Dense(1))
+
+# #compiling the model
+# model.compile(loss = 'mse', optimizer='adam', metrics=['mse']) #mse: mean_square_error
+# model.summary()
+# #%%
+
+# #training of the model
+# epochs_total = 1000
+# epochs_step = 250
+# epochs_ratio = int(epochs_total / epochs_step)
+# hist = np.array([])
+# #######
+# #building the epochs
+# for i in range(epochs_ratio):
+#     history = model.fit(features, targets, epochs=epochs_step, batch_size=100, verbose=0)
+
+#     #evaluating the model on the training and testing set
+#     print("Step : " , i * epochs_step, "/", epochs_total)
+#     score = model.evaluate(features, targets)
+#     print("Training MSE:", score[1])
+#     score = model.evaluate(features_validation, targets_validation)
+#     print("Validation MSE:", score[1], "\n")
+#     hist = np.concatenate((hist, np.array(history.history['mean_squared_error'])), axis = 0)
+# #%%
+
+# #plot metrics
+# plt.plot(hist)
 # plt.show()
-#%%
-#SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
-#funtion of Select K Best is here f_classifier; determines features based on the f-values between features & labels
-#other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
 
-
-
-#Create pipeline with feature selector and classifier
-#replace with gradient boosted at this point or regressor
-pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = chi2)),
-    ('clf', GradientBoostingClassifier(random_state = 42))])
-
-#Create a parameter grid
-#parameter grids provide the values for the models to try
-#PARAMETERs NEED TO HAVE THE SAME LENGTH
-params = {
-    'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
-    'clf__n_estimators':[15, 25, 50, 75, 120, 200, 350]}
-
-#Initialize the grid search object
-grid_search = GridSearchCV(pipe, param_grid = params)
-
-#Fit it to the data and print the best value combination
-print(grid_search.fit(X_train, y_train).best_params_)
-#%%
-'''
-                APPLICATION OF SKLEARN NEURAL NETWORK
-works with minmax scaled version and  has very little accuracy depsite having 1000 layers
-Training set accuracy: 0.002171552660152009; Test set accuracy: 0.0
-'''
-#adam: all-round solver for data
-#hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
-#match with input features
-#alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
-MLP = MLPClassifier(hidden_layer_sizes = 1000, solver='adam', alpha=0.001 )
-MLP.fit(X_train_minmax, y_train)
-y_val = MLP.predict(X_test)
-#y_val.reshape(-1, 1)
-print(f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}")
-#%%
-from sklearn.metrics import r2_score
-from sklearn.metrics import mean_squared_error
-#y_val = y_pred as the split is still unfisnished
-print('R2 score = ', r2_score(y_val, y_test), '/ 1.0')
-print('MSE score = ', mean_squared_error(y_val, y_test), '/ 0.0')
-#%%
-'''
-                        APPLICATION OF KERAS
-'''
-#features: X
-#target: Y
-import keras
-features = np.array(X_train_scaled)
-targets = np.array(y_train)
-features_validation = np.array(X_test_scaled)
-targets_validation = np.array(y_test)
-
-print(features[:10])
-print(targets[:10])
-####
-#%%
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation
-
-#building the model
-model = Sequential()
-model.add(Dense(32, activation='relu', input_shape=(X_train.shape[1],)))
-model.add(Dropout(.2))
-model.add(Dense(16, activation='relu'))
-model.add(Dropout(.1))
-model.add(Dense(1))
-
-#compiling the model
-model.compile(loss = 'mse', optimizer='adam', metrics=['mse']) #mse: mean_square_error
-model.summary()
-#%%
-
-#training of the model
-epochs_total = 1000
-epochs_step = 250
-epochs_ratio = int(epochs_total / epochs_step)
-hist = np.array([])
-#######
-#building the epochs
-for i in range(epochs_ratio):
-    history = model.fit(features, targets, epochs=epochs_step, batch_size=100, verbose=0)
-
-    #evaluating the model on the training and testing set
-    print("Step : " , i * epochs_step, "/", epochs_total)
-    score = model.evaluate(features, targets)
-    print("Training MSE:", score[1])
-    score = model.evaluate(features_validation, targets_validation)
-    print("Validation MSE:", score[1], "\n")
-    hist = np.concatenate((hist, np.array(history.history['mean_squared_error'])), axis = 0)
-#%%
-
-#plot metrics
-plt.plot(hist)
-plt.show()
-
-predictions = model.predict(features_validation, verbose=0)
-print('R2 score = ', r2_score(y_test, predictions), '/ 1.0')
-print('MSE score = ', mean_squared_error(y_validation_RF, predictions), '/ 0.0')
-#######
-plt.plot(y_test.as_matrix()[0:50], '+', color ='blue', alpha=0.7)
-plt.plot(predictions[0:50], 'ro', color ='red', alpha=0.5)
-plt.show()
+# predictions = model.predict(features_validation, verbose=0)
+# print('R2 score = ', r2_score(y_test, predictions), '/ 1.0')
+# print('MSE score = ', mean_squared_error(y_validation_RF, predictions), '/ 0.0')
+# #######
+# plt.plot(y_test.as_matrix()[0:50], '+', color ='blue', alpha=0.7)
+# plt.plot(predictions[0:50], 'ro', color ='red', alpha=0.5)
+# plt.show()
 #%%

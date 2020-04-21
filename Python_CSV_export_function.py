@@ -6,6 +6,7 @@ Created on Tue Apr 21 10:22:31 2020
 """
 
 #required packages
+import os
 import pandas as pd
 from datetime import datetime as dt
 
