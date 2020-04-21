@@ -440,7 +440,7 @@ def df_preprocessor(rng = 4):
     bank_df = bank_df.drop([0, 1])
     bank_df.reset_index(drop = True, inplace = True)
     csv_export(df=bank_df)
-    return 'dataframe encoding complete'
+    return 'dataframe encoding complete; CSVs are located in the working directory'
 #%%
 #BUGGED
 #this squares the entire df and gets rid of non-negative values;
