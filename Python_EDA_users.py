@@ -31,6 +31,7 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
+from sklearn.decomposition import PCA
 
 import keras
 from keras.models import Sequential
@@ -484,6 +485,16 @@ X_test_minmax = min_max_scaler.transform(X_test)
 min_max_scaler.scale_
 min_max_scaler.min_
 #%%
+#PASS TO PRINCIPAL COMPONENT ANALYSIS
+#keep the most important features of the data
+pca = PCA(n_components = int(len(bank_df.columns) / 2))
+#fit PCA model to breast cancer data
+pca.fit(X_train_scaled)
+#transform data onto the first two principal components
+X_pca = pca.transform(X_train_scaled)
+print("Original shape: {}".format(str(X_train_scaled.shape)))
+print("Reduced shape: {}".format(str(X_pca.shape)))
+#%%
 #f_classif for regression
 #chi-sqr for classification but requires non-neg values
 ####syntax of reshape(n_samples, n_features)
@@ -567,19 +578,40 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 print(grid_search.fit(X_train, y_train).best_params_)
 #%%
 '''
+Random Forest Classifier
+'''
+
+#%%
+'''
+K Nearest Neighbor
+'''
+
+#%%
+'''
+Use the random forest regressor algorithm to predict labels; DO NOT USE SCALED VARIABLES HERE
+The number of splits for each tree level is equal to half the number of columns; that way overfitting is dampened and test remains fast
+Test 4/22/2020: val_accuracy: 1.0 -> overfitted
+'''
+RFR = RandomForestRegressor(n_estimators = 75, max_depth = len(bank_df.columns)/2, min_samples_split = 4)
+RFR.fit(X_train, y_train)
+y_pred = RFR.predict(X_test)
+f"TESTINFO Rnd F Reg: [{dt.today()}]--[Parameters: n_estimators:{RFR.n_estimators}, max_depth:{RFR.max_depth}, min_samples_split:{RFR.min_samples_split}]--Training set accuracy: {RFR.score(X_train, y_train)}; Test set accuracy: {RFR.score(X_test, y_test)}; Test set validation: {RFR.score(X_test, y_pred)}"
+#%%
+'''
                 APPLICATION OF SKLEARN NEURAL NETWORK
 works with minmax scaled version and  has very little accuracy depsite having 1000 layers
-Training set accuracy: 0.002171552660152009; Test set accuracy: 0.0
+Test; [1000l;alpha=0.001] [2020-04-22 00:00]; Training set accuracy: 0.002171552660152009; Test set accuracy: 0.0
+Test; [1500l; alpha=0.0001] [2020-04-22 14:16:43.290096]; Training set accuracy: 0.3517915309446254; Test set accuracy: 0.3468354430379747
 '''
 #adam: all-round solver for data
 #hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
 #match with input features
 #alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
-MLP = MLPClassifier(hidden_layer_sizes = 1000, solver='adam', alpha=0.001 )
-MLP.fit(X_train_minmax, y_train)
+MLP = MLPClassifier(hidden_layer_sizes = 1500, solver='adam', alpha=0.0001 )
+MLP.fit(X_train, y_train)
 y_val = MLP.predict(X_test)
 #y_val.reshape(-1, 1)
-print(f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}")
+print(f"TESTINFO MLP: [{dt.today()}]--[Parameters: hidden layers:{MLP.hidden_layer_sizes}, alpha:{MLP.alpha}]--Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}")
 #%%
 
 #y_val = y_pred as the split is still unfisnished

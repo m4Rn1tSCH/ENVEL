@@ -183,7 +183,7 @@ X_scaled_d = scaler.fit_transform(X)
 #PASS TO PRINCIPAL COMPONENT ANALYSIS
 from sklearn.decomposition import PCA
 #keep the most important features of the data
-#in this case; keep all columns that have not been picked by  the algorithm
+#in this case; keep all columns that have not been picked by the algorithm
 pca = PCA(n_components = int(len(df.columns) - 1))
 #fit PCA model to breast cancer data
 pca.fit(X_scaled)
