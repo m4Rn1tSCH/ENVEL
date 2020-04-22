@@ -23,14 +23,14 @@ def csv_export(df, file_name):
     #aws = os.mkdir('/injection')
     date_of_creation = dt.today().strftime('%m-%d-%Y_%Hh-%mmin')
 
-    csv_path = os.path.abspath(os.path.join(raw, date_of_creation + file_name + '_REPORT' + '.csv'))
+    csv_path = os.path.abspath(os.path.join(raw, date_of_creation + '_' + file_name + '_REPORT' + '.csv'))
 
     try:
         df.to_csv(csv_path)
     except FileExistsError as exc:
         print(exc)
         print("existing file will be appended instead...")
-        csv_path = os.path.abspath(os.path.join(raw, date_of_creation + file_name + '_REPORT' + '.csv'))
+        csv_path = os.path.abspath(os.path.join(raw, date_of_creation + '_' + file_name + '_REPORT' + '.csv'))
         df.to_csv(csv_path, mode = 'a', header = False)
 
 #close the function with return xx to avoid error 500 when querying the URL and have a message showing up instead
