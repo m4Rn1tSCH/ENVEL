@@ -27,7 +27,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.feature_selection import RFE, RFECV
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import GridSearchCV, train_test_split
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier, RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
@@ -580,12 +581,19 @@ print(grid_search.fit(X_train, y_train).best_params_)
 '''
 Random Forest Classifier
 '''
-
+RFC = RandomForestClassifier(n_estimators = 20, max_depth = len(bank_df.columns) /2, random_state = 7)
+RFC.fit(X_train, y_train)
+y_pred = RFC.predict(X_test)
+RFC_probability = RFC.predict_proba(X_test)
+print(f"TESTINFO Rnd F Cl: [{dt.today()}]--[Parameters: n_estimators:{RFC.n_estimators}, max_depth:{RFC.max_depth}, random state:{RFC.random_state}]--Training set accuracy: {RFC.score(X_train, y_train)}; Test set accuracy: {RFC.score(X_test, y_test)}; Test set validation: {RFC.score(X_test, y_pred)}")
 #%%
 '''
 K Nearest Neighbor
 '''
-
+KNN = KNeighborsClassifier(n_neighbors = 8, weights = 'uniform',)
+KNN.fit(X_train, y_train)
+y_pred = KNN.predict(X_test)
+print(f"TESTINFO KNN: [{dt.today()}]--[Parameters: n_neighbors:{KNN.n_neighbors}, weights:{KNN.weights}]--Training set accuracy: {KNN.score(X_train, y_train)}; Test set accuracy: {KNN.score(X_test, y_test)}; Test set validation: {KNN.score(X_test, y_pred)}")
 #%%
 '''
 Use the random forest regressor algorithm to predict labels; DO NOT USE SCALED VARIABLES HERE
@@ -595,7 +603,7 @@ Test 4/22/2020: val_accuracy: 1.0 -> overfitted
 RFR = RandomForestRegressor(n_estimators = 75, max_depth = len(bank_df.columns)/2, min_samples_split = 4)
 RFR.fit(X_train, y_train)
 y_pred = RFR.predict(X_test)
-f"TESTINFO Rnd F Reg: [{dt.today()}]--[Parameters: n_estimators:{RFR.n_estimators}, max_depth:{RFR.max_depth}, min_samples_split:{RFR.min_samples_split}]--Training set accuracy: {RFR.score(X_train, y_train)}; Test set accuracy: {RFR.score(X_test, y_test)}; Test set validation: {RFR.score(X_test, y_pred)}"
+print(f"TESTINFO Rnd F Reg: [{dt.today()}]--[Parameters: n_estimators:{RFR.n_estimators}, max_depth:{RFR.max_depth}, min_samples_split:{RFR.min_samples_split}]--Training set accuracy: {RFR.score(X_train, y_train)}; Test set accuracy: {RFR.score(X_test, y_test)}; Test set validation: {RFR.score(X_test, y_pred)}")
 #%%
 '''
                 APPLICATION OF SKLEARN NEURAL NETWORK
@@ -675,3 +683,251 @@ print('MSE score = ', mean_squared_error(y_validation_RF, predictions), '/ 0.0')
 plt.plot(y_test.as_matrix()[0:50], '+', color ='blue', alpha=0.7)
 plt.plot(predictions[0:50], 'ro', color ='red', alpha=0.5)
 plt.show()
+#%%
+'''
+                    APPLICATION OF TENSORFLOW
+'''
+#future needs to be run first
+#eager execution needs to be run right after the TF instantiation to avoid errors
+from __future__ import absolute_import, division, print_function, unicode_literals
+import functools
+
+import tensorflow as tf
+tf.compat.v1.enable_eager_execution()
+from tensorflow import feature_column
+from tensorflow.keras import layers
+#%%
+#custom train test split
+train, test = train_test_split(df, test_size = 0.2)
+train, val = train_test_split(train, test_size = 0.2)
+print(len(train), 'train examples')
+print(len(val), 'validation examples')
+print(len(test), 'test examples')
+#%%
+#create tuples for lists to organize the columns conversion
+##Tuple (or list) for the bank list to refer to the length
+#banks = list('Bank of America','Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
+#      'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
+#      'State Street Corporation','MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
+#      'New York Community Bank', 'CIT Group', 'Santander Bank',
+#      'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank')
+
+#trans_type = list('CorePro Deposit', 'CorePro Withdrawal', 'Internal CorePro Transfer',
+#                   'Interest Paid', 'CorePro Recurring Withdrawal',
+#                   'Manual Adjustment', 'Interest Adjustment')
+
+##STEP 1
+'''
+attempt 12/12/ ; 48%-51% accuracy to predict student with features: TYPECODE + AMOUNT + RETURNCODE + CS_FICO_NUM + AGE + CROSSED(CS_FICO;AGE)
+attempt_2 12/12/ ; 49%-50% accuracy to predict student with features: TYPECODE + FEE_CODE + AMOUNT + RETURNCODE + INSTITUTION_NAMES + CS_FICO_NUM + AGE + CROSSED(CS_FICO;AGE)
+'''
+#feature columns to use in the layers
+feature_columns_container = []
+
+#numeric column needed in the model
+#wrap all non-numerical columns with indicator col or embedding col
+######IN V2 STATUS IS NUMERICAL; THATS WHY IT WILL THROW "CAST STRING TO FLOAT IS NOT SUPPORTED" ERROR######
+#the argument default_value governs out of vocabulary values and how to replace them
+
+for header in ['typeCode', 'amount', 'returnCode', 'CS_FICO_num']:
+  feature_columns_container.append(feature_column.numeric_column(header))
+
+#bucketized column
+
+#categorical column with vocabulary list
+#type_col = feature_column.categorical_column_with_vocabulary_list(
+#        'type', ['CorePro Deposit',
+#                 'CorePro Withdrawal',
+#                 'Internal CorePro Transfer',
+#                 'Interest Paid',
+#                 'CorePro Recurring Withdrawal',
+#                 'Manual Adjustment',
+#                 'Interest Adjustment'])
+#type_pos = feature_column.indicator_column(type_col)
+#type_pos_2 = feature_column.embedding_column(type_col, dimension = 8)
+#feature_columns_container.append(type_pos)
+#feature_columns_container.append(type_pos_2)
+
+#idea: words or fragments are a bucket and can be used to recognize recurring bills
+#friendly_desc = feature_column.categorical_column_with_hash_bucket(
+#        'friendlyDescription', hash_bucket_size = 2500)
+#fr_desc_pos = feature_column.embedding_column(friendly_desc, dimension = 250)
+#feature_columns_container.append(fr_desc_pos)
+
+#created_date = feature_column.categorical_column_with_hash_bucket(
+#        'createdDate', hash_bucket_size = 365)
+#set the indicator column
+#cr_d_pos = feature_column.indicator_column(created_date)
+#feature_columns_container.append(cr_d_pos)
+
+#entry = feature_column.categorical_column_with_vocabulary_list(
+#        'isCredit', ['Y', 'N'])
+#set the embedding column
+#entry_pos = feature_column.embedding_column(entry, dimension = 3)
+#feature_columns_container.append(entry_pos)
+
+#ret_c = feature_column.categorical_column_with_vocabulary_list(
+#        'returnCode', ['RGD', 'RTN', 'NSF'])
+
+fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
+                                                             ['RGD',
+                                                              'RTN',
+                                                              'NSF'])
+#set the embedding column
+fee_pos = feature_column.embedding_column(fee, dimension = 3)
+feature_columns_container.append(fee_pos)
+
+#check = feature_column.categorical_column_with_vocabulary_list('check',
+#                                                               ['Y', 'N'])
+#set the indicator column
+#check_pos = feature_column.embedding_column(check, dimension = 2)
+#feature_columns_container.append(check_pos)
+
+#acc_bal = feature_column.categorical_column_with_vocabulary_list('account_balance',
+#                                                                 ['u100',
+#                                                                  'o100u1000',
+#                                                                  'o1000u10000',
+#                                                                  'o10000'])
+#set the indicator value
+#acc_bal_pos = feature_column.embedding_column(acc_bal, dimension = 10)
+#feature_columns_container.append(acc_bal_pos)
+
+
+age = feature_column.bucketized_column(feature_column.numeric_column('Age'),
+                                       boundaries = [18, 20, 22, 26, 31, 35])
+feature_columns_container.append(age)
+
+
+#cs_internal = feature_column.categorical_column_with_vocabulary_list('CS_internal',
+#                                                                       ['Poor',
+#                                                                        'Average',
+#                                                                        'Excellent'])
+#set the indicator value
+#cs_positive = feature_column.embedding_column(cs_internal)
+#feature_columns_container.append(cs_positive)
+
+#FICO 700 is the initial score and also the average in the US
+#The CS_FICO_num column is in this version converted to a bucketized column
+#instead of passing it to the feature_column_container
+#columns remains bucketized without wrapping to embedded or indicator
+fico_num = feature_column.bucketized_column(feature_column.numeric_column('CS_FICO_num'),
+                                                boundaries = [300,
+                                                              580,
+                                                              670,
+                                                              700,
+                                                              740,
+                                                              800,
+                                                              850])
+feature_columns_container.append(fico_num)
+
+
+institutions = feature_column.categorical_column_with_vocabulary_list(
+        'institutionName', [
+            'Bank of America', 'Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
+            'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
+            'State Street Corporation', 'MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
+            'New York Community Bank', 'CIT Group', 'Santander Bank',
+            'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank'
+            ])
+institutions_pos = feature_column.indicator_column(institutions)
+feature_columns_container.append(institutions_pos)
+
+crossed_feat = feature_column.crossed_column([age, fico_num], hash_bucket_size = 1000)
+crossed_feat = feature_column.indicator_column(crossed_feat)
+feature_columns_container.append(crossed_feat)
+
+###########EXAMPLES#######
+#numeric column
+#age = feature_column.numeric_column("age")
+
+#categorical column with vocabulary list
+#thal = feature_column.categorical_column_with_vocabulary_list(
+#      'thal', ['fixed', 'normal', 'reversible'])
+
+#bucketized column
+#age_buckets = feature_column.bucketized_column(
+#   age, boundaries=[18, 25, 30, 35, 40, 45, 50, 55, 60, 65])
+
+#embedding column
+#feature_column.embedding_column(thal, dimension=8)
+#feature_columns_container.append(age_buckets)
+
+#hashed feature column
+#feature_column.categorical_column_with_hash_bucket(
+#      'thal', hash_bucket_size=1000)
+#feature_columns_container.append(age_buckets)
+
+#crossed feature column
+#feature_column.crossed_column([age_buckets, thal], hash_bucket_size=1000)
+#feature_columns_container.append(age_buckets)
+
+#indicator column (like bucketized but with one vital string that is marked a "1")
+#also used as a wrapper for categorical columns to ensure wokring feature_layers
+##########################
+#%%
+# A utility method to create a tf.data dataset from a Pandas Dataframe
+def df_to_dataset(dataframe, shuffle = True, batch_size = 150):
+  dataframe = dataframe.copy()
+  labels = dataframe.pop('Student')
+  ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
+  if shuffle:
+    ds = ds.shuffle(buffer_size = len(dataframe))
+  ds = ds.batch(batch_size)
+  return ds
+######OVERHAUL NEEDED HERE#####
+#def make_input_fn(df):
+#  def pandas_to_tf(pdcol):
+    # convert the pandas column values to float
+#    t = tf.constant(pdcol.astype('float32').values)
+    # take the column which is of shape (N) and make it (N, 1)
+#    return tf.expand_dims(t, -1)
+
+#  def input_fn():
+    # create features, columns
+#    features = {k: pandas_to_tf(df[k]) for k in FEATURES}
+#    labels = tf.constant(df[TARGET].values)
+#    return features, labels
+#  return input_fn
+
+#def make_feature_cols():
+#  input_columns = [tf.contrib.layers.real_valued_column(k) for k in FEATURES]
+#  return input_columns
+##################################
+#%%
+##STEP 2
+#create layers
+feature_layer = tf.keras.layers.DenseFeatures(feature_columns_container)
+#print(feature_layer)
+#%%
+#STEP 3
+batch_size = 250
+train_ds = df_to_dataset(train, batch_size=batch_size)
+val_ds = df_to_dataset(val, shuffle = True, batch_size = batch_size)
+test_ds = df_to_dataset(test, shuffle = True, batch_size = batch_size)
+#%%
+#STEP 4
+model = tf.keras.Sequential([
+  feature_layer,
+  layers.Dense(units = 256, activation = 'relu'),
+  layers.Dense(units = 256, activation = 'relu'),
+  layers.Dense(units = 256, activation = 'relu'),
+  layers.Dense(units = 1, activation = 'sigmoid')
+])
+#%%
+##STEP 5
+model.compile(optimizer = 'Adam',
+              loss = 'binary_crossentropy',
+              metrics = ['accuracy'])
+
+model.fit(train_ds,
+          validation_data = val_ds,
+          epochs=2)
+#%%
+##STEP 6
+# Check accuracy
+loss, accuracy = model.evaluate(test_ds)
+print("Accuracy:", accuracy)
+
+##STEP 7
+# Infer labels on a batch
+predictions = model.predict(test_ds)
