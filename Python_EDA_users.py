@@ -452,8 +452,8 @@ def df_encoder(rng = 4):
 #drop target variable in feature df
 #all remaining columns will be the features
 bank_df = bank_df.drop(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id'], axis = 1)
-model_features = np.array(bank_df.drop(['primary_merchant_name'], axis = 1))
-model_label = np.array(bank_df['primary_merchant_name'])
+model_features = bank_df.drop(['primary_merchant_name'], axis = 1)
+model_label = bank_df['primary_merchant_name']
 
 X_train, X_test, y_train, y_test = train_test_split(model_features,
                                                     model_label,
@@ -473,8 +473,8 @@ print(f"Shape of the split training data set y_test: {y_test.shape}")
 scaler_obj = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
 X_train_scaled = scaler_obj.transform(X_train)
 
-scaler_obj.mean_
-scaler_obj.scale_
+scaler_mean = scaler_obj.mean_
+stadard_scale = scaler_obj.scale_
 #transform data in the same way learned from the training data
 X_test_scaled = scaler_obj.transform(X_test)
 #%%
@@ -483,18 +483,21 @@ min_max_scaler = MinMaxScaler()
 X_train_minmax = min_max_scaler.fit_transform(X_train)
 
 X_test_minmax = min_max_scaler.transform(X_test)
-min_max_scaler.scale_
-min_max_scaler.min_
+minmax_scale = min_max_scaler.scale_
+min_max_minimum = min_max_scaler.min_
 #%%
 #PASS TO PRINCIPAL COMPONENT ANALYSIS
+#first scale
+#then reduce
 #keep the most important features of the data
 pca = PCA(n_components = int(len(bank_df.columns) / 2))
 #fit PCA model to breast cancer data
 pca.fit(X_train_scaled)
 #transform data onto the first two principal components
-X_pca = pca.transform(X_train_scaled)
+X_train_pca = pca.transform(X_train_scaled)
+X_test_pca = pca.transform(X_test_scaled)
 print("Original shape: {}".format(str(X_train_scaled.shape)))
-print("Reduced shape: {}".format(str(X_pca.shape)))
+print("Reduced shape: {}".format(str(X_train_pca.shape)))
 #%%
 #f_classif for regression
 #chi-sqr for classification but requires non-neg values
@@ -518,40 +521,43 @@ k_best.get_params()
 # isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
 # np.corrcoef(np.array(isCredit_num), amounts)
 #%%
-#BUGGED
+#WORKS WITH UNSCALED DATA
 #pick feature columns to predict the label
-#y_train/test is the target label that is to be predicted
+#TEST_RESULTS 4/23/2020 - all unscaled
+#Selected features: ['amount', 'description', 'post_date', 'file_created_date',
+#'optimized_transaction_date', 'panel_file_created_date', 'account_score', 'amount_std_lag3']
 
-cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
-X_train = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
-y_train = bank_df['primary_merchant_name']
-X_test = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
-y_test = bank_df['primary_merchant_name']
+#cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
+#X_train = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
+#y_train = bank_df['primary_merchant_name']
+#X_test = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
+#y_test = bank_df['primary_merchant_name']
 
 #build a logistic regression and use recursive feature elimination to exclude trivial features
-log_reg = LogisticRegression()
-# create the RFE model and select the eight most striking attributes
+log_reg = LogisticRegression(C = 1.0, max_iter = 400)
+# create the RFE model and select most striking attributes
 rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-rfe = rfe.fit(X_train_minmax, y_train)
+rfe = rfe.fit(X_train, y_train)
 #selected attributes
-print('Selected features: %s' % list(X_train_minmax.columns[rfe.support_]))
+print('Selected features: %s' % list(X_train.columns[rfe.support_]))
 print(rfe.ranking_)
+#log_reg_param = rfe.set_params(C = 0.01, max_iter = 200, tol = 0.001)
 #%%
 #BUGGED
 #Use the Cross-Validation function of the RFE modul
 #accuracy describes the number of correct classifications
-rfecv = RFECV(estimator = LogisticRegression(), step = 1, cv = None, scoring='accuracy')
-rfecv.fit(X_train_minmax, y_train)
+rfecv = RFECV(estimator = LogisticRegression(max_iter = 400), step = 1, cv = None, scoring='accuracy')
+rfecv.fit(X_train, y_train)
 
 print("Optimal number of features: %d" % rfecv.n_features_)
-print('Selected features: %s' % list(X_train_minmax.columns[rfecv.support_]))
+print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
 
 #plot number of features VS. cross-validation scores
-# plt.figure(figsize = (10,6))
-# plt.xlabel("Number of features selected")
-# plt.ylabel("Cross validation score (nb of correct classifications)")
-# plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-# plt.show()
+plt.figure(figsize = (10,6))
+plt.xlabel("Number of features selected")
+plt.ylabel("Cross validation score (nb of correct classifications)")
+plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+plt.show()
 #%%
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #funtion of Select K Best is here f_classifier; determines features based on the f-values between features & labels
