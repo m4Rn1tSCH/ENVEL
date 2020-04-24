@@ -571,7 +571,7 @@ SGDReg
         general.
     Optimal number of features: 9
     Selected features: ['amount', 'description', 'post_date', 'file_created_date', 'optimized_transaction_date', 'panel_file_created_date', 'account_score', 'amount_std_lag7', 'amount_std_lag30']
-    Max Error -picks all features
+    Max Error -picks all features - BUT HAS GOOD CV SCORE
     Neg Mean Squared Error - picks only one feat
     Homogeneity Score
     Optimal number of features: 9
@@ -612,7 +612,7 @@ rfecv = RFECV(estimator = est_logreg,
 #cross_calidation determines if clustering scorers can be used or regression based!
 #needs to be aligned with estimator
               cv = None,
-              scoring = 'f1')
+              scoring = 'completeness_score')
 rfecv.fit(X_train, y_train)
 
 print("Optimal number of features: %d" % rfecv.n_features_)
