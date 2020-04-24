@@ -394,7 +394,7 @@ def df_encoder(rng = 4):
     #%%
     '''
     IMPORTANT
-    The lagging features produce NaN for the very first rows due to unavailability
+    The lagging features produce NaN for the first two rows due to unavailability
     of values
     NaNs need to be dropped to make scaling and selection of features working
     '''
@@ -514,11 +514,11 @@ X_test_minmax_rs = X_test_minmax.reshape(-1, 1)
 takes unscaled numerical so far and minmax scaled arguments
 '''
 k_best = SelectKBest(score_func = f_classif, k = 10)
-k_best.fit(X_train_minmax, y_train)
+k_best.fit(X_train_scaled, y_train)
 k_best.get_params()
 
-# isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
-# np.corrcoef(np.array(isCredit_num), amounts)
+#isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
+#np.corrcoef(np.array(isCredit_num), amounts)
 #%%
 #WORKS WITH UNSCALED DATA
 #pick feature columns to predict the label
