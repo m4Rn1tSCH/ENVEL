@@ -584,7 +584,7 @@ est_logreg = LogisticRegression(max_iter = 2000)
 #SGD REGRESSOR
 est_sgd = SGDRegressor(loss='squared_loss',
                             penalty='l1',
-                            alpha=0.01,
+                            alpha=0.001,
                             l1_ratio=0.15,
                             fit_intercept=True,
                             max_iter=1000,
@@ -626,11 +626,120 @@ plt.ylabel("Cross validation score (nb of correct classifications)")
 plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
 plt.show()
 #%%
+'''
+            Setting up a pipeline
+'''
+#WORKS
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #F_CLASSIFIER;FOR CLASSIFICATION TASKS determines features based on the f-values between features & labels;
 #Chi2: for regression tasks; requires non-neg values
 #other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
 
+#Create pipeline with feature selector and regressor
+#replace with gradient boosted at this point or regressor
+pipe = Pipeline([
+    ('feature_selection', SelectKBest(score_func = f_classif)),
+    ('reg', LogisticRegression(C = 1.0, random_state = 42))])
+
+#Create a parameter grid
+#parameter grids provide the values for the models to try
+#PARAMETERs NEED TO HAVE THE SAME LENGTH
+params = {
+    'feature_selection__k':[5, 6, 7],
+    'reg__max_iter':[800, 1000, 1500]}
+
+#Initialize the grid search object
+grid_search = GridSearchCV(pipe, param_grid = params)
+
+#best combination of feature selector and the regressor
+grid_search.best_params_
+#best score
+grid_search.best_score_
+
+#Fit it to the data and print the best value combination
+print(grid_search.fit(X_train, y_train).best_params_)
+#%%
+#WORKS
+#Create pipeline with feature selector and regressor
+#replace with gradient boosted at this point or regressor
+pipe = Pipeline([
+    ('feature_selection', SelectKBest(score_func = f_classif)),
+    ('reg', SGDRegressor(loss='squared_loss', penalty='l1'))
+    ])
+
+#Create a parameter grid
+#parameter grids provide the values for the models to try
+#PARAMETERs NEED TO HAVE THE SAME LENGTH
+params = {
+    'feature_selection__k':[5, 6, 7],
+    'reg__alpha':[0.01, 0.001, 0.0001],
+    'reg__max_iter':[800, 1000, 1500]
+    }
+
+#Initialize the grid search object
+grid_search = GridSearchCV(pipe, param_grid = params)
+
+#best combination of feature selector and the regressor
+grid_search.best_params_
+#best score
+grid_search.best_score_
+
+#Fit it to the data and print the best value combination
+print(grid_search.fit(X_train, y_train).best_params_)
+#%%#Create pipeline with feature selector and classifier
+#replace with gradient boosted at this point or regessor
+pipe = Pipeline([
+    ('feature_selection', RFE(estimator = LogisticRegression(C = 1.0, max_iter = 1500),
+                              step = 1)),
+    ('reg', RandomForestRegressor(n_estimators = 75, max_depth = len(bank_df.columns)/2, min_samples_split = 4))
+    ])
+
+#Create a parameter grid
+#parameter grids provide the values for the models to try
+#PARAMETERs NEED TO HAVE THE SAME LENGTH
+params = {
+    'feature_selection__n_features_to_select':[6, 7, 8, 9],
+    'reg__n_estimators':[75, 100, 150, 200],
+    'reg__min_samples_split':[4, 8, 10, 15],
+    }
+
+#Initialize the grid search object
+grid_search = GridSearchCV(pipe, param_grid = params)
+
+#best combination of feature selector and the regressor
+#grid_search.best_params_
+#best score
+#grid_search.best_score_
+#Fit it to the data and print the best value combination
+print(grid_search.fit(X_train, y_train).best_params_)
+#%%#Create pipeline with feature selector and regressor
+#replace with gradient boosted at this point or regressor
+pipe = Pipeline([
+    ('feature_selection', RFE(estimator = LogisticRegression(C = 1.0, max_iter = 1500),
+                              step = 1)),
+    ('reg', SVR(kernel = 'linear'))
+    ])
+
+#Create a parameter grid
+#parameter grids provide the values for the models to try
+#PARAMETERs NEED TO HAVE THE SAME LENGTH
+params = {
+    'feature_selection__n_features_to_select':[6, 7, 8, 9],
+    'reg__C':[0.001, 0.01, 0.1, 1.0],
+    'reg__epsilon':[0.1, 0.15, 0.25, 0.30],
+    }
+
+#Initialize the grid search object
+grid_search = GridSearchCV(pipe, param_grid = params)
+
+#best combination of feature selector and the regressor
+#grid_search.best_params_
+#best score
+#grid_search.best_score_
+#Fit it to the data and print the best value combination
+print(grid_search.fit(X_train, y_train).best_params_)
+#%%
+#WORKS
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
