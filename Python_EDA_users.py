@@ -576,6 +576,8 @@ SGDReg
     Homogeneity Score
     Optimal number of features: 9
     Selected features: ['description', 'post_date', 'file_created_date', 'optimized_transaction_date', 'panel_file_created_date', 'account_score', 'amount_mean_lag3', 'amount_std_lag3', 'amount_std_lag7']
+EVALUATION METRICS DOCUMENTATION
+https://scikit-learn.org/stable/modules/model_evaluation.html
 '''
 #Use the Cross-Validation function of the RFE modul
 #accuracy describes the number of correct classifications
