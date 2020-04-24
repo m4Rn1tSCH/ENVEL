@@ -466,17 +466,16 @@ print(f"Shape of the split training data set X_test: {X_test.shape}")
 print(f"Shape of the split training data set y_train: {y_train.shape}")
 print(f"Shape of the split training data set y_test: {y_test.shape}")
 #%%
-#BUGGED
 #STD SCALING - does not work yet
 #fit the scaler to the training data first
 #standard scaler works only with maximum 2 dimensions
-scaler_obj = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-X_train_scaled = scaler_obj.transform(X_train)
+scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
+X_train_scaled = scaler.transform(X_train)
 
-scaler_mean = scaler_obj.mean_
-stadard_scale = scaler_obj.scale_
 #transform data in the same way learned from the training data
-X_test_scaled = scaler_obj.transform(X_test)
+X_test_scaled = scaler.transform(X_test)
+scaler_mean = scaler.mean_
+stadard_scale = scaler.scale_
 #%%
 #MINMAX SCALING - works with Select K Best
 min_max_scaler = MinMaxScaler()
@@ -543,7 +542,6 @@ print('Selected features: %s' % list(X_train.columns[rfe.support_]))
 print(rfe.ranking_)
 #log_reg_param = rfe.set_params(C = 0.01, max_iter = 200, tol = 0.001)
 #%%
-#BUGGED
 #Use the Cross-Validation function of the RFE modul
 #accuracy describes the number of correct classifications
 rfecv = RFECV(estimator = LogisticRegression(max_iter = 400), step = 1, cv = None, scoring='accuracy')
@@ -562,8 +560,6 @@ plt.show()
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #funtion of Select K Best is here f_classifier; determines features based on the f-values between features & labels
 #other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
-
-
 
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regressor
@@ -684,9 +680,9 @@ plt.show()
 
 predictions = model.predict(features_validation, verbose=0)
 print('R2 score = ', r2_score(y_test, predictions), '/ 1.0')
-print('MSE score = ', mean_squared_error(y_validation_RF, predictions), '/ 0.0')
+print('MSE score = ', mean_squared_error(targets_validation, predictions), '/ 0.0')
 #######
-plt.plot(y_test.as_matrix()[0:50], '+', color ='blue', alpha=0.7)
+plt.plot(features_validation.as_matrix()[0:50], '+', color ='blue', alpha=0.7)
 plt.plot(predictions[0:50], 'ro', color ='red', alpha=0.5)
 plt.show()
 #%%

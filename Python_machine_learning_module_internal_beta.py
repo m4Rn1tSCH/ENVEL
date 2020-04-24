@@ -368,18 +368,6 @@ f"Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.
 #%%
 #MEASURE ACCURACY OF PREDICTION
 #CREATE CONTAINER FOR ACCURACY METRICS
-
-#plot accuracy
-#fig, ax = plt.subplots(2,1, figsize=(15,8))
-
-#The index the dataframe we created up above. Equivalent to [0, 1, ..., 28, 29]
-#x = df.index.values
-#Column 'a' from df.
-#y = df['x']
-
-#plot both graphs with the test and the prediction values
-#ax[0].plot(x, y)
-#ax[1].plot(x, y)
 '''
 pick accuracy measures
 store the value in a data frame
