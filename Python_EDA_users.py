@@ -22,17 +22,21 @@ import matplotlib.pyplot as plt
 from collections import Counter
 from datetime import datetime as dt
 
-from sklearn.feature_selection import SelectKBest , chi2, f_classif
-from sklearn.linear_model import LogisticRegression
-from sklearn.feature_selection import RFE, RFECV
-from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.feature_selection import SelectKBest , chi2, f_classif, RFE, RFECV
 from sklearn.model_selection import GridSearchCV, train_test_split
+
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
+from sklearn.decomposition import PCA
+
+from sklearn.linear_model import LogisticRegression, LinearRegression, SGDRegressor
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier, RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.neural_network import MLPClassifier
+from sklearn.svm import SVR
+
+from sklearn.metrics import r2_score, mean_squared_error, accuracy_score, classification_report, f1_score, roc_auc_score
 from sklearn.pipeline import Pipeline
-from sklearn.decomposition import PCA
+
 
 import keras
 from keras.models import Sequential
@@ -540,25 +544,86 @@ rfe = rfe.fit(X_train, y_train)
 #selected attributes
 print('Selected features: %s' % list(X_train.columns[rfe.support_]))
 print(rfe.ranking_)
+#following df contains only significant features
+bank_df_kbest = bank_df[X_train.columns[rfe.support_]]
 #log_reg_param = rfe.set_params(C = 0.01, max_iter = 200, tol = 0.001)
 #%%
+'''
+        Application of Recursive Feature Extraction - Cross Validation
+        IMPORTANT
+        Accuracy: for classification problems
+        Mean Squared Error(MSE); Root Mean Squared Error(RSME); R2 Score: for regression
+TEST RESULTS
+SGDReg
+    Completeness Score
+    Completeness metric of a cluster labeling given a ground truth.
+
+        A clustering result satisfies completeness if all the data points
+        that are members of a given class are elements of the same cluster.
+
+        This metric is independent of the absolute values of the labels:
+        a permutation of the class or cluster label values won't change the
+        score value in any way.
+
+        This metric is not symmetric: switching ``label_true`` with ``label_pred``
+        will return the :func:`homogeneity_score` which will be different in
+        general.
+    Optimal number of features: 9
+    Selected features: ['amount', 'description', 'post_date', 'file_created_date', 'optimized_transaction_date', 'panel_file_created_date', 'account_score', 'amount_std_lag7', 'amount_std_lag30']
+    Max Error -picks all features
+    Neg Mean Squared Error - picks only one feat
+    Homogeneity Score
+    Optimal number of features: 9
+    Selected features: ['description', 'post_date', 'file_created_date', 'optimized_transaction_date', 'panel_file_created_date', 'account_score', 'amount_mean_lag3', 'amount_std_lag3', 'amount_std_lag7']
+'''
 #Use the Cross-Validation function of the RFE modul
 #accuracy describes the number of correct classifications
-rfecv = RFECV(estimator = LogisticRegression(max_iter = 400), step = 1, cv = None, scoring='accuracy')
+est_logreg = LogisticRegression(max_iter = 2000)
+est_sgd = SGDRegressor(loss='squared_loss',
+                            penalty='l1',
+                            alpha=0.01,
+                            l1_ratio=0.15,
+                            fit_intercept=True,
+                            max_iter=1000,
+                            tol=0.001,
+                            shuffle=True,
+                            verbose=0,
+                            epsilon=0.1,
+                            random_state=None,
+                            learning_rate='constant',
+                            eta0=0.01,
+                            power_t=0.25,
+                            early_stopping=False,
+                            validation_fraction=0.1,
+                            n_iter_no_change=5,
+                            warm_start=False,
+                            average=False)
+est_svr = SVR(kernel = 'linear',
+                  C = 1.0,
+                  epsilon = 0.01)
+#WORKS WITH LOGREG(pick r2), SGDRregressor(r2;rmse)
+rfecv = RFECV(estimator = SVR(kernel = 'linear', C = 1.0, epsilon = 0.01),
+              step = 2,
+#cross_calidation determines if clustering scorers can be used or regression based!
+#needs to be aligned with estimator
+              cv = None,
+              scoring = 'f1')
 rfecv.fit(X_train, y_train)
 
 print("Optimal number of features: %d" % rfecv.n_features_)
 print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
 
 #plot number of features VS. cross-validation scores
-plt.figure(figsize = (10,6))
+plt.figure(figsize = (10,7))
+plt.suptitle(f"{rfecv.estimator}")
 plt.xlabel("Number of features selected")
 plt.ylabel("Cross validation score (nb of correct classifications)")
 plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
 plt.show()
 #%%
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
-#funtion of Select K Best is here f_classifier; determines features based on the f-values between features & labels
+#F_CLASSIFIER;FOR CLASSIFICATION TASKS determines features based on the f-values between features & labels;
+#Chi2: for regression tasks; requires non-neg values
 #other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
 
 #Create pipeline with feature selector and classifier
