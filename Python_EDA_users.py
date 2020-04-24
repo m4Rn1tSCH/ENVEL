@@ -578,6 +578,7 @@ SGDReg
 '''
 #Use the Cross-Validation function of the RFE modul
 #accuracy describes the number of correct classifications
+
 est_logreg = LogisticRegression(max_iter = 2000)
 est_sgd = SGDRegressor(loss='squared_loss',
                             penalty='l1',
@@ -601,8 +602,9 @@ est_sgd = SGDRegressor(loss='squared_loss',
 est_svr = SVR(kernel = 'linear',
                   C = 1.0,
                   epsilon = 0.01)
+
 #WORKS WITH LOGREG(pick r2), SGDRregressor(r2;rmse)
-rfecv = RFECV(estimator = SVR(kernel = 'linear', C = 1.0, epsilon = 0.01),
+rfecv = RFECV(estimator = est_logreg,
               step = 2,
 #cross_calidation determines if clustering scorers can be used or regression based!
 #needs to be aligned with estimator
@@ -615,7 +617,7 @@ print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
 
 #plot number of features VS. cross-validation scores
 plt.figure(figsize = (10,7))
-plt.suptitle(f"{rfecv.estimator}")
+plt.suptitle(f"{RFECV.get_params}")
 plt.xlabel("Number of features selected")
 plt.ylabel("Cross validation score (nb of correct classifications)")
 plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
