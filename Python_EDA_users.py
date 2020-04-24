@@ -476,7 +476,7 @@ print(f"Shape of the split training data set y_test: {y_test.shape}")
 scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
 X_train_scaled = scaler.transform(X_train)
 
-#transform data in the same way learned from the training data
+#transform test data with the object learned from the training data
 X_test_scaled = scaler.transform(X_test)
 scaler_mean = scaler.mean_
 stadard_scale = scaler.scale_
@@ -537,7 +537,7 @@ k_best.get_params()
 #y_test = bank_df['primary_merchant_name']
 
 #build a logistic regression and use recursive feature elimination to exclude trivial features
-log_reg = LogisticRegression(C = 1.0, max_iter = 400)
+log_reg = LogisticRegression(C = 1.0, max_iter = 1500)
 # create the RFE model and select most striking attributes
 rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
 rfe = rfe.fit(X_train, y_train)
@@ -545,7 +545,8 @@ rfe = rfe.fit(X_train, y_train)
 print('Selected features: %s' % list(X_train.columns[rfe.support_]))
 print(rfe.ranking_)
 #following df contains only significant features
-bank_df_kbest = bank_df[X_train.columns[rfe.support_]]
+X_train_kbest = X_train[X_train.columns[rfe.support_]]
+X_test_kbest = X_test[X_test.columns[rfe.support_]]
 #log_reg_param = rfe.set_params(C = 0.01, max_iter = 200, tol = 0.001)
 #%%
 '''
@@ -578,8 +579,9 @@ SGDReg
 '''
 #Use the Cross-Validation function of the RFE modul
 #accuracy describes the number of correct classifications
-
+#LOGISTIC REGRESSION
 est_logreg = LogisticRegression(max_iter = 2000)
+#SGD REGRESSOR
 est_sgd = SGDRegressor(loss='squared_loss',
                             penalty='l1',
                             alpha=0.01,
@@ -599,6 +601,7 @@ est_sgd = SGDRegressor(loss='squared_loss',
                             n_iter_no_change=5,
                             warm_start=False,
                             average=False)
+#SUPPORT VECTOR REGRESSOR
 est_svr = SVR(kernel = 'linear',
                   C = 1.0,
                   epsilon = 0.01)
