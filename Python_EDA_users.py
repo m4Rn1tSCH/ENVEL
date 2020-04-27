@@ -671,6 +671,7 @@ plt.show()
 #%%
 '''
             Setting up a pipeline
+Pipeline 1 - SelectKBest and Logistic Regression
 '''
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #F_CLASSIFIER;FOR CLASSIFICATION TASKS determines features based on the f-values between features & labels;
@@ -680,7 +681,7 @@ plt.show()
 #Create pipeline with feature selector and regressor
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = f_classif)),
+    ('feature_selection', SelectKBest(score_func = chi2)),
     ('reg', LogisticRegression(C = 1.0, random_state = 42))])
 
 #Create a parameter grid
@@ -694,12 +695,14 @@ params = {
 grid_search = GridSearchCV(pipe, param_grid = params)
 
 #best combination of feature selector and the regressor
-grid_search.best_params_
+#grid_search.best_params_
 #best score
-grid_search.best_score_
+#grid_search.best_score_
 
 #Fit it to the data and print the best value combination
+print("Pipleine 1:")
 print(grid_search.fit(X_train, y_train).best_params_)
+print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
 Pipeline 2 - SelectKBest and SGDRegressor
@@ -707,7 +710,7 @@ Pipeline 2 - SelectKBest and SGDRegressor
 #Create pipeline with feature selector and regressor
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = f_classif)),
+    ('feature_selection', SelectKBest(score_func = chi2)),
     ('reg', SGDRegressor(loss='squared_loss', penalty='l1'))
     ])
 
@@ -723,13 +726,10 @@ params = {
 #Initialize the grid search object
 grid_search = GridSearchCV(pipe, param_grid = params)
 
-#best combination of feature selector and the regressor
-grid_search.best_params_
-#best score
-grid_search.best_score_
-
 #Fit it to the data and print the best value combination
+print("Pipleine 2:")
 print(grid_search.fit(X_train, y_train).best_params_)
+print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 #BUGGED
 '''
@@ -755,12 +755,10 @@ params = {
 #Initialize the grid search object
 grid_search = GridSearchCV(pipe, param_grid = params)
 
-#best combination of feature selector and the regressor
-#grid_search.best_params_
-#best score
-#grid_search.best_score_
 #Fit it to the data and print the best value combination
+print("Pipleine 3:")
 print(grid_search.fit(X_train, y_train).best_params_)
+print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 #BUGGED
 '''
@@ -791,7 +789,9 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #best score
 #grid_search.best_score_
 #Fit it to the data and print the best value combination
+print("Pipleine 4:")
 print(grid_search.fit(X_train, y_train).best_params_)
+print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
 Pipeline 5 - SelectKBest and Gradient Boosting Classifier
@@ -799,7 +799,7 @@ Pipeline 5 - SelectKBest and Gradient Boosting Classifier
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = chi2)),
+    ('feature_selection', SelectKBest(score_func = f_classif)),
     ('clf', GradientBoostingClassifier(random_state = 42))])
 
 #Create a parameter grid
@@ -813,7 +813,9 @@ params = {
 grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
+print("Pipleine 5:")
 print(grid_search.fit(X_train, y_train).best_params_)
+print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
 Random Forest Classifier
