@@ -29,13 +29,13 @@ from sklearn.decomposition import PCA
 from sklearn.compose import TransformedTargetRegressor
 
 from sklearn.linear_model import LogisticRegression, LinearRegression, SGDRegressor
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsClassifier, LocalOutlierFactor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier, RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVR
 from sklearn.cluster import KMeans
 
-from sklearn.metrics import r2_score, mean_squared_error, accuracy_score, classification_report, f1_score, roc_auc_score
+from sklearn.metrics import r2_score, mean_squared_error, accuracy_score, classification_report, f1_score, roc_auc_score, confusion_matrix
 from sklearn.pipeline import Pipeline
 
 
@@ -522,7 +522,7 @@ print("Reduced shape: {}".format(str(X_train_pca.shape)))
     ax[0].legend(train_clusters.labels_)
     ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
     ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[1].legend(test_clusters.l1abels_)
+    ax[1].legend(test_clusters.labels_)
     #principal components of bank panel has better results than card panel with clearer borders
 #%%
 #f_classif for regression
@@ -1207,9 +1207,9 @@ Application of an Unsupervised Learning Algorithms
 '''
 #local outlier frequency
 #Contamination to match outlier frequency in ground_truth
-preds = lof(contamination=np.mean(ground_truth == -1.0)).fit_predict(X_cp_city)
+preds = LocalOutlierFactor(contamination=0.2).fit_predict(X_train)
 #Print the confusion matrix
-print(confusion_matrix(ground_truth, preds))
+print(confusion_matrix(y_train, preds))
 
 #anti-fraud system + labeling
 #pick parameters to spot outliers in
