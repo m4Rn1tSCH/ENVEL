@@ -282,9 +282,8 @@ Prediction for transaction_category_name and RFE for significant features
     #y = list(df_card).pop(list(df_card)('amount'))
     #%%
     #standard scaler takes the entire column list and also converted to a df with double square brackets
-    #APPLY THE SCALER FIRST AND THEN SPLIT INTO TEST AND TRAINING
-    #PASS TO STANDARD SCALER TO PREPROCESS FOR PCA
-    #ONLY APPLY SCALING TO X!!!
+    #first fit/learn with training data
+    #then transform with that object: train + test data
     scaler = StandardScaler()
     #fit_transform also separately callable; but this one is more time-efficient
     X_cp_scl = scaler.fit_transform(X_cp)
@@ -355,7 +354,7 @@ Prediction for transaction_category_name and RFE for significant features
     #build a logistic regression and use recursive feature elimination to exclude trivial features
     log_reg = LogisticRegression(C = 0.01, class_weight = None, dual = False,
                                    fit_intercept = True, intercept_scaling = 1,
-                                   l1_ratio = None, max_iter = 100,
+                                   l1_ratio = None, max_iter = 1000,
                                    multi_class = 'auto', n_jobs = None,
                                    penalty = 'l2', random_state = None,
                                    solver = 'lbfgs', tol = 0.0001, verbose = 0,
@@ -385,6 +384,8 @@ Prediction for transaction_category_name and RFE for significant features
     print(rfe.ranking_)
 
     #Use the Cross-Validation function of the RFE module
+    #accuracy is a classification metric!
+    #r2 is a regression metric
     #accuracy describes the number of correct classifications
     rfecv = RFECV(estimator = log_reg, step = 1, cv = 8, scoring = 'accuracy')
     rfecv.fit(X_bp_train, y_bp_train)

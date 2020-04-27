@@ -165,7 +165,7 @@ def df_encoder(rng = 4):
     #%%
     '''
     Plotting of various relations
-    The Counter object keeps track of permutations in a dictionary which can ten be read and
+    The Counter object keeps track of permutations in a dictionary which can then be read and
     used as labels
     '''
     #Pie chart States - works
@@ -208,7 +208,7 @@ def df_encoder(rng = 4):
     '''
     Generate a spending report of the unaltered dataframe
     Use the datetime columns just defined
-    This report measures either the sum orm ean of transactions happening
+    This report measures either the sum or mean of transactions happening
     on various days of the week/or wihtin a week or a month  over the course of the year
     '''
         #convert all date col from date to datetime objects
@@ -488,7 +488,7 @@ X_test_minmax = min_max_scaler.transform(X_test)
 minmax_scale = min_max_scaler.scale_
 min_max_minimum = min_max_scaler.min_
 #%%
-#PASS TO PRINCIPAL COMPONENT ANALYSIS
+#Principal Component Reduction
 #first scale
 #then reduce
 #keep the most important features of the data
@@ -501,20 +501,62 @@ X_test_pca = pca.transform(X_test_scaled)
 print("Original shape: {}".format(str(X_train_scaled.shape)))
 print("Reduced shape: {}".format(str(X_train_pca.shape)))
 #%%
+'''
+            PLotting of PCA/ Cluster Pairs
+
+'''
+    #standard scaler takes the entire column list and also converted to a df with double square brackets
+    scaler = StandardScaler()
+    #fit_transform also separately callable; but this one is more time-efficient
+    X_cp_scl = scaler.fit_transform(X_cp)
+    X_bp_scl = scaler.fit_transform(X_bp)
+    #%%
+    #Kmeans clusters to categorize budget groups WITH SCALED DATA
+    #5 different daily limit groups
+    #determine number of groups needed or desired for
+    kmeans = KMeans(n_clusters = 5, random_state = 10)
+    cp_sclaed_clusters = kmeans.fit(X_cp_scl)
+    kmeans = KMeans(n_clusters = 5, random_state = 10)
+    bp_scaled_clusters = kmeans.fit(X_bp_scl)
+    #%%
+    #5 different daily limit groups
+    #determine number of groups needed or desired for
+    kmeans = KMeans(n_clusters = 5, random_state = 10)
+    cp_clusters = kmeans.fit(X_cp)
+    kmeans = KMeans(n_clusters = 5, random_state = 10)
+    bp_clusters = kmeans.fit(X_bp)
+    #%%
+    #split into principal components for card panel
+    pca = PCA(n_components = 2)
+    cp_components = pca.fit_transform(X_cp_scl)
+    #split into principla components for card panel
+    bp_components = pca.fit_transform(X_bp_scl)
+    #%%
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 800)
+    #styles for title: normal; italic; oblique
+    ax[0].scatter(cp_components[:, 0], cp_components[:, 1], c = cp_clusters.labels_)
+    ax[0].set_title('Plotted Principal Components of CARD PANEL', style = 'oblique')
+    ax[0].legend(cp_clusters.labels_)
+    ax[1].scatter(bp_components[:, 0], bp_components[:, 1], c = bp_clusters.labels_)
+    ax[1].set_title('Plotted Principal Components of BANK PANEL', style = 'oblique')
+    ax[1].legend(bp_clusters.labels_)
+    #principal components of bank panel has better results than card panel with clearer borders
+#%%
 #f_classif for regression
 #chi-sqr for classification but requires non-neg values
 ####syntax of reshape(n_samples, n_features)
 #### value of -1 allows for adaptation to shape needed
-y_train_rs = np.array(y_train).reshape(-1, 1)
-X_train_scl_rs = np.array(X_train_scaled).reshape(-1, 1)
-X_test_scl_rs = np.array(X_test_scaled).reshape(-1, 1)
+##y_train_rs = np.array(y_train).reshape(-1, 1)
+##X_train_scl_rs = np.array(X_train_scaled).reshape(-1, 1)
+##X_test_scl_rs = np.array(X_test_scaled).reshape(-1, 1)
 
-X_train_minmax_rs = X_train_minmax.reshape(-1, 1)
-X_test_minmax_rs = X_test_minmax.reshape(-1, 1)
+##X_train_minmax_rs = X_train_minmax.reshape(-1, 1)
+##X_test_minmax_rs = X_test_minmax.reshape(-1, 1)
 #%%
 #fed variables cannot have missing values
 '''
 takes unscaled numerical so far and minmax scaled arguments
+#numerical and minmax scaled leads to the same results being picked
 '''
 k_best = SelectKBest(score_func = f_classif, k = 10)
 k_best.fit(X_train_scaled, y_train)
@@ -1113,3 +1155,19 @@ print("Accuracy:", accuracy)
 ##STEP 7
 # Infer labels on a batch
 predictions = model.predict(test_ds)
+#%%
+'''
+Application of an Unsupervised Learning Algorithms
+'''
+#local outlier frequency
+#Contamination to match outlier frequency in ground_truth
+preds = lof(contamination=np.mean(ground_truth == -1.0)).fit_predict(X_cp_city)
+#Print the confusion matrix
+print(confusion_matrix(ground_truth, preds))
+
+#anti-fraud system + labeling
+#pick parameters to spot outliers in
+
+#while loop to stop as soon s first income is hit and add upp income/expense
+
+#pass this to flask and app to inject this initial balance
