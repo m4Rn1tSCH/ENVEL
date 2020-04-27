@@ -33,6 +33,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier, RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVR
+from sklearn.cluster import KMeans
 
 from sklearn.metrics import r2_score, mean_squared_error, accuracy_score, classification_report, f1_score, roc_auc_score
 from sklearn.pipeline import Pipeline
@@ -506,41 +507,22 @@ print("Reduced shape: {}".format(str(X_train_pca.shape)))
             PLotting of PCA/ Cluster Pairs
 
 '''
-    #standard scaler takes the entire column list and also converted to a df with double square brackets
-    scaler = StandardScaler()
-    #fit_transform also separately callable; but this one is more time-efficient
-    X_cp_scl = scaler.fit_transform(X_cp)
-    X_bp_scl = scaler.fit_transform(X_bp)
-    #%%
-    #Kmeans clusters to categorize budget groups WITH SCALED DATA
-    #5 different daily limit groups
+    #Kmeans clusters to categorize groups WITH SCALED DATA
     #determine number of groups needed or desired for
     kmeans = KMeans(n_clusters = 5, random_state = 10)
-    cp_sclaed_clusters = kmeans.fit(X_cp_scl)
+    train_clusters = kmeans.fit(X_train_scaled)
+
     kmeans = KMeans(n_clusters = 5, random_state = 10)
-    bp_scaled_clusters = kmeans.fit(X_bp_scl)
+    test_clusters = kmeans.fit(X_test_scaled)
     #%%
-    #5 different daily limit groups
-    #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 5, random_state = 10)
-    cp_clusters = kmeans.fit(X_cp)
-    kmeans = KMeans(n_clusters = 5, random_state = 10)
-    bp_clusters = kmeans.fit(X_bp)
-    #%%
-    #split into principal components for card panel
-    pca = PCA(n_components = 2)
-    cp_components = pca.fit_transform(X_cp_scl)
-    #split into principla components for card panel
-    bp_components = pca.fit_transform(X_bp_scl)
-    #%%
-    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 800)
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
     #styles for title: normal; italic; oblique
-    ax[0].scatter(cp_components[:, 0], cp_components[:, 1], c = cp_clusters.labels_)
-    ax[0].set_title('Plotted Principal Components of CARD PANEL', style = 'oblique')
-    ax[0].legend(cp_clusters.labels_)
-    ax[1].scatter(bp_components[:, 0], bp_components[:, 1], c = bp_clusters.labels_)
-    ax[1].set_title('Plotted Principal Components of BANK PANEL', style = 'oblique')
-    ax[1].legend(bp_clusters.labels_)
+    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
+    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+    ax[0].legend(train_clusters.labels_)
+    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
+    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+    ax[1].legend(test_clusters.l1abels_)
     #principal components of bank panel has better results than card panel with clearer borders
 #%%
 #f_classif for regression
@@ -689,7 +671,7 @@ pipe = Pipeline([
 
 #Create a parameter grid
 #parameter grids provide the values for the models to try
-#PARAMETERs NEED TO HAVE THE SAME LENGTH
+#PARAMETERS NEED TO HAVE THE SAME LENGTH
 params = {
     'feature_selection__k':[5, 6, 7],
     'reg__max_iter':[800, 1000, 1500]}
@@ -719,7 +701,7 @@ pipe = Pipeline([
 
 #Create a parameter grid
 #parameter grids provide the values for the models to try
-#PARAMETERs NEED TO HAVE THE SAME LENGTH
+#PARAMETERS NEED TO HAVE THE SAME LENGTH
 params = {
     'feature_selection__k':[5, 6, 7],
     'reg__alpha':[0.01, 0.001, 0.0001, 0.000001],
@@ -748,7 +730,7 @@ pipe = Pipeline([
 
 #Create a parameter grid
 #parameter grids provide the values for the models to try
-#PARAMETERs NEED TO HAVE THE SAME LENGTH
+#PARAMETERS NEED TO HAVE THE SAME LENGTH
 params = {
     'feature_selection__n_features_to_select':[6, 7, 8, 9],
     'reg__n_estimators':[75, 100, 150, 200],
@@ -811,7 +793,7 @@ pipe = Pipeline([
 
 #Create a parameter grid
 #parameter grids provide the values for the models to try
-#PARAMETERs NEED TO HAVE THE SAME LENGTH
+#PARAMETERS NEED TO HAVE THE SAME LENGTH
 params = {
     'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
     'clf__n_estimators':[15, 25, 50, 75, 120, 200, 350]}
@@ -839,7 +821,7 @@ pipe = Pipeline([
 
 #Create a parameter grid
 #parameter grids provide the values for the models to try
-#PARAMETERs NEED TO HAVE THE SAME LENGTH
+#PARAMETERS NEED TO HAVE THE SAME LENGTH
 params = {
     'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
     'clf__n_neighbors':[2, 3, 4, 5, 6, 7, 8]}
@@ -1007,8 +989,7 @@ print(len(test), 'test examples')
 
 ##STEP 1
 '''
-attempt 12/12/ ; 48%-51% accuracy to predict student with features: TYPECODE + AMOUNT + RETURNCODE + CS_FICO_NUM + AGE + CROSSED(CS_FICO;AGE)
-attempt_2 12/12/ ; 49%-50% accuracy to predict student with features: TYPECODE + FEE_CODE + AMOUNT + RETURNCODE + INSTITUTION_NAMES + CS_FICO_NUM + AGE + CROSSED(CS_FICO;AGE)
+
 '''
 #feature columns to use in the layers
 feature_columns_container = []
