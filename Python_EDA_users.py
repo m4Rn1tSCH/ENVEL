@@ -700,7 +700,7 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #grid_search.best_score_
 
 #Fit it to the data and print the best value combination
-print("Pipleine 1:")
+print(f"Pipeline 1; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
@@ -719,15 +719,15 @@ pipe = Pipeline([
 #PARAMETERs NEED TO HAVE THE SAME LENGTH
 params = {
     'feature_selection__k':[5, 6, 7],
-    'reg__alpha':[0.01, 0.001, 0.0001],
-    'reg__max_iter':[800, 1000, 1500]
+    'reg__alpha':[0.01, 0.001, 0.0001, 0.000001],
+    'reg__max_iter':[800, 1000, 1500, 2500]
     }
 
 #Initialize the grid search object
 grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
-print("Pipleine 2:")
+print(f"Pipeline 2; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
@@ -756,7 +756,7 @@ params = {
 grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
-print("Pipleine 3:")
+print(f"Pipeline 3; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
@@ -789,7 +789,7 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #best score
 #grid_search.best_score_
 #Fit it to the data and print the best value combination
-print("Pipleine 4:")
+print(f"Pipeline 4; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
@@ -813,7 +813,35 @@ params = {
 grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
-print("Pipleine 5:")
+print(f"Pipeline 5; {dt.today()}")
+print(grid_search.fit(X_train, y_train).best_params_)
+print(f"Best accuracy with parameters: {grid_search.best_score_}")
+#%%
+'''
+Pipeline 6 - SelectKBest and K Nearest Neighbor
+##########
+Pipeline 6; 2020-04-27 11:00:27
+{'clf__n_neighbors': 7, 'feature_selection__k': 3}
+Best accuracy with parameters: 0.5928202115158637
+'''
+#Create pipeline with feature selector and classifier
+#replace with gradient boosted at this point or regressor
+pipe = Pipeline([
+    ('feature_selection', SelectKBest(score_func = f_classif)),
+    ('clf', KNeighborsClassifier())])
+
+#Create a parameter grid
+#parameter grids provide the values for the models to try
+#PARAMETERs NEED TO HAVE THE SAME LENGTH
+params = {
+    'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
+    'clf__n_neighbors':[2, 3, 4, 5, 6, 7, 8]}
+
+#Initialize the grid search object
+grid_search = GridSearchCV(pipe, param_grid = params)
+
+#Fit it to the data and print the best value combination
+print(f"Pipeline 6; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
