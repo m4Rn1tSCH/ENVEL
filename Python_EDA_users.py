@@ -672,7 +672,6 @@ plt.show()
 '''
             Setting up a pipeline
 '''
-#WORKS
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #F_CLASSIFIER;FOR CLASSIFICATION TASKS determines features based on the f-values between features & labels;
 #Chi2: for regression tasks; requires non-neg values
@@ -702,7 +701,9 @@ grid_search.best_score_
 #Fit it to the data and print the best value combination
 print(grid_search.fit(X_train, y_train).best_params_)
 #%%
-#WORKS
+'''
+Pipeline 2 - SelectKBest and SGDRegressor
+'''
 #Create pipeline with feature selector and regressor
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
@@ -729,7 +730,12 @@ grid_search.best_score_
 
 #Fit it to the data and print the best value combination
 print(grid_search.fit(X_train, y_train).best_params_)
-#%%#Create pipeline with feature selector and classifier
+#%%
+#BUGGED
+'''
+Pipeline 3 - Logistic Regression and Random Forest Regressor
+'''
+#Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regessor
 pipe = Pipeline([
     ('feature_selection', RFE(estimator = LogisticRegression(C = 1.0, max_iter = 1500),
@@ -755,7 +761,12 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #grid_search.best_score_
 #Fit it to the data and print the best value combination
 print(grid_search.fit(X_train, y_train).best_params_)
-#%%#Create pipeline with feature selector and regressor
+#%%
+#BUGGED
+'''
+Pipeline 4 - Logistic Regression and Support Vector Kernel
+'''
+#Create pipeline with feature selector and regressor
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
     ('feature_selection', RFE(estimator = LogisticRegression(C = 1.0, max_iter = 1500),
@@ -782,7 +793,9 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(grid_search.fit(X_train, y_train).best_params_)
 #%%
-#WORKS
+'''
+Pipeline 5 - SelectKBest and Gradient Boosting Classifier
+'''
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
