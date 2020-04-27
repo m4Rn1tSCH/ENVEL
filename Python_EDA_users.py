@@ -24,8 +24,9 @@ from collections import Counter
 from sklearn.feature_selection import SelectKBest , chi2, f_classif, RFE, RFECV
 from sklearn.model_selection import GridSearchCV, train_test_split
 
-from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler, QuantileTransformer
 from sklearn.decomposition import PCA
+from sklearn.compose import TransformedTargetRegressor
 
 from sklearn.linear_model import LogisticRegression, LinearRegression, SGDRegressor
 from sklearn.neighbors import KNeighborsClassifier
@@ -557,6 +558,8 @@ print("Reduced shape: {}".format(str(X_train_pca.shape)))
 '''
 takes unscaled numerical so far and minmax scaled arguments
 #numerical and minmax scaled leads to the same results being picked
+f_classif for classification tasks
+chi2 for regression tasks
 '''
 k_best = SelectKBest(score_func = f_classif, k = 10)
 k_best.fit(X_train_scaled, y_train)
@@ -767,18 +770,22 @@ Pipeline 4 - Logistic Regression and Support Vector Kernel
 #Create pipeline with feature selector and regressor
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
-    ('feature_selection', RFE(estimator = LogisticRegression(C = 1.0, max_iter = 1500),
-                              step = 1)),
+    ('feature_selection', SelectKBest(score_func = chi2)),
     ('reg', SVR(kernel = 'linear'))
     ])
 
 #Create a parameter grid
 #parameter grids provide the values for the models to try
 #PARAMETERs NEED TO HAVE THE SAME LENGTH
+#C regularization parameter that is applied to all terms
+#to push down their individual impact and reduce overfitting
+#Epsilon tube around actual values; threshold beyond which regularization is applied
+#the more features picked the more prone the model is to overfitting
+#stricter C and e to counteract
 params = {
-    'feature_selection__n_features_to_select':[6, 7, 8, 9],
-    'reg__C':[0.001, 0.01, 0.1, 1.0],
-    'reg__epsilon':[0.1, 0.15, 0.25, 0.30],
+    'feature_selection__k':[4, 6, 7, 8, 9],
+    'reg__C':[1.0, 0.1, 0.01, 0.001],
+    'reg__epsilon':[0.30, 0.25, 0.15, 0.10],
     }
 
 #Initialize the grid search object
@@ -844,6 +851,24 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 print(f"Pipeline 6; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
+#%%
+
+
+transformer = QuantileTransformer(output_distribution='normal')
+regressor = LinearRegression()
+regr = TransformedTargetRegressor(regressor=regressor,
+...                                   transformer=transformer)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+regr.fit(X_train, y_train)
+
+TransformedTargetRegressor(...)
+print('R2 score: {0:.2f}'.format(regr.score(X_test, y_test)))
+R2 score: 0.67
+
+raw_target_regr = LinearRegression().fit(X_train, y_train)
+print('R2 score: {0:.2f}'.format(raw_target_regr.score(X_test, y_test)))
+R2 score: 0.64
 #%%
 '''
 Random Forest Classifier
@@ -1214,3 +1239,4 @@ print(confusion_matrix(ground_truth, preds))
 #while loop to stop as soon s first income is hit and add upp income/expense
 
 #pass this to flask and app to inject this initial balance
+#%%
