@@ -470,9 +470,10 @@ def df_encoder(rng = 4):
 bank_df = bank_df.drop(['unique_mem_id',
                         'unique_bank_account_id',
                         'unique_bank_transaction_id'], axis = 1)
+####
 model_features = bank_df.drop(['primary_merchant_name'], axis = 1)
-model_label = bank_df['primary_merchant_name']
-
+model_label = bank_df[['primary_merchant_name']]
+####
 #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
 X_train, X_test, y_train, y_test = train_test_split(model_features,
                                                     model_label,
@@ -519,7 +520,7 @@ print("Original shape: {}".format(str(X_train_scaled.shape)))
 print("Reduced shape: {}".format(str(X_train_pca.shape)))
 #%%
 '''
-            PLotting of PCA/ Cluster Pairs
+            Plotting of PCA/ Cluster Pairs
 
 '''
 #Kmeans clusters to categorize groups WITH SCALED DATA
