@@ -217,6 +217,9 @@ def df_encoder(rng = 4):
     #     for q_var in quant_var:
     #         bank_df.boxplot(column=q_var, by=c_var)
     #         plt.xticks([])
+    sns.pairplot(bank_df)
+    sns.boxplot(x=bank_df['description'], y=bank_df['amount'])
+    sns.heatmap(bank_df)
     #%%
     '''
     Generate a spending report of the unaltered dataframe
