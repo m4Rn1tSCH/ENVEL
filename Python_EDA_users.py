@@ -891,13 +891,14 @@ print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 #generate a dataframe for pipeline values
-gs_df = pd.DataFrame(data = {'Given Parameters':grid_search.param_grid,
-                            'Best Parameters':grid_search.best_params_,
-                            'Overall Score':grid_search.score(X_test, y_test),
-                            'Overall Score(scaled)':grid_search.score(X_test_scaled, y_test),
-                            'Highest Prediction Score':grid_search.best_score_
-                                                })
-print(gs_df)
+def score_df():
+    gs_df = pd.DataFrame(data = {'Given Parameters':grid_search.param_grid,
+                                'Best Parameters':grid_search.best_params_,
+                                'Overall Score':grid_search.score(X_test, y_test),
+                                'Overall Score(scaled)':grid_search.score(X_test_scaled, y_test),
+                                'Highest Prediction Score':grid_search.best_score_
+                                                    })
+    print(gs_df)
 #%%
 #accuracy negative; model toally off
 transformer = QuantileTransformer(output_distribution='normal')
