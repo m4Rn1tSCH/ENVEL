@@ -20,6 +20,7 @@ from datetime import datetime as dt
 import os
 import matplotlib.pyplot as plt
 from collections import Counter
+import seaborn as sns
 
 from sklearn.feature_selection import SelectKBest , chi2, f_classif, RFE, RFECV
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -32,7 +33,7 @@ from sklearn.linear_model import LogisticRegression, LinearRegression, SGDRegres
 from sklearn.neighbors import KNeighborsClassifier, LocalOutlierFactor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier, RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
-from sklearn.svm import SVR
+from sklearn.svm import SVR, SVC
 from sklearn.cluster import KMeans
 
 from sklearn.metrics import r2_score, mean_squared_error, accuracy_score, classification_report, f1_score, roc_auc_score, confusion_matrix
@@ -42,6 +43,16 @@ from sklearn.pipeline import Pipeline
 import keras
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation
+
+#future needs to be run first
+#eager execution needs to be run right after the TF instantiation to avoid errors
+from __future__ import absolute_import, division, print_function, unicode_literals
+import functools
+
+import tensorflow as tf
+tf.compat.v1.enable_eager_execution()
+from tensorflow import feature_column
+from tensorflow.keras import layers
 
 #imported custom function
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
@@ -456,14 +467,18 @@ def df_encoder(rng = 4):
 ###################SPLITTING UP THE DATA###########################
 #drop target variable in feature df
 #all remaining columns will be the features
-bank_df = bank_df.drop(['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id'], axis = 1)
+bank_df = bank_df.drop(['unique_mem_id',
+                        'unique_bank_account_id',
+                        'unique_bank_transaction_id'], axis = 1)
 model_features = bank_df.drop(['primary_merchant_name'], axis = 1)
 model_label = bank_df['primary_merchant_name']
 
+#stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
 X_train, X_test, y_train, y_test = train_test_split(model_features,
                                                     model_label,
                                                     shuffle = True,
-                                                    test_size = 0.3)
+                                                    test_size = 0.3,
+                                                    stratify = y_train)
 
 #create a validation set from the training set
 print(f"Shape of the split training data set X_train:{X_train.shape}")
@@ -835,6 +850,39 @@ print(f"Pipeline 6; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
+'''
+Pipeline 7 - SelectKBest and K Nearest Neighbor
+##########
+Pipeline 7; 2020-04-28 10:22:10
+{'clf__C': 100, 'clf__gamma': 0.1, 'feature_selection__k': 5}
+Best accuracy with parameters: 0.6742596944770858
+'''
+#Create pipeline with feature selector and classifier
+#replace with classifier or regressor
+pipe = Pipeline([
+    ('feature_selection', SelectKBest(score_func = f_classif)),
+    ('clf', SVC())])
+
+#Create a parameter grid
+#parameter grids provide the values for the models to try
+#PARAMETERS NEED TO HAVE THE SAME LENGTH
+#Parameter explanation
+#   C: penalty parameter
+#   gamma: [standard 'auto' = 1/n_feat], kernel coefficient
+#
+params = {
+    'feature_selection__k':[4, 5, 6, 7, 8, 9],
+    'clf__C':[0.01, 0.1, 1, 10, 100],
+    'clf__gamma':[0.1, 0.01, 0.001]}
+
+#Initialize the grid search object
+grid_search = GridSearchCV(pipe, param_grid = params)
+
+#Fit it to the data and print the best value combination
+print(f"Pipeline 7; {dt.today()}")
+print(grid_search.fit(X_train_scaled, y_train).best_params_)
+print(f"Best accuracy with parameters: {grid_search.best_score_}")
+#%%
 #accuracy negative; model toally off
 transformer = QuantileTransformer(output_distribution='normal')
 regressor = LinearRegression()
@@ -959,16 +1007,6 @@ plt.show()
 '''
                     APPLICATION OF TENSORFLOW
 '''
-#future needs to be run first
-#eager execution needs to be run right after the TF instantiation to avoid errors
-from __future__ import absolute_import, division, print_function, unicode_literals
-import functools
-
-import tensorflow as tf
-tf.compat.v1.enable_eager_execution()
-from tensorflow import feature_column
-from tensorflow.keras import layers
-#%%
 #custom train test split
 train, test = train_test_split(df, test_size = 0.2)
 train, val = train_test_split(train, test_size = 0.2)
