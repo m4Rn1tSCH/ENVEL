@@ -703,6 +703,7 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(f"Pipeline 1; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
@@ -730,6 +731,7 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(f"Pipeline 2; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 #BUGGED
@@ -759,6 +761,7 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(f"Pipeline 3; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 #BUGGED
@@ -796,6 +799,7 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(f"Pipeline 4; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
@@ -820,6 +824,7 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(f"Pipeline 5; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
@@ -848,6 +853,7 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(f"Pipeline 6; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
@@ -881,11 +887,14 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(f"Pipeline 7; {dt.today()}")
 print(grid_search.fit(X_train_scaled, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 #generate a dataframe for pipeline values
 gs_df = pd.DataFrame(data = {'Given Parameters':grid_search.param_grid,
                             'Best Parameters':grid_search.best_params_,
+                            'Overall Score':grid_search.score(X_test, y_test),
+                            'Overall Score(scaled)':grid_search.score(X_test_scaled, y_test),
                             'Highest Prediction Score':grid_search.best_score_
                                                 })
 print(gs_df)
