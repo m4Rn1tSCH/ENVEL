@@ -883,6 +883,13 @@ print(f"Pipeline 7; {dt.today()}")
 print(grid_search.fit(X_train_scaled, y_train).best_params_)
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
+#generate a dataframe for pipeline values
+gs_df = pd.DataFrame(data = {'Given Parameters':grid_search.param_grid,
+                            'Best Parameters':grid_search.best_params_,
+                            'Highest Prediction Score':grid_search.best_score_
+                                                })
+print(gs_df)
+#%%
 #accuracy negative; model toally off
 transformer = QuantileTransformer(output_distribution='normal')
 regressor = LinearRegression()
@@ -959,7 +966,6 @@ targets_validation = np.array(y_test)
 
 print(features[:10])
 print(targets[:10])
-####
 #%%
 #building the model
 model = Sequential()
