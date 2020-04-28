@@ -507,23 +507,24 @@ print("Reduced shape: {}".format(str(X_train_pca.shape)))
             PLotting of PCA/ Cluster Pairs
 
 '''
-    #Kmeans clusters to categorize groups WITH SCALED DATA
-    #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 5, random_state = 10)
-    train_clusters = kmeans.fit(X_train_scaled)
+#Kmeans clusters to categorize groups WITH SCALED DATA
+#determine number of groups needed or desired for
+kmeans = KMeans(n_clusters = 15, random_state = 10)
+train_clusters = kmeans.fit(X_train_scaled)
+cl = kmeans.n_clusters
 
-    kmeans = KMeans(n_clusters = 5, random_state = 10)
-    test_clusters = kmeans.fit(X_test_scaled)
-    #%%
-    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
-    #styles for title: normal; italic; oblique
-    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
-    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
-    ax[0].legend(train_clusters.labels_)
-    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
-    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[1].legend(test_clusters.labels_)
-    #principal components of bank panel has better results than card panel with clearer borders
+kmeans = KMeans(n_clusters = 15, random_state = 10)
+test_clusters = kmeans.fit(X_test_scaled)
+#Creating the plot
+fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
+#styles for title: normal; italic; oblique
+ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
+ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
+ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+#principal components of bank panel has better results than card panel with clearer borders
 #%%
 #f_classif for regression
 #chi-sqr for classification but requires non-neg values
@@ -543,8 +544,8 @@ takes unscaled numerical so far and minmax scaled arguments
 f_classif for classification tasks
 chi2 for regression tasks
 '''
-k_best = SelectKBest(score_func = f_classif, k = 10)
-k_best.fit(X_train_scaled, y_train)
+k_best = SelectKBest(score_func = f_classif, k = 5)
+k_best.fit(X_train, y_train)
 k_best.get_params()
 
 #isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
@@ -861,7 +862,7 @@ print(f"TESTINFO Rnd F Cl: [{dt.today()}]--[Parameters: n_estimators:{RFC.n_esti
 '''
 K Nearest Neighbor
 '''
-KNN = KNeighborsClassifier(n_neighbors = 8, weights = 'uniform',)
+KNN = KNeighborsClassifier(n_neighbors = 5, weights = 'uniform')
 KNN.fit(X_train, y_train)
 y_pred = KNN.predict(X_test)
 print(f"TESTINFO KNN: [{dt.today()}]--[Parameters: n_neighbors:{KNN.n_neighbors}, weights:{KNN.weights}]--Training set accuracy: {KNN.score(X_train, y_train)}; Test set accuracy: {KNN.score(X_test, y_test)}; Test set validation: {KNN.score(X_test, y_pred)}")
@@ -890,7 +891,7 @@ MLP = MLPClassifier(hidden_layer_sizes = 1500, solver='adam', alpha=0.0001 )
 MLP.fit(X_train, y_train)
 y_val = MLP.predict(X_test)
 #y_val.reshape(-1, 1)
-print(f"TESTINFO MLP: [{dt.today()}]--[Parameters: hidden layers:{MLP.hidden_layer_sizes}, alpha:{MLP.alpha}]--Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}")
+print(f"TESTINFO MLP: [{dt.today()}]--[Parameters: hidden layers:{MLP.hidden_layer_sizes}, alpha:{MLP.alpha}]--Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}; Test set Validation: {MLP.score(X_test, y_val)}")
 #%%
 
 #y_val = y_pred as the split is still unfisnished
@@ -1194,7 +1195,7 @@ model.fit(train_ds,
           epochs=2)
 #%%
 ##STEP 6
-# Check accuracy
+#Check accuracy
 loss, accuracy = model.evaluate(test_ds)
 print("Accuracy:", accuracy)
 
@@ -1217,4 +1218,3 @@ print(confusion_matrix(y_train, preds))
 #while loop to stop as soon s first income is hit and add upp income/expense
 
 #pass this to flask and app to inject this initial balance
-#%%
