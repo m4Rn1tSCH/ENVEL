@@ -1031,9 +1031,9 @@ pipe = Pipeline([
 #   gamma: [standard 'auto' = 1/n_feat], kernel coefficient
 #
 params = {
-    'feature_selection__k':[4, 5, 6, 7, 8, 9],
-    'clf__max_iter':[750, 1500, 2000, 2200, 2500],
-    'clf__alpha':[0.0001, 0.001, 0.01, 0.1]}
+    'feature_selection__k':[4, 5, 6, 7],
+    'clf__max_iter':[1500, 2000, 2500],
+    'clf__alpha':[0.0001, 0.001, 0.01]}
 
 #Initialize the grid search object
 grid_search = GridSearchCV(pipe, param_grid = params)
