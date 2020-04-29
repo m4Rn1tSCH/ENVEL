@@ -488,7 +488,7 @@ model_label = bank_df['primary_merchant_name']
 X_train, X_test, y_train, y_test = train_test_split(model_features,
                                                     model_label,
                                                     shuffle = True,
-                                                    test_size = 0.3)
+                                                    test_size = 0.4)
 
 #create a validation set from the training set
 print(f"Shape of the split training data set X_train:{X_train.shape}")
@@ -726,6 +726,10 @@ print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
 Pipeline 2 - SelectKBest and SGDRegressor
+Pipeline 2; 2020-04-29 14:13:46
+{'feature_selection__k': 5, 'reg__alpha': 0.0001, 'reg__max_iter': 800}
+Overall score: -12552683945869548245665121782413383849471150345158656.0000
+Best accuracy with parameters: -1.459592722067248e+50
 '''
 #Create pipeline with feature selector and regressor
 #replace with gradient boosted at this point or regressor
@@ -739,8 +743,8 @@ pipe = Pipeline([
 #PARAMETERS NEED TO HAVE THE SAME LENGTH
 params = {
     'feature_selection__k':[5, 6, 7],
-    'reg__alpha':[0.01, 0.001, 0.0001, 0.000001],
-    'reg__max_iter':[800, 1000, 1500, 2500]
+    'reg__alpha':[0.01, 0.001, 0.0001],
+    'reg__max_iter':[800, 1000, 1500]
     }
 
 #Initialize the grid search object
