@@ -1,3 +1,8 @@
+#future needs to be run first
+#eager execution needs to be run right after the TF instantiation to avoid errors
+from __future__ import absolute_import, division, print_function, unicode_literals
+import functools
+
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 10 10:51:04 2020
@@ -13,6 +18,9 @@ THIRD STAGE: encode all columns to numerical values and store corresponding dict
 '''
 
 #load needed packages
+
+
+
 import pandas as pd
 pd.set_option('display.width', 1000)
 import numpy as np
@@ -44,10 +52,7 @@ import keras
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation
 
-#future needs to be run first
-#eager execution needs to be run right after the TF instantiation to avoid errors
-from __future__ import absolute_import, division, print_function, unicode_literals
-import functools
+
 
 import tensorflow as tf
 tf.compat.v1.enable_eager_execution()
@@ -475,14 +480,15 @@ bank_df = bank_df.drop(['unique_mem_id',
                         'unique_bank_transaction_id'], axis = 1)
 ####
 model_features = bank_df.drop(['primary_merchant_name'], axis = 1)
-model_label = bank_df[['primary_merchant_name']]
+#On some occasions the label needs to be a 1d array;
+#then the double square brackets (slicing it as a new dataframe) break the pipeline
+model_label = bank_df['primary_merchant_name']
 ####
 #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
 X_train, X_test, y_train, y_test = train_test_split(model_features,
                                                     model_label,
                                                     shuffle = True,
-                                                    test_size = 0.3,
-                                                    stratify = y_train)
+                                                    test_size = 0.3)
 
 #create a validation set from the training set
 print(f"Shape of the split training data set X_train:{X_train.shape}")
@@ -616,12 +622,16 @@ SGDReg
         will return the :func:`homogeneity_score` which will be different in
         general.
     Optimal number of features: 9
-    Selected features: ['amount', 'description', 'post_date', 'file_created_date', 'optimized_transaction_date', 'panel_file_created_date', 'account_score', 'amount_std_lag7', 'amount_std_lag30']
+    Selected features: ['amount', 'description', 'post_date', 'file_created_date',
+                        'optimized_transaction_date', 'panel_file_created_date',
+                        'account_score', 'amount_std_lag7', 'amount_std_lag30']
     Max Error -picks all features - BUT HAS GOOD CV SCORE
     Neg Mean Squared Error - picks only one feat
     Homogeneity Score
     Optimal number of features: 9
-    Selected features: ['description', 'post_date', 'file_created_date', 'optimized_transaction_date', 'panel_file_created_date', 'account_score', 'amount_mean_lag3', 'amount_std_lag3', 'amount_std_lag7']
+    Selected features: ['description', 'post_date', 'file_created_date',
+                        'optimized_transaction_date', 'panel_file_created_date', 'account_score',
+                        'amount_mean_lag3', 'amount_std_lag3', 'amount_std_lag7']
 EVALUATION METRICS DOCUMENTATION
 https://scikit-learn.org/stable/modules/model_evaluation.html
 '''
@@ -676,7 +686,11 @@ plt.show()
 #%%
 '''
             Setting up a pipeline
-Pipeline 1 - SelectKBest and Logistic Regression
+Pipeline 1 - SelectKBest and Logistic Regression (non-neg only)
+Pipeline 1; 2020-04-29 11:02:06
+{'feature_selection__k': 5, 'reg__max_iter': 800}
+Overall score: 0.3696
+Best accuracy with parameters: 0.34202115158636903
 '''
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #F_CLASSIFIER;FOR CLASSIFICATION TASKS determines features based on the f-values between features & labels;
@@ -693,8 +707,8 @@ pipe = Pipeline([
 #parameter grids provide the values for the models to try
 #PARAMETERS NEED TO HAVE THE SAME LENGTH
 params = {
-    'feature_selection__k':[5, 6, 7],
-    'reg__max_iter':[800, 1000, 1500]}
+    'feature_selection__k':[5, 6, 7, 8, 9],
+    'reg__max_iter':[800, 1000, 1500, 2000]}
 
 #Initialize the grid search object
 grid_search = GridSearchCV(pipe, param_grid = params)
@@ -707,7 +721,7 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(f"Pipeline 1; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
+print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
@@ -735,18 +749,21 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(f"Pipeline 2; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
+print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 #BUGGED
 '''
 Pipeline 3 - Logistic Regression and Random Forest Regressor
+Pipeline 3; 2020-04-29 11:13:21
+{'feature_selection__k': 7, 'reg__min_samples_split': 8, 'reg__n_estimators': 150}
+Overall score: 0.6965
+Best accuracy with parameters: 0.6820620369181245
 '''
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regessor
 pipe = Pipeline([
-    ('feature_selection', RFE(estimator = LogisticRegression(C = 1.0, max_iter = 1500),
-                              step = 1)),
+    ('feature_selection', SelectKBest(score_func = f_classif)),
     ('reg', RandomForestRegressor(n_estimators = 75, max_depth = len(bank_df.columns)/2, min_samples_split = 4))
     ])
 
@@ -754,7 +771,7 @@ pipe = Pipeline([
 #parameter grids provide the values for the models to try
 #PARAMETERS NEED TO HAVE THE SAME LENGTH
 params = {
-    'feature_selection__n_features_to_select':[6, 7, 8, 9],
+    'feature_selection__k':[5, 6, 7, 8, 9],
     'reg__n_estimators':[75, 100, 150, 200],
     'reg__min_samples_split':[4, 8, 10, 15],
     }
@@ -765,7 +782,7 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(f"Pipeline 3; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
+print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 #BUGGED
@@ -803,9 +820,10 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(f"Pipeline 4; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
+print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
+#BUGGED
 '''
 Pipeline 5 - SelectKBest and Gradient Boosting Classifier
 '''
@@ -828,7 +846,7 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #Fit it to the data and print the best value combination
 print(f"Pipeline 5; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
+print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
@@ -837,6 +855,11 @@ Pipeline 6 - SelectKBest and K Nearest Neighbor
 Pipeline 6; 2020-04-27 11:00:27
 {'clf__n_neighbors': 7, 'feature_selection__k': 3}
 Best accuracy with parameters: 0.5928202115158637
+------
+Pipeline 6; 2020-04-29 10:01:21 WITH SCALED DATA
+{'clf__n_neighbors': 4, 'feature_selection__k': 3}
+Overall score: 0.3696
+Best accuracy with parameters: 0.6156286721504113
 '''
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regressor
@@ -856,16 +879,26 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
 print(f"Pipeline 6; {dt.today()}")
-print(grid_search.fit(X_train, y_train).best_params_)
+print(grid_search.fit(X_train_scaled, y_train).best_params_)
 print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
-Pipeline 7 - SelectKBest and K Nearest Neighbor
+Pipeline 7 - SelectKBest and Support Vector Classifier
 ##########
 Pipeline 7; 2020-04-28 10:22:10
 {'clf__C': 100, 'clf__gamma': 0.1, 'feature_selection__k': 5}
 Best accuracy with parameters: 0.6742596944770858
+---
+Pipeline 7; 2020-04-29 10:06:28 SCALED DATA
+{'clf__C': 0.01, 'clf__gamma': 0.1, 'feature_selection__k': 4}
+Overall score: 0.3696
+Best accuracy with parameters: 0.34202115158636903
+---
+Pipeline 7; 2020-04-29 10:11:02 UNSCALED DATA
+{'clf__C': 10, 'clf__gamma': 0.01, 'feature_selection__k': 5}
+Overall score: 0.5266
+Best accuracy with parameters: 0.5592068155111634
 '''
 #Create pipeline with feature selector and classifier
 #replace with classifier or regressor
@@ -890,8 +923,8 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
 print(f"Pipeline 7; {dt.today()}")
-print(grid_search.fit(X_train_scaled, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
+print(grid_search.fit(X_train, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 #generate a dataframe for pipeline values
@@ -901,11 +934,12 @@ def score_df():
                                 'Overall Score':grid_search.score(X_test, y_test),
                                 'Overall Score(scaled)':grid_search.score(X_test_scaled, y_test),
                                 'Highest Prediction Score':grid_search.best_score_
-                                                    })
+                                })
     print(gs_df)
 #%%
 #accuracy negative; model toally off
-transformer = QuantileTransformer(output_distribution='normal')
+#n_quantiles needs to be smaller than the number of samples (standard is 1000)
+transformer = QuantileTransformer(n_quantiles=750, output_distribution='normal')
 regressor = LinearRegression()
 regr = TransformedTargetRegressor(regressor=regressor,
                                    transformer=transformer)
@@ -913,12 +947,13 @@ regr = TransformedTargetRegressor(regressor=regressor,
 regr.fit(X_train, y_train)
 
 TransformedTargetRegressor(...)
-print('R2 score: {0:.2f}'.format(regr.score(X_test, y_test)))
+print('q-t R2-score: {0:.3f}'.format(regr.score(X_test, y_test)))
 
 
 raw_target_regr = LinearRegression().fit(X_train, y_train)
-print('R2 score: {0:.2f}'.format(raw_target_regr.score(X_test, y_test)))
+print('unprocessed R2-score: {0:.3f}'.format(raw_target_regr.score(X_test, y_test)))
 #%%
+#Overfitting
 '''
 Random Forest Classifier
 '''
@@ -926,16 +961,23 @@ RFC = RandomForestClassifier(n_estimators = 20, max_depth = len(bank_df.columns)
 RFC.fit(X_train, y_train)
 y_pred = RFC.predict(X_test)
 RFC_probability = RFC.predict_proba(X_test)
-print(f"TESTINFO Rnd F Cl: [{dt.today()}]--[Parameters: n_estimators:{RFC.n_estimators}, max_depth:{RFC.max_depth}, random state:{RFC.random_state}]--Training set accuracy: {RFC.score(X_train, y_train)}; Test set accuracy: {RFC.score(X_test, y_test)}; Test set validation: {RFC.score(X_test, y_pred)}")
+print(f"TESTINFO Rnd F Cl: [{dt.today()}]--[Parameters: n_estimators:{RFC.n_estimators},\
+      max_depth:{RFC.max_depth}, random state:{RFC.random_state}]--Training set accuracy:\
+      {RFC.score(X_train, y_train)}; Test set accuracy: {RFC.score(X_test, y_test)};\
+          Test set validation: {RFC.score(X_test, y_pred)}")
 #%%
+#Overfitting
 '''
 K Nearest Neighbor
 '''
 KNN = KNeighborsClassifier(n_neighbors = 5, weights = 'uniform')
 KNN.fit(X_train, y_train)
 y_pred = KNN.predict(X_test)
-print(f"TESTINFO KNN: [{dt.today()}]--[Parameters: n_neighbors:{KNN.n_neighbors}, weights:{KNN.weights}]--Training set accuracy: {KNN.score(X_train, y_train)}; Test set accuracy: {KNN.score(X_test, y_test)}; Test set validation: {KNN.score(X_test, y_pred)}")
+print(f"TESTINFO KNN: [{dt.today()}]--[Parameters: n_neighbors:{KNN.n_neighbors},\
+      weights:{KNN.weights}]--Training set accuracy: {KNN.score(X_train, y_train)};\
+      Test set accuracy: {KNN.score(X_test, y_test)}; Test set validation: {KNN.score(X_test, y_pred)}")
 #%%
+#Overfitting
 '''
 Use the random forest regressor algorithm to predict labels; DO NOT USE SCALED VARIABLES HERE
 The number of splits for each tree level is equal to half the number of columns; that way overfitting is dampened and test remains fast
@@ -944,7 +986,10 @@ Test 4/22/2020: val_accuracy: 1.0 -> overfitted
 RFR = RandomForestRegressor(n_estimators = 75, max_depth = len(bank_df.columns)/2, min_samples_split = 4)
 RFR.fit(X_train, y_train)
 y_pred = RFR.predict(X_test)
-print(f"TESTINFO Rnd F Reg: [{dt.today()}]--[Parameters: n_estimators:{RFR.n_estimators}, max_depth:{RFR.max_depth}, min_samples_split:{RFR.min_samples_split}]--Training set accuracy: {RFR.score(X_train, y_train)}; Test set accuracy: {RFR.score(X_test, y_test)}; Test set validation: {RFR.score(X_test, y_pred)}")
+print(f"TESTINFO Rnd F Reg: [{dt.today()}]--[Parameters: n_estimators:{RFR.n_estimators},\
+      max_depth:{RFR.max_depth}, min_samples_split:{RFR.min_samples_split}]--Training set accuracy:\
+      {RFR.score(X_train, y_train)}; Test set accuracy: {RFR.score(X_test, y_test)}; Test set validation:\
+          {RFR.score(X_test, y_pred)}")
 #%%
 '''
                 APPLICATION OF SKLEARN NEURAL NETWORK
@@ -960,7 +1005,44 @@ MLP = MLPClassifier(hidden_layer_sizes = 1500, solver='adam', alpha=0.0001 )
 MLP.fit(X_train, y_train)
 y_val = MLP.predict(X_test)
 #y_val.reshape(-1, 1)
-print(f"TESTINFO MLP: [{dt.today()}]--[Parameters: hidden layers:{MLP.hidden_layer_sizes}, alpha:{MLP.alpha}]--Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)}; Test set Validation: {MLP.score(X_test, y_val)}")
+print(f"TESTINFO MLP: [{dt.today()}]--[Parameters: hidden layers:{MLP.hidden_layer_sizes}, alpha:{MLP.alpha}]--\
+      Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)};\
+          Test set Validation: {MLP.score(X_test, y_val)}")
+#%%
+'''
+Pipeline 8 - SelectKBest and Multi-Layer Perceptron
+##########
+
+'''
+#Create pipeline with feature selector and classifier
+#replace with classifier or regressor
+#learning_rate = 'adaptive'; when solver='sgd'
+pipe = Pipeline([
+    ('feature_selection', SelectKBest(score_func = chi2)),
+    ('clf', MLPClassifier(activation='relu',
+                          solver='adam',
+                          learning_rate='constant'))])
+
+#Create a parameter grid
+#parameter grids provide the values for the models to try
+#PARAMETERS NEED TO HAVE THE SAME LENGTH
+#Parameter explanation
+#   C: penalty parameter
+#   gamma: [standard 'auto' = 1/n_feat], kernel coefficient
+#
+params = {
+    'feature_selection__k':[4, 5, 6, 7, 8, 9],
+    'clf__max_iter':[750, 1500, 2000, 2200, 2500],
+    'clf__alpha':[0.0001, 0.001, 0.01, 0.1]}
+
+#Initialize the grid search object
+grid_search = GridSearchCV(pipe, param_grid = params)
+
+#Fit it to the data and print the best value combination
+print(f"Pipeline 7; {dt.today()}")
+print(grid_search.fit(X_train, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
+print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 
 #y_val = y_pred as the split is still unfisnished
