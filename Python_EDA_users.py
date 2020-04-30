@@ -471,112 +471,99 @@ def df_encoder(rng = 4):
     bank_df = bank_df.drop([0, 1])
     bank_df.reset_index(drop = True, inplace = True)
     #csv_export(df=bank_df, file_name='encoded_bank_dataframe')
-    return 'dataframe encoding complete; CSVs are located in the working directory(inactivated for testing)'
-#%%
-###################SPLITTING UP THE DATA###########################
-#drop target variable in feature df
-#all remaining columns will be the features
-bank_df = bank_df.drop(['unique_mem_id',
-                        'unique_bank_account_id',
-                        'unique_bank_transaction_id'], axis = 1)
-####
-model_features = bank_df.drop(['primary_merchant_name'], axis = 1)
-#On some occasions the label needs to be a 1d array;
-#then the double square brackets (slicing it as a new dataframe) break the pipeline
-model_label = bank_df['primary_merchant_name']
-####
-#stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
-X_train, X_test, y_train, y_test = train_test_split(model_features,
-                                                    model_label,
-                                                    random_state = 7,
-                                                    shuffle = True,
-                                                    test_size = 0.4)
+    #return 'dataframe encoding complete; CSVs are located in the working directory(inactivated for testing)'
+    #%%
+    ###################SPLITTING UP THE DATA###########################
+    #drop target variable in feature df
+    #all remaining columns will be the features
+    bank_df = bank_df.drop(['unique_mem_id',
+                            'unique_bank_account_id',
+                            'unique_bank_transaction_id'], axis = 1)
+    ####
+    model_features = bank_df.drop(['primary_merchant_name'], axis = 1)
+    #On some occasions the label needs to be a 1d array;
+    #then the double square brackets (slicing it as a new dataframe) break the pipeline
+    model_label = bank_df['primary_merchant_name']
+    ####
+    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
+    X_train, X_test, y_train, y_test = train_test_split(model_features,
+                                                        model_label,
+                                                        random_state = 7,
+                                                        shuffle = True,
+                                                        test_size = 0.4)
 
-#create a validation set from the training set
-print(f"Shape of the split training data set X_train:{X_train.shape}")
-print(f"Shape of the split training data set X_test: {X_test.shape}")
-print(f"Shape of the split training data set y_train: {y_train.shape}")
-print(f"Shape of the split training data set y_test: {y_test.shape}")
-#%%
-#STD SCALING - does not work yet
-#fit the scaler to the training data first
-#standard scaler works only with maximum 2 dimensions
-scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-X_train_scaled = scaler.transform(X_train)
+    #create a validation set from the training set
+    print(f"Shape of the split training data set X_train:{X_train.shape}")
+    print(f"Shape of the split training data set X_test: {X_test.shape}")
+    print(f"Shape of the split training data set y_train: {y_train.shape}")
+    print(f"Shape of the split training data set y_test: {y_test.shape}")
+    #%%
+    #STD SCALING - does not work yet
+    #fit the scaler to the training data first
+    #standard scaler works only with maximum 2 dimensions
+    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
 
-#transform test data with the object learned from the training data
-X_test_scaled = scaler.transform(X_test)
-scaler_mean = scaler.mean_
-stadard_scale = scaler.scale_
-#%%
-#MINMAX SCALING - works with Select K Best
-min_max_scaler = MinMaxScaler()
-X_train_minmax = min_max_scaler.fit_transform(X_train)
+    #transform test data with the object learned from the training data
+    X_test_scaled = scaler.transform(X_test)
+    scaler_mean = scaler.mean_
+    stadard_scale = scaler.scale_
+    #%%
+    #MINMAX SCALING - works with Select K Best
+    min_max_scaler = MinMaxScaler()
+    X_train_minmax = min_max_scaler.fit_transform(X_train)
 
-X_test_minmax = min_max_scaler.transform(X_test)
-minmax_scale = min_max_scaler.scale_
-min_max_minimum = min_max_scaler.min_
-#%%
-#Principal Component Reduction
-#first scale
-#then reduce
-#keep the most important features of the data
-pca = PCA(n_components = int(len(bank_df.columns) / 2))
-#fit PCA model to breast cancer data
-pca.fit(X_train_scaled)
-#transform data onto the first two principal components
-X_train_pca = pca.transform(X_train_scaled)
-X_test_pca = pca.transform(X_test_scaled)
-print("Original shape: {}".format(str(X_train_scaled.shape)))
-print("Reduced shape: {}".format(str(X_train_pca.shape)))
-#%%
-'''
-            Plotting of PCA/ Cluster Pairs
+    X_test_minmax = min_max_scaler.transform(X_test)
+    minmax_scale = min_max_scaler.scale_
+    min_max_minimum = min_max_scaler.min_
+    #%%
+    #Principal Component Reduction
+    #first scale
+    #then reduce
+    #keep the most important features of the data
+    pca = PCA(n_components = int(len(bank_df.columns) / 2))
+    #fit PCA model to breast cancer data
+    pca.fit(X_train_scaled)
+    #transform data onto the first two principal components
+    X_train_pca = pca.transform(X_train_scaled)
+    X_test_pca = pca.transform(X_test_scaled)
+    print("Original shape: {}".format(str(X_train_scaled.shape)))
+    print("Reduced shape: {}".format(str(X_train_pca.shape)))
+    #%%
+    '''
+                Plotting of PCA/ Cluster Pairs
 
-'''
-#Kmeans clusters to categorize groups WITH SCALED DATA
-#determine number of groups needed or desired for
-kmeans = KMeans(n_clusters = 15, random_state = 10)
-train_clusters = kmeans.fit(X_train_scaled)
-cl = kmeans.n_clusters
+    '''
+    #Kmeans clusters to categorize groups WITH SCALED DATA
+    #determine number of groups needed or desired for
+    kmeans = KMeans(n_clusters = 15, random_state = 10)
+    train_clusters = kmeans.fit(X_train_scaled)
+    cl = kmeans.n_clusters
 
-kmeans = KMeans(n_clusters = 15, random_state = 10)
-test_clusters = kmeans.fit(X_test_scaled)
-#Creating the plot
-fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
-#styles for title: normal; italic; oblique
-ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
-ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
-ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
-ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
-ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
-#principal components of bank panel has better results than card panel with clearer borders
-#%%
-#f_classif for regression
-#chi-sqr for classification but requires non-neg values
-####syntax of reshape(n_samples, n_features)
-#### value of -1 allows for adaptation to shape needed
-##y_train_rs = np.array(y_train).reshape(-1, 1)
-##X_train_scl_rs = np.array(X_train_scaled).reshape(-1, 1)
-##X_test_scl_rs = np.array(X_test_scaled).reshape(-1, 1)
+    kmeans = KMeans(n_clusters = 15, random_state = 10)
+    test_clusters = kmeans.fit(X_test_scaled)
+    #Creating the plot
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
+    #styles for title: normal; italic; oblique
+    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
+    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
+    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    #principal components of bank panel has better results than card panel with clearer borders
+    '''
+    takes unscaled numerical so far and minmax scaled arguments
+    #numerical and minmax scaled leads to the same results being picked
+    f_classif for classification tasks
+    chi2 for regression tasks
+    '''
+    k_best = SelectKBest(score_func = f_classif, k = 5)
+    k_best.fit(X_train, y_train)
+    k_best.get_params()
 
-##X_train_minmax_rs = X_train_minmax.reshape(-1, 1)
-##X_test_minmax_rs = X_test_minmax.reshape(-1, 1)
-#%%
-#fed variables cannot have missing values
-'''
-takes unscaled numerical so far and minmax scaled arguments
-#numerical and minmax scaled leads to the same results being picked
-f_classif for classification tasks
-chi2 for regression tasks
-'''
-k_best = SelectKBest(score_func = f_classif, k = 5)
-k_best.fit(X_train, y_train)
-k_best.get_params()
-
-#isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
-#np.corrcoef(np.array(isCredit_num), amounts)
+    #isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
+    #np.corrcoef(np.array(isCredit_num), amounts)
 #%%
 #WORKS WITH UNSCALED DATA
 #pick feature columns to predict the label
@@ -952,12 +939,16 @@ def score_df():
         Catching the predictions and converting them back to merchants
 Should the prediction turn out to be wrong ask for input by the user
 '''
+merch_list = []
 for merchant, value in embedding_map_merchants.items():
     for prediction in grid_search.predict(X_test):
         if prediction == value:
-            print(f"Transaction at {merchant}")
-        else:
-            print("This merchant could not be recognized by us.\nCan you tell us where you are shopping right now? :)")
+            #print(f"Transaction at {merchant}")
+            merch_list.append(merchant)
+        # else:
+        #     print("This merchant could not be recognized by us.\nCan you tell us where you are shopping right now? :)")
+        #     merch_list.append("Wrong prediction")
+    return merch_list
 #%%
 #accuracy negative; model toally off
 #n_quantiles needs to be smaller than the number of samples (standard is 1000)
