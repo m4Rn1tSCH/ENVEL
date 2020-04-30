@@ -25,6 +25,7 @@ import pandas as pd
 pd.set_option('display.width', 1000)
 import numpy as np
 from datetime import datetime as dt
+import pickle
 import os
 import matplotlib.pyplot as plt
 from collections import Counter
@@ -487,6 +488,7 @@ model_label = bank_df['primary_merchant_name']
 #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
 X_train, X_test, y_train, y_test = train_test_split(model_features,
                                                     model_label,
+                                                    random_state = 7,
                                                     shuffle = True,
                                                     test_size = 0.4)
 
@@ -903,6 +905,11 @@ Pipeline 7; 2020-04-29 10:11:02 UNSCALED DATA
 {'clf__C': 10, 'clf__gamma': 0.01, 'feature_selection__k': 5}
 Overall score: 0.5266
 Best accuracy with parameters: 0.5592068155111634
+---
+Pipeline 7; 2020-04-30 11:38:13
+{'clf__C': 1, 'clf__gamma': 0.01, 'feature_selection__k': 4}
+Overall score: 0.5408
+Best accuracy with parameters: 0.5335967104732726
 '''
 #Create pipeline with feature selector and classifier
 #replace with classifier or regressor
@@ -953,9 +960,36 @@ regr.fit(X_train, y_train)
 TransformedTargetRegressor(...)
 print('q-t R2-score: {0:.3f}'.format(regr.score(X_test, y_test)))
 
-
 raw_target_regr = LinearRegression().fit(X_train, y_train)
 print('unprocessed R2-score: {0:.3f}'.format(raw_target_regr.score(X_test, y_test)))
+#%%
+'''
+        Usage of a Pickle Model -Storage of a trained Model
+'''
+def store_pickle(model):
+    model_file = "gridsearch_model.sav"
+    with open(model_file, mode='wb') as m_f:
+        pickle.dump(model, m_f)
+    return model_file
+#%%
+'''
+        Usage of a Pickle Model -Loading of a Pickle File
+
+model file can be opened either with FILE NAME
+open_pickle(model_file="gridsearch_model.sav")
+INTERNAL PARAMETER
+open_pickle(model_file=model_file)
+'''
+
+def open_pickle(model_file):
+    with open(model_file, mode='rb') as m_f:
+        grid_search = pickle.load(m_f)
+        result = grid_search.score(X_test, y_test)
+        print("Employed Estimator:", grid_search.get_params)
+        print("--------------------")
+        print("BEST PARAMETER COMBINATION:", grid_search.best_params_)
+        print("Training Accuracy Result: %.4f" %(result))
+        return 'grid_search parameters loaded'
 #%%
 #Overfitting
 '''
@@ -997,21 +1031,26 @@ print(f"TESTINFO Rnd F Reg: [{dt.today()}]--[Parameters: n_estimators:{RFR.n_est
 #%%
 '''
                 APPLICATION OF SKLEARN NEURAL NETWORK
-works with minmax scaled version and  has very little accuracy depsite having 1000 layers
+
 Test; [1000l;alpha=0.001] [2020-04-22 00:00]; Training set accuracy: 0.002171552660152009; Test set accuracy: 0.0
-Test; [1500l; alpha=0.0001] [2020-04-22 14:16:43.290096]; Training set accuracy: 0.3517915309446254; Test set accuracy: 0.3468354430379747
+Test; [1500l; alpha=0.0001] [2020-04-22 14:16:43]; Training set accuracy: 0.3517915309446254;
+                                                   Test set accuracy: 0.3468354430379747
+Test; [2020-04-29 14:32:25]--[Parameters: hidden layers:1500, alpha:0.0001]--\
+                                            Training set accuracy: 0.35868187579214195;\
+                                            Test set accuracy: 0.3377609108159393;\
+                                            Test set Validation: 1.0
 '''
 #adam: all-round solver for data
 #hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
 #match with input features
 #alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
-MLP = MLPClassifier(hidden_layer_sizes = 1500, solver='adam', alpha=0.0001 )
+MLP = MLPClassifier(hidden_layer_sizes = 1500, solver='sgd', learning_rate= 'adaptive', alpha=0.0001 )
 MLP.fit(X_train, y_train)
 y_val = MLP.predict(X_test)
 #y_val.reshape(-1, 1)
 print(f"TESTINFO MLP: [{dt.today()}]--[Parameters: hidden layers:{MLP.hidden_layer_sizes}, alpha:{MLP.alpha}]--\
       Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)};\
-          Test set Validation: {MLP.score(X_test, y_val)}")
+      Test set Validation: {MLP.score(X_test, y_val)}")
 #%%
 '''
 Pipeline 8 - SelectKBest and Multi-Layer Perceptron
