@@ -948,6 +948,17 @@ def score_df():
                                 })
     print(gs_df)
 #%%
+'''
+        Catching the predictions and converting them back to merchants
+Should the prediction turn out to be wrong ask for input by the user
+'''
+for merchant, value in embedding_map_merchants.items():
+    for prediction in grid_search.predict(X_test):
+        if prediction == value:
+            print(f"Transaction at {merchant}")
+        else:
+            print("This merchant could not be recognized by us.\nCan you tell us where you are shopping right now? :)")
+#%%
 #accuracy negative; model toally off
 #n_quantiles needs to be smaller than the number of samples (standard is 1000)
 transformer = QuantileTransformer(n_quantiles=750, output_distribution='normal')
@@ -962,34 +973,6 @@ print('q-t R2-score: {0:.3f}'.format(regr.score(X_test, y_test)))
 
 raw_target_regr = LinearRegression().fit(X_train, y_train)
 print('unprocessed R2-score: {0:.3f}'.format(raw_target_regr.score(X_test, y_test)))
-#%%
-'''
-        Usage of a Pickle Model -Storage of a trained Model
-'''
-def store_pickle(model):
-    model_file = "gridsearch_model.sav"
-    with open(model_file, mode='wb') as m_f:
-        pickle.dump(model, m_f)
-    return model_file
-#%%
-'''
-        Usage of a Pickle Model -Loading of a Pickle File
-
-model file can be opened either with FILE NAME
-open_pickle(model_file="gridsearch_model.sav")
-INTERNAL PARAMETER
-open_pickle(model_file=model_file)
-'''
-
-def open_pickle(model_file):
-    with open(model_file, mode='rb') as m_f:
-        grid_search = pickle.load(m_f)
-        result = grid_search.score(X_test, y_test)
-        print("Employed Estimator:", grid_search.get_params)
-        print("--------------------")
-        print("BEST PARAMETER COMBINATION:", grid_search.best_params_)
-        print("Training Accuracy Result: %.4f" %(result))
-        return 'grid_search parameters loaded'
 #%%
 #Overfitting
 '''
@@ -1086,6 +1069,34 @@ print(f"Pipeline 7; {dt.today()}")
 print(grid_search.fit(X_train, y_train).best_params_)
 print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
+#%%
+'''
+        Usage of a Pickle Model -Storage of a trained Model
+'''
+def store_pickle(model):
+    model_file = "gridsearch_model.sav"
+    with open(model_file, mode='wb') as m_f:
+        pickle.dump(model, m_f)
+    return model_file
+#%%
+'''
+        Usage of a Pickle Model -Loading of a Pickle File
+
+model file can be opened either with FILE NAME
+open_pickle(model_file="gridsearch_model.sav")
+INTERNAL PARAMETER
+open_pickle(model_file=model_file)
+'''
+
+def open_pickle(model_file):
+    with open(model_file, mode='rb') as m_f:
+        grid_search = pickle.load(m_f)
+        result = grid_search.score(X_test, y_test)
+        print("Employed Estimator:", grid_search.get_params)
+        print("--------------------")
+        print("BEST PARAMETER COMBINATION:", grid_search.best_params_)
+        print("Training Accuracy Result: %.4f" %(result))
+        return 'grid_search parameters loaded'
 #%%
 
 #y_val = y_pred as the split is still unfisnished
