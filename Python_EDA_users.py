@@ -111,7 +111,7 @@ def df_encoder(rng = 4):
     #%%
     #dateframe to gather MA bank data from one randomly chosen user
     #std random_state is 2
-    rng = 4
+    rng = 8
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n = 1, random_state = rng):
             print(i)
@@ -536,11 +536,11 @@ def df_encoder(rng = 4):
     '''
     #Kmeans clusters to categorize groups WITH SCALED DATA
     #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 15, random_state = 10)
+    kmeans = KMeans(n_clusters = 25, random_state = 10)
     train_clusters = kmeans.fit(X_train_scaled)
     cl = kmeans.n_clusters
 
-    kmeans = KMeans(n_clusters = 15, random_state = 10)
+    kmeans = KMeans(n_clusters = 25, random_state = 10)
     test_clusters = kmeans.fit(X_test_scaled)
     #Creating the plot
     fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
@@ -680,6 +680,10 @@ Pipeline 1; 2020-04-29 11:02:06
 {'feature_selection__k': 5, 'reg__max_iter': 800}
 Overall score: 0.3696
 Best accuracy with parameters: 0.34202115158636903
+Pipeline 1; 2020-05-01 09:44:29
+{'feature_selection__k': 8, 'reg__max_iter': 800}
+Overall score: 0.5972
+Best accuracy with parameters: 0.605607476635514
 '''
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #F_CLASSIFIER;FOR CLASSIFICATION TASKS determines features based on the f-values between features & labels;
@@ -709,12 +713,12 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
 print(f"Pipeline 1; {dt.today()}")
-print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
+print(grid_search.fit(X_train_minmax, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test_minmax, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
-Pipeline 2 - SelectKBest and SGDRegressor
+Pipeline 2 - SelectKBest and SGDRegressor -needs non-negative values
 Pipeline 2; 2020-04-29 14:13:46
 {'feature_selection__k': 5, 'reg__alpha': 0.0001, 'reg__max_iter': 800}
 Overall score: -12552683945869548245665121782413383849471150345158656.0000
@@ -747,11 +751,16 @@ print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 #BUGGED
 '''
-Pipeline 3 - Logistic Regression and Random Forest Regressor
+Pipeline 3 - SelectKBest and Random Forest Regressor
+---------
 Pipeline 3; 2020-04-29 11:13:21
 {'feature_selection__k': 7, 'reg__min_samples_split': 8, 'reg__n_estimators': 150}
 Overall score: 0.6965
 Best accuracy with parameters: 0.6820620369181245
+Pipeline 3; 2020-05-01 10:01:18
+{'feature_selection__k': 7, 'reg__min_samples_split': 4, 'reg__n_estimators': 100}
+Overall score: 0.9319
+Best accuracy with parameters: 0.9181502112642107
 '''
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regessor
@@ -778,9 +787,13 @@ print(grid_search.fit(X_train, y_train).best_params_)
 print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
-#BUGGED
 '''
-Pipeline 4 - Logistic Regression and Support Vector Kernel
+Pipeline 4 - Logistic Regression and Support Vector Kernel -needs non-negative values
+---------
+Pipeline 4; 2020-05-01 10:06:03.468878
+{'feature_selection__k': 8, 'reg__C': 0.1, 'reg__epsilon': 0.3}
+Overall score: 0.1292
+Best accuracy with parameters: 0.08389477382390549
 '''
 #Create pipeline with feature selector and regressor
 #replace with gradient boosted at this point or regressor
@@ -812,8 +825,8 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 #grid_search.best_score_
 #Fit it to the data and print the best value combination
 print(f"Pipeline 4; {dt.today()}")
-print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
+print(grid_search.fit(X_train_minmax, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test_minmax, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 #BUGGED
@@ -844,7 +857,7 @@ print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
 Pipeline 6 - SelectKBest and K Nearest Neighbor
-##########
+----------
 Pipeline 6; 2020-04-27 11:00:27
 {'clf__n_neighbors': 7, 'feature_selection__k': 3}
 Best accuracy with parameters: 0.5928202115158637
@@ -853,6 +866,11 @@ Pipeline 6; 2020-04-29 10:01:21 WITH SCALED DATA
 {'clf__n_neighbors': 4, 'feature_selection__k': 3}
 Overall score: 0.3696
 Best accuracy with parameters: 0.6156286721504113
+-------
+Pipeline 6; 2020-05-01 10:21:01
+{'clf__n_neighbors': 2, 'feature_selection__k': 4}
+Overall score: 0.9243
+Best accuracy with parameters: 0.9015576323987539
 '''
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regressor
@@ -872,8 +890,8 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
 print(f"Pipeline 6; {dt.today()}")
-print(grid_search.fit(X_train_scaled, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test_scaled, y_test)))
+print(grid_search.fit(X_train, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
@@ -897,6 +915,11 @@ Pipeline 7; 2020-04-30 11:38:13
 {'clf__C': 1, 'clf__gamma': 0.01, 'feature_selection__k': 4}
 Overall score: 0.5408
 Best accuracy with parameters: 0.5335967104732726
+---
+Pipeline 7; 2020-05-01 10:29:08
+{'clf__C': 100, 'clf__gamma': 0.01, 'feature_selection__k': 4}
+Overall score: 0.9346
+Best accuracy with parameters: 0.9102803738317757
 '''
 #Create pipeline with feature selector and classifier
 #replace with classifier or regressor
@@ -1006,13 +1029,18 @@ print(f"TESTINFO Rnd F Reg: [{dt.today()}]--[Parameters: n_estimators:{RFR.n_est
 '''
                 APPLICATION OF SKLEARN NEURAL NETWORK
 
-Test; [1000l;alpha=0.001] [2020-04-22 00:00]; Training set accuracy: 0.002171552660152009; Test set accuracy: 0.0
+Test; [1000l;alpha=0.001] [2020-04-22 00:00]; Training set accuracy: 0.002171552660152009;\
+                                                                    Test set accuracy: 0.0
 Test; [1500l; alpha=0.0001] [2020-04-22 14:16:43]; Training set accuracy: 0.3517915309446254;
                                                    Test set accuracy: 0.3468354430379747
 Test; [2020-04-29 14:32:25]--[Parameters: hidden layers:1500, alpha:0.0001]--\
                                             Training set accuracy: 0.35868187579214195;\
                                             Test set accuracy: 0.3377609108159393;\
                                             Test set Validation: 1.0
+Test; [2020-05-01 10:31:28.213131]--[Parameters: hidden layers:1500, alpha:0.0001]--\
+                                        Training set accuracy: 0.33084112149532713;\
+                                        Test set accuracy: 0.3317757009345794;\
+                                        Test set Validation: 1.0
 '''
 #adam: all-round solver for data
 #hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
