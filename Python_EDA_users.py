@@ -215,6 +215,13 @@ def df_encoder(rng = 4):
     ax.legend(loc = 'center right')
     plt.show()
 
+    #seaborn plots
+    ax_desc = bank_df['description'].astype('int64', errors='ignore')
+    ax_amount = bank_df['amount'].astype('int64',errors='ignore')
+    sns.pairplot(bank_df)
+    sns.boxplot(x=ax_desc, y=ax_amount)
+    sns.heatmap(bank_df)
+
 #BUGGED
     #Boxplot template
     # cat_var = ["unique_mem_id", "primary_merchant_name"]
@@ -223,11 +230,6 @@ def df_encoder(rng = 4):
     #     for q_var in quant_var:
     #         bank_df.boxplot(column=q_var, by=c_var)
     #         plt.xticks([])
-    ax_desc = bank_df['description']).astype('int64', errors='coerce'))
-    ax_amount = bank_df['amount'].astype('int64',errors='coerce')
-    sns.pairplot(bank_df)
-    sns.boxplot(x=, y=)
-    sns.heatmap(bank_df)
     #%%
     '''
     Generate a spending report of the unaltered dataframe
@@ -538,11 +540,11 @@ def df_encoder(rng = 4):
     '''
     #Kmeans clusters to categorize groups WITH SCALED DATA
     #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 25, random_state = 10)
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
     train_clusters = kmeans.fit(X_train_scaled)
     cl = kmeans.n_clusters
 
-    kmeans = KMeans(n_clusters = 25, random_state = 10)
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
     test_clusters = kmeans.fit(X_test_scaled)
     #Creating the plot
     fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
@@ -922,6 +924,11 @@ Pipeline 7; 2020-05-01 10:29:08
 {'clf__C': 100, 'clf__gamma': 0.01, 'feature_selection__k': 4}
 Overall score: 0.9346
 Best accuracy with parameters: 0.9102803738317757
+---
+Pipeline 7; 2020-05-04 10:52:47
+{'clf__C': 10, 'clf__gamma': 0.1, 'feature_selection__k': 4}
+Overall score: 0.9121
+Best accuracy with parameters: 0.9171339563862928
 '''
 #Create pipeline with feature selector and classifier
 #replace with classifier or regressor
@@ -938,7 +945,7 @@ pipe = Pipeline([
 #
 params = {
     'feature_selection__k':[4, 5, 6, 7, 8, 9],
-    'clf__C':[0.01, 0.1, 1, 10, 100],
+    'clf__C':[0.01, 0.1, 1, 10],
     'clf__gamma':[0.1, 0.01, 0.001]}
 
 #Initialize the grid search object
