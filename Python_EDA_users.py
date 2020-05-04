@@ -110,7 +110,7 @@ def df_encoder(rng = 4):
                             columns = ['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
     #%%
     #dateframe to gather MA bank data from one randomly chosen user
-    #std random_state is 2
+    #std random_state is 4
     rng = 8
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n = 1, random_state = rng):
@@ -223,8 +223,10 @@ def df_encoder(rng = 4):
     #     for q_var in quant_var:
     #         bank_df.boxplot(column=q_var, by=c_var)
     #         plt.xticks([])
+    ax_desc = bank_df['description']).astype('int64', errors='coerce'))
+    ax_amount = bank_df['amount'].astype('int64',errors='coerce')
     sns.pairplot(bank_df)
-    sns.boxplot(x=bank_df['description'], y=bank_df['amount'])
+    sns.boxplot(x=, y=)
     sns.heatmap(bank_df)
     #%%
     '''
