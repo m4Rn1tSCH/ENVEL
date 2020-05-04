@@ -111,7 +111,8 @@ def df_encoder(rng = 4):
     #%%
     #dateframe to gather MA bank data from one randomly chosen user
     #std random_state is 4
-    rng = 8
+    #new rnd st is 8
+    rng = 4
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n = 1, random_state = rng):
             print(i)
@@ -686,10 +687,15 @@ Pipeline 1; 2020-05-01 09:44:29
 Overall score: 0.5972
 Best accuracy with parameters: 0.605607476635514
     CITY
-Pipeline 1; 2020-05-04 14:38:23
+Pipeline 1; 2020-05-04 14:38:23 Full Set
 {'feature_selection__k': 8, 'reg__max_iter': 800}
 Overall score: 0.7953
 Best accuracy with parameters: 0.8155763239875389
+----
+Pipeline 1; 2020-05-04 17:00:59 Sparse Set
+{'feature_selection__k': 5, 'reg__max_iter': 800}
+Overall score: 0.4706
+Best accuracy with parameters: 0.5158026283963557
 '''
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #F_CLASSIFIER;FOR CLASSIFICATION TASKS determines features based on the f-values between features & labels;
@@ -764,15 +770,23 @@ Pipeline 3; 2020-04-29 11:13:21
 {'feature_selection__k': 7, 'reg__min_samples_split': 8, 'reg__n_estimators': 150}
 Overall score: 0.6965
 Best accuracy with parameters: 0.6820620369181245
+---
 Pipeline 3; 2020-05-01 10:01:18
 {'feature_selection__k': 7, 'reg__min_samples_split': 4, 'reg__n_estimators': 100}
 Overall score: 0.9319
 Best accuracy with parameters: 0.9181502112642107
     CITY
-Pipeline 3; 2020-05-04 14:50:00
+Pipeline 3; 2020-05-04 14:50:00 Full Set
 {'feature_selection__k': 7, 'reg__min_samples_split': 4, 'reg__n_estimators': 100}
 Overall score: 0.8422
 Best accuracy with parameters: 0.8558703875627366
+---
+Pipeline 3; 2020-05-04 17:10:16 Sparse Set
+{'feature_selection__k': 7, 'reg__min_samples_split': 4, 'reg__n_estimators': 150}
+Overall score: 0.7186
+Best accuracy with parameters: 0.75653465869764
+---
+
 '''
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regessor
@@ -885,10 +899,15 @@ Overall score: 0.9243
 Best accuracy with parameters: 0.9015576323987539
 -------
     CITY
-Pipeline 6; 2020-05-04 14:51:44
+Pipeline 6; 2020-05-04 14:51:44 Full Set
 {'clf__n_neighbors': 2, 'feature_selection__k': 3}
 Overall score: 0.9028
 Best accuracy with parameters: 0.9071651090342681
+---
+Pipeline 6; 2020-05-04 17:12:14 Sparse Set
+{'clf__n_neighbors': 3, 'feature_selection__k': 5}
+Overall score: 0.6926
+Best accuracy with parameters: 0.7287349834717407
 '''
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regressor
@@ -945,10 +964,15 @@ Overall score: 0.9121
 Best accuracy with parameters: 0.9171339563862928
 ---
     CITY
-Pipeline 7; 2020-05-04 14:58:15
+Pipeline 7; 2020-05-04 14:58:15 Full Set
 {'clf__C': 10, 'clf__gamma': 0.01, 'feature_selection__k': 5}
 Overall score: 0.8841
 Best accuracy with parameters: 0.8797507788161993
+---
+Pipeline 7; 2020-05-04 17:14:48 Sparse Set
+{'clf__C': 10, 'clf__gamma': 0.1, 'feature_selection__k': 5}
+Overall score: 0.7533
+Best accuracy with parameters: 0.7908651132790454
 '''
 #Create pipeline with feature selector and classifier
 #replace with classifier or regressor
