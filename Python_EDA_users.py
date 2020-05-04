@@ -1015,15 +1015,16 @@ def score_df():
         Catching the predictions and converting them back to merchants
 Should the prediction turn out to be wrong ask for input by the user
 '''
-merch_list = []
-for merchant, value in embedding_map_merchants.items():
-    for prediction in grid_search.predict(X_test):
-        if prediction == value:
-            #print(f"Transaction at {merchant}")
-            merch_list.append(merchant)
-        # else:
-        #     print("This merchant could not be recognized by us.\nCan you tell us where you are shopping right now? :)")
-        #     merch_list.append("Wrong prediction")
+def merch_pred():
+    merch_list = []
+    for merchant, value in embedding_map_merchants.items():
+        for prediction in grid_search.predict(X_test):
+            if prediction == value:
+                #print(f"Transaction at {merchant}")
+                merch_list.append(merchant)
+            # else:
+            #     print("This merchant could not be recognized by us.\nCan you tell us where you are shopping right now? :)")
+            #     merch_list.append("Wrong prediction")
     return merch_list
 #%%
 #accuracy negative; model toally off
