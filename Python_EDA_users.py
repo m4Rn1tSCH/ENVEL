@@ -349,7 +349,6 @@ def df_encoder(rng = 4):
     bank_df['city'] = bank_df['city'].map(lambda x: le_2.transform([x])[0] if type(x)==str else x)
 
     #encoding states
-    #UNKNOWN_TOKEN = '<unknown>'
     states = bank_df['state'].unique().astype('str').tolist()
     states.append(UNKNOWN_TOKEN)
     le_3 = LabelEncoder()
@@ -361,7 +360,6 @@ def df_encoder(rng = 4):
     bank_df['state'] = bank_df['state'].map(lambda x: le_3.transform([x])[0] if type(x)==str else x)
 
     #encoding descriptions
-    #UNKNOWN_TOKEN = '<unknown>'
     desc = bank_df['description'].unique().astype('str').tolist()
     desc.append(UNKNOWN_TOKEN)
     le_4 = LabelEncoder()
@@ -373,7 +371,6 @@ def df_encoder(rng = 4):
     bank_df['description'] = bank_df['description'].map(lambda x: le_4.transform([x])[0] if type(x)==str else x)
 
     #encoding descriptions
-    #UNKNOWN_TOKEN = '<unknown>'
     desc = bank_df['transaction_category_name'].unique().astype('str').tolist()
     desc.append(UNKNOWN_TOKEN)
     le_5 = LabelEncoder()
@@ -387,7 +384,6 @@ def df_encoder(rng = 4):
                                                                                     le_5.transform([x])[0] if type(x)==str else x)
 
     #encoding transaction origin
-    #UNKNOWN_TOKEN = '<unknown>'
     desc = bank_df['transaction_origin'].unique().astype('str').tolist()
     desc.append(UNKNOWN_TOKEN)
     le_6 = LabelEncoder()
@@ -484,10 +480,10 @@ def df_encoder(rng = 4):
                             'unique_bank_account_id',
                             'unique_bank_transaction_id'], axis = 1)
     ####
-    model_features = bank_df.drop(['primary_merchant_name'], axis = 1)
+    model_features = bank_df.drop(['city'], axis = 1)
     #On some occasions the label needs to be a 1d array;
     #then the double square brackets (slicing it as a new dataframe) break the pipeline
-    model_label = bank_df['primary_merchant_name']
+    model_label = bank_df['city']
     ####
     #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
     X_train, X_test, y_train, y_test = train_test_split(model_features,
@@ -680,6 +676,7 @@ plt.show()
 '''
             Setting up a pipeline
 Pipeline 1 - SelectKBest and Logistic Regression (non-neg only)
+    PRIMARY_MERCHANT_NAME
 Pipeline 1; 2020-04-29 11:02:06
 {'feature_selection__k': 5, 'reg__max_iter': 800}
 Overall score: 0.3696
@@ -688,6 +685,11 @@ Pipeline 1; 2020-05-01 09:44:29
 {'feature_selection__k': 8, 'reg__max_iter': 800}
 Overall score: 0.5972
 Best accuracy with parameters: 0.605607476635514
+    CITY
+Pipeline 1; 2020-05-04 14:38:23
+{'feature_selection__k': 8, 'reg__max_iter': 800}
+Overall score: 0.7953
+Best accuracy with parameters: 0.8155763239875389
 '''
 #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
 #F_CLASSIFIER;FOR CLASSIFICATION TASKS determines features based on the f-values between features & labels;
@@ -749,13 +751,14 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
 print(f"Pipeline 2; {dt.today()}")
-print(grid_search.fit(X_train, y_train).best_params_)
+print(grid_search.fit(X_train_, y_train).best_params_)
 print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 #BUGGED
 '''
 Pipeline 3 - SelectKBest and Random Forest Regressor
+    PRIMARY_MERCHANT_NAME
 ---------
 Pipeline 3; 2020-04-29 11:13:21
 {'feature_selection__k': 7, 'reg__min_samples_split': 8, 'reg__n_estimators': 150}
@@ -765,6 +768,11 @@ Pipeline 3; 2020-05-01 10:01:18
 {'feature_selection__k': 7, 'reg__min_samples_split': 4, 'reg__n_estimators': 100}
 Overall score: 0.9319
 Best accuracy with parameters: 0.9181502112642107
+    CITY
+Pipeline 3; 2020-05-04 14:50:00
+{'feature_selection__k': 7, 'reg__min_samples_split': 4, 'reg__n_estimators': 100}
+Overall score: 0.8422
+Best accuracy with parameters: 0.8558703875627366
 '''
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regessor
@@ -875,6 +883,12 @@ Pipeline 6; 2020-05-01 10:21:01
 {'clf__n_neighbors': 2, 'feature_selection__k': 4}
 Overall score: 0.9243
 Best accuracy with parameters: 0.9015576323987539
+-------
+    CITY
+Pipeline 6; 2020-05-04 14:51:44
+{'clf__n_neighbors': 2, 'feature_selection__k': 3}
+Overall score: 0.9028
+Best accuracy with parameters: 0.9071651090342681
 '''
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regressor
@@ -929,6 +943,12 @@ Pipeline 7; 2020-05-04 10:52:47
 {'clf__C': 10, 'clf__gamma': 0.1, 'feature_selection__k': 4}
 Overall score: 0.9121
 Best accuracy with parameters: 0.9171339563862928
+---
+    CITY
+Pipeline 7; 2020-05-04 14:58:15
+{'clf__C': 10, 'clf__gamma': 0.01, 'feature_selection__k': 5}
+Overall score: 0.8841
+Best accuracy with parameters: 0.8797507788161993
 '''
 #Create pipeline with feature selector and classifier
 #replace with classifier or regressor
