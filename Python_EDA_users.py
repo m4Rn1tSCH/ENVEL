@@ -579,7 +579,7 @@ def df_encoder(rng = 4):
 #y_test = bank_df['primary_merchant_name']
 
 #build a logistic regression and use recursive feature elimination to exclude trivial features
-log_reg = LogisticRegression(C = 1.0, max_iter = 1500)
+log_reg = LogisticRegression(C = 1.0, max_iter = 2000)
 # create the RFE model and select most striking attributes
 rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
 rfe = rfe.fit(X_train, y_train)
@@ -1131,8 +1131,8 @@ pipe = Pipeline([
 #
 params = {
     'feature_selection__k':[4, 5, 6, 7],
-    'clf__max_iter':[1500, 2000, 2500],
-    'clf__alpha':[0.0001, 0.001, 0.01]}
+    'clf__max_iter':[1500, 2000],
+    'clf__alpha':[0.0001, 0.001]}
 
 #Initialize the grid search object
 grid_search = GridSearchCV(pipe, param_grid = params)
