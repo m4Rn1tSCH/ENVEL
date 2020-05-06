@@ -190,7 +190,7 @@ def df_encoder(rng = 4):
     '''
     #Pie chart States - works
     state_ct = Counter(list(bank_df['state']))
-    #asterisk look up, what is that?
+    #asterisk picks all keys as iterator if a dict
     labels, values = zip(*state_ct.items())
     #Pie chart, where the slices will be ordered and plotted counter-clockwise:
     fig1, ax = plt.subplots(figsize = (18, 12))
@@ -481,11 +481,14 @@ def df_encoder(rng = 4):
                             'unique_bank_account_id',
                             'unique_bank_transaction_id'], axis = 1)
     ####
-    model_features = bank_df.drop(['city'], axis = 1)
+    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
     #On some occasions the label needs to be a 1d array;
     #then the double square brackets (slicing it as a new dataframe) break the pipeline
-    model_label = bank_df['city']
+    model_label = bank_df['amount_mean_lag7']
     ####
+    if model_label.dtype == 'float32' or model_label.dtype == 'float64':
+        model_label = model_label.astype('int64')
+
     #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
     X_train, X_test, y_train, y_test = train_test_split(model_features,
                                                         model_label,
@@ -559,18 +562,24 @@ def df_encoder(rng = 4):
     f_classif for classification tasks
     chi2 for regression tasks
     '''
-    k_best = SelectKBest(score_func = f_classif, k = 5)
+    k_best = SelectKBest(score_func = chi2, k = 5)
     k_best.fit(X_train, y_train)
     k_best.get_params()
 
     #isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
     #np.corrcoef(np.array(isCredit_num), amounts)
 #%%
-#WORKS WITH UNSCALED DATA
-#pick feature columns to predict the label
+'''
 #TEST_RESULTS 4/23/2020 - all unscaled
 #Selected features: ['amount', 'description', 'post_date', 'file_created_date',
 #'optimized_transaction_date', 'panel_file_created_date', 'account_score', 'amount_std_lag3']
+#--
+#TEST_RESULTS 5/6/2020 - all unscaled
+Selected features: ['description', 'post_date', 'file_created_date', 'optimized_transaction_date',
+                    'panel_file_created_date', 'account_score', 'amount_std_lag3', 'amount_std_lag7']
+'''
+
+
 
 #cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
 #X_train = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
@@ -1372,9 +1381,9 @@ feature_columns_container.append(city_ind)
 #%%
 # A utility method to create a tf.data dataset from a Pandas Dataframe
 def df_to_dataset(dataframe, shuffle = True, batch_size = len(dataframe.index/3)):
-    dataframe = dataframe.copy()
-    labels = dataframe.pop('account_score')
-    ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
+    #dataframe = dataframe.copy()
+    label = dataframe.pop('city')
+    ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), label))
     if shuffle:
         #buffer size is read into memory!
         ds = ds.shuffle(buffer_size = 512)
