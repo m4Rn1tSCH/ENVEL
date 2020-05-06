@@ -238,7 +238,7 @@ def df_encoder(rng = 4):
     This report measures either the sum or mean of transactions happening
     on various days of the week/or wihtin a week or a month  over the course of the year
     '''
-        #convert all date col from date to datetime objects
+    #convert all date col from date to datetime objects
     #date objects will block Select K Best if not converted
     #first conversion from date to datetime objects; then conversion to unix
     bank_df['post_date'] = pd.to_datetime(bank_df['post_date'])
@@ -246,6 +246,9 @@ def df_encoder(rng = 4):
     bank_df['optimized_transaction_date'] = pd.to_datetime(bank_df['optimized_transaction_date'])
     bank_df['file_created_date'] = pd.to_datetime(bank_df['file_created_date'])
     bank_df['panel_file_created_date'] = pd.to_datetime(bank_df['panel_file_created_date'])
+
+    #set optimized transaction_date as index for later
+    bank_df.set_index('optimized_transaction_date', drop = False, inplace=True)
     #generate the spending report with a randomly picked user ID
     #when datetime columns are still datetime objects the spending report works
     '''
@@ -262,15 +265,6 @@ def df_encoder(rng = 4):
     After successfully loading the data, columns that are of no importance have been removed and missing values replaced
     Then the dataframe is ready to be encoded to get rid of all non-numerical data
     '''
-    # print(bank_df[bank_df['city'].isnull()])
-    # #Then for remove all not numeric values use to_numeric with parameetr errors='coerce' - it replace non numeric to NaNs:
-    # bank_df['x'] = pd.to_numeric(bank_df['x'], errors='coerce')
-    # #And for remove all rows with NaNs in column x use dropna:
-    # bank_df = bank_df.dropna(subset=['x'])
-    # #Last convert values to ints:
-    # bank_df['x'] = bank_df['x'].astype(int)
-        #prepare numeric and string columns
-
     try:
         bank_df['unique_mem_id'] = bank_df['unique_mem_id'].astype('str', errors = 'ignore')
         bank_df['unique_bank_account_id'] = bank_df['unique_bank_account_id'].astype('str', errors = 'ignore')
@@ -436,6 +430,7 @@ def df_encoder(rng = 4):
     #FEATURE ENGINEERING II
     #typical engineered features based on lagging metrics
     #mean + stdev of past 3d/7d/30d/ + rolling volume
+    date_index = bank_df.index.values
     bank_df.reset_index(drop = True, inplace = True)
     #pick lag features to iterate through and calculate features
     lag_features = ["amount"]
@@ -469,8 +464,9 @@ def df_encoder(rng = 4):
     #%%
     #the first two rows of lagging values have NaNs which need to be dropped
     #drop the first and second row since the indicators refer to previous non-existant days
-    bank_df = bank_df.drop([0, 1])
-    bank_df.reset_index(drop = True, inplace = True)
+    #set optimized transaction_date as index for later
+    bank_df.set_index(date_index, drop = False, inplace=True)
+    bank_df = bank_df.dropna()
     #csv_export(df=bank_df, file_name='encoded_bank_dataframe')
     #return 'dataframe encoding complete; CSVs are located in the working directory(inactivated for testing)'
     #%%
@@ -766,7 +762,7 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
 print(f"Pipeline 2; {dt.today()}")
-print(grid_search.fit(X_train_, y_train).best_params_)
+print(grid_search.fit(X_train, y_train).best_params_)
 print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
@@ -799,6 +795,11 @@ Pipeline 3; 2020-05-06 10:13:08 with kbest features
 {'feature_selection__k': 5, 'reg__min_samples_split': 8, 'reg__n_estimators': 150}
 Overall score: 0.6255
 Best accuracy with parameters: 0.5813314519498283
+---
+Pipeline 3; 2020-05-06 16:02:09 Amount_mean_lag7
+{'feature_selection__k': 5, 'reg__min_samples_split': 4, 'reg__n_estimators': 100}
+Overall score: 0.9641
+Best accuracy with parameters: 0.9727385020905415
 '''
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regessor
@@ -823,17 +824,23 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
 print(f"Pipeline 3; {dt.today()}")
-print(grid_search.fit(X_train_kbest, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test_kbest, y_test)))
+print(grid_search.fit(X_train, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
 Pipeline 4 - Logistic Regression and Support Vector Kernel -needs non-negative values
 ---------
-Pipeline 4; 2020-05-01 10:06:03.468878
+Pipeline 4; 2020-05-01 10:06:03
 {'feature_selection__k': 8, 'reg__C': 0.1, 'reg__epsilon': 0.3}
 Overall score: 0.1292
 Best accuracy with parameters: 0.08389477382390549
+--------
+    AMOUNT_MEAN_LAG7
+Pipeline 4; 2020-05-06 16:13:22
+{'feature_selection__k': 4, 'reg__C': 1.0, 'reg__epsilon': 0.1}
+Overall score: 0.6325
+Best accuracy with parameters: 0.5934902153570164
 '''
 #Create pipeline with feature selector and regressor
 #replace with gradient boosted at this point or regressor
@@ -922,6 +929,12 @@ Pipeline 6; 2020-05-04 17:12:14 Sparse Set
 {'clf__n_neighbors': 3, 'feature_selection__k': 5}
 Overall score: 0.6926
 Best accuracy with parameters: 0.7287349834717407
+---
+    AMOUNT_MEAN_LAG7
+Pipeline 6; 2020-05-06 16:15:12
+{'clf__n_neighbors': 2, 'feature_selection__k': 1}
+Overall score: 0.1157
+Best accuracy with parameters: 0.154583568491494
 '''
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regressor
@@ -987,6 +1000,12 @@ Pipeline 7; 2020-05-04 17:14:48 Sparse Set
 {'clf__C': 10, 'clf__gamma': 0.1, 'feature_selection__k': 5}
 Overall score: 0.7533
 Best accuracy with parameters: 0.7908651132790454
+---
+    AMOUNT-MEAN-LAG7
+Pipeline 7; 2020-05-06 16:17:40
+{'clf__C': 10, 'clf__gamma': 0.001, 'feature_selection__k': 4}
+Overall score: 0.1044
+Best accuracy with parameters: 0.16726598403612028
 '''
 #Create pipeline with feature selector and classifier
 #replace with classifier or regressor
@@ -1026,7 +1045,7 @@ def score_df():
     print(gs_df)
 #%%
 '''
-        Catching the predictions and converting them back to merchants
+Catching the predictions and converting them back to merchants
 Should the prediction turn out to be wrong ask for input by the user
 '''
 def merch_pred():
@@ -1040,6 +1059,18 @@ def merch_pred():
             #     print("This merchant could not be recognized by us.\nCan you tell us where you are shopping right now? :)")
             #     merch_list.append("Wrong prediction")
     return merch_list
+#%%
+'''
+        Catching the predictions and converting them back to lagging amounts
+Should the prediction turn out to be wrong ask for input by the user
+'''
+def merch_pred():
+    #append pred to a list and ten compare current value with previous value
+    weekly_mean = []
+
+    for i in grid_search.predict(X_test):
+        weekly_mean.append(i)
+
 #%%
 #accuracy negative; model toally off
 #n_quantiles needs to be smaller than the number of samples (standard is 1000)
