@@ -786,13 +786,18 @@ Pipeline 3; 2020-05-04 17:10:16 Sparse Set
 Overall score: 0.7186
 Best accuracy with parameters: 0.75653465869764
 ---
-
+Pipeline 3; 2020-05-06 10:13:08 with kbest features
+{'feature_selection__k': 5, 'reg__min_samples_split': 8, 'reg__n_estimators': 150}
+Overall score: 0.6255
+Best accuracy with parameters: 0.5813314519498283
 '''
 #Create pipeline with feature selector and classifier
 #replace with gradient boosted at this point or regessor
 pipe = Pipeline([
     ('feature_selection', SelectKBest(score_func = f_classif)),
-    ('reg', RandomForestRegressor(n_estimators = 75, max_depth = len(bank_df.columns)/2, min_samples_split = 4))
+    ('reg', RandomForestRegressor(n_estimators = 75,
+                                  max_depth = len(bank_df.columns)/2,
+                                  min_samples_split = 4))
     ])
 
 #Create a parameter grid
@@ -809,8 +814,8 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
 print(f"Pipeline 3; {dt.today()}")
-print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
+print(grid_search.fit(X_train_kbest, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test_kbest, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
@@ -1111,7 +1116,10 @@ print(f"TESTINFO MLP: [{dt.today()}]--[Parameters: hidden layers:{MLP.hidden_lay
 '''
 Pipeline 8 - SelectKBest and Multi-Layer Perceptron
 ##########
-
+Pipeline 7; 2020-05-06 10:20:51 CITY (sgd + adaptive learning rate)
+{'clf__alpha': 0.0001, 'clf__max_iter': 2000, 'feature_selection__k': 5}
+Overall score: 0.2808
+Best accuracy with parameters: 0.26102555833266144
 '''
 #Create pipeline with feature selector and classifier
 #replace with classifier or regressor
@@ -1119,8 +1127,8 @@ Pipeline 8 - SelectKBest and Multi-Layer Perceptron
 pipe = Pipeline([
     ('feature_selection', SelectKBest(score_func = chi2)),
     ('clf', MLPClassifier(activation='relu',
-                          solver='adam',
-                          learning_rate='constant'))])
+                          solver='sgd',
+                          learning_rate='adaptive'))])
 
 #Create a parameter grid
 #parameter grids provide the values for the models to try
@@ -1182,9 +1190,9 @@ print('MSE score = ', mean_squared_error(y_val, y_test), '/ 0.0')
 #features: X
 #target: Y
 
-features = np.array(X_train_scaled)
+features = np.array(X_train)
 targets = np.array(y_train)
-features_validation = np.array(X_test_scaled)
+features_validation = np.array(X_test)
 targets_validation = np.array(y_test)
 
 print(features[:10])
@@ -1237,7 +1245,7 @@ plt.show()
                     APPLICATION OF TENSORFLOW
 '''
 #custom train test split
-train, test = train_test_split(df, test_size = 0.2)
+train, test = train_test_split(bank_df, test_size = 0.2)
 train, val = train_test_split(train, test_size = 0.2)
 print(len(train), 'train examples')
 print(len(val), 'validation examples')
@@ -1245,33 +1253,28 @@ print(len(test), 'test examples')
 #%%
 #create tuples for lists to organize the columns conversion
 ##Tuple (or list) for the bank list to refer to the length
-#banks = list('Bank of America','Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
-#      'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
-#      'State Street Corporation','MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
-#      'New York Community Bank', 'CIT Group', 'Santander Bank',
-#      'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank')
-
-#trans_type = list('CorePro Deposit', 'CorePro Withdrawal', 'Internal CorePro Transfer',
-#                   'Interest Paid', 'CorePro Recurring Withdrawal',
-#                   'Manual Adjustment', 'Interest Adjustment')
 
 ##STEP 1
 '''
-
+#setting up various columns to be features and encode them to be ready for a NN
+layer
 '''
 #feature columns to use in the layers
 feature_columns_container = []
 
 #numeric column needed in the model
 #wrap all non-numerical columns with indicator col or embedding col
-######IN V2 STATUS IS NUMERICAL; THATS WHY IT WILL THROW "CAST STRING TO FLOAT IS NOT SUPPORTED" ERROR######
 #the argument default_value governs out of vocabulary values and how to replace them
 
-for header in ['typeCode', 'amount', 'returnCode', 'CS_FICO_num']:
-  feature_columns_container.append(feature_column.numeric_column(header))
+for header in bank_df.columns:
+    feature_columns_container.append(feature_column.numeric_column(header))
 
-#bucketized column
+#indicator columns
+city = feature_column.numeric_column("city")
+city_ind = feature_column.indicator_column(city)
+feature_columns_container.append(city_ind)
 
+#BUCKETIZED COLUMN
 #categorical column with vocabulary list
 #type_col = feature_column.categorical_column_with_vocabulary_list(
 #        'type', ['CorePro Deposit',
@@ -1294,85 +1297,49 @@ for header in ['typeCode', 'amount', 'returnCode', 'CS_FICO_num']:
 
 #created_date = feature_column.categorical_column_with_hash_bucket(
 #        'createdDate', hash_bucket_size = 365)
+
 #set the indicator column
 #cr_d_pos = feature_column.indicator_column(created_date)
 #feature_columns_container.append(cr_d_pos)
 
-#entry = feature_column.categorical_column_with_vocabulary_list(
-#        'isCredit', ['Y', 'N'])
+
+#fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
+#                                                             ['RGD',
+#                                                              'RTN',
+#                                                              'NSF'])
 #set the embedding column
-#entry_pos = feature_column.embedding_column(entry, dimension = 3)
-#feature_columns_container.append(entry_pos)
-
-#ret_c = feature_column.categorical_column_with_vocabulary_list(
-#        'returnCode', ['RGD', 'RTN', 'NSF'])
-
-fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
-                                                             ['RGD',
-                                                              'RTN',
-                                                              'NSF'])
-#set the embedding column
-fee_pos = feature_column.embedding_column(fee, dimension = 3)
-feature_columns_container.append(fee_pos)
-
-#check = feature_column.categorical_column_with_vocabulary_list('check',
-#                                                               ['Y', 'N'])
-#set the indicator column
-#check_pos = feature_column.embedding_column(check, dimension = 2)
-#feature_columns_container.append(check_pos)
-
-#acc_bal = feature_column.categorical_column_with_vocabulary_list('account_balance',
-#                                                                 ['u100',
-#                                                                  'o100u1000',
-#                                                                  'o1000u10000',
-#                                                                  'o10000'])
-#set the indicator value
-#acc_bal_pos = feature_column.embedding_column(acc_bal, dimension = 10)
-#feature_columns_container.append(acc_bal_pos)
-
-
-age = feature_column.bucketized_column(feature_column.numeric_column('Age'),
-                                       boundaries = [18, 20, 22, 26, 31, 35])
-feature_columns_container.append(age)
-
-
-#cs_internal = feature_column.categorical_column_with_vocabulary_list('CS_internal',
-#                                                                       ['Poor',
-#                                                                        'Average',
-#                                                                        'Excellent'])
-#set the indicator value
-#cs_positive = feature_column.embedding_column(cs_internal)
-#feature_columns_container.append(cs_positive)
+#fee_pos = feature_column.embedding_column(fee, dimension = 3)
+#feature_columns_container.append(fee_pos)
 
 #FICO 700 is the initial score and also the average in the US
 #The CS_FICO_num column is in this version converted to a bucketized column
 #instead of passing it to the feature_column_container
 #columns remains bucketized without wrapping to embedded or indicator
-fico_num = feature_column.bucketized_column(feature_column.numeric_column('CS_FICO_num'),
-                                                boundaries = [300,
-                                                              580,
-                                                              670,
-                                                              700,
-                                                              740,
-                                                              800,
-                                                              850])
-feature_columns_container.append(fico_num)
+#fico_num = feature_column.bucketized_column(feature_column.numeric_column('CS_FICO_num'),
+#                                                boundaries = [300,
+#                                                              580,
+#                                                              670,
+#                                                              700,
+#                                                              740,
+#                                                              800,
+#                                                              850])
+#feature_columns_container.append(fico_num)
 
 
-institutions = feature_column.categorical_column_with_vocabulary_list(
-        'institutionName', [
-            'Bank of America', 'Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
-            'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
-            'State Street Corporation', 'MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
-            'New York Community Bank', 'CIT Group', 'Santander Bank',
-            'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank'
-            ])
-institutions_pos = feature_column.indicator_column(institutions)
-feature_columns_container.append(institutions_pos)
+#institutions = feature_column.categorical_column_with_vocabulary_list(
+#        'institutionName', [
+#            'Bank of America', 'Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
+#            'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
+#            'State Street Corporation', 'MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
+#            'New York Community Bank', 'CIT Group', 'Santander Bank',
+#            'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank'
+#            ])
+#institutions_pos = feature_column.indicator_column(institutions)
+#feature_columns_container.append(institutions_pos)
 
-crossed_feat = feature_column.crossed_column([age, fico_num], hash_bucket_size = 1000)
-crossed_feat = feature_column.indicator_column(crossed_feat)
-feature_columns_container.append(crossed_feat)
+#crossed_feat = feature_column.crossed_column([age, fico_num], hash_bucket_size = 1000)
+#crossed_feat = feature_column.indicator_column(crossed_feat)
+#feature_columns_container.append(crossed_feat)
 
 ###########EXAMPLES#######
 #numeric column
@@ -1404,33 +1371,17 @@ feature_columns_container.append(crossed_feat)
 ##########################
 #%%
 # A utility method to create a tf.data dataset from a Pandas Dataframe
-def df_to_dataset(dataframe, shuffle = True, batch_size = 150):
-  dataframe = dataframe.copy()
-  labels = dataframe.pop('Student')
-  ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
-  if shuffle:
-    ds = ds.shuffle(buffer_size = len(dataframe))
-  ds = ds.batch(batch_size)
-  return ds
-######OVERHAUL NEEDED HERE#####
-#def make_input_fn(df):
-#  def pandas_to_tf(pdcol):
-    # convert the pandas column values to float
-#    t = tf.constant(pdcol.astype('float32').values)
-    # take the column which is of shape (N) and make it (N, 1)
-#    return tf.expand_dims(t, -1)
+dataframe=bank_df
+def df_to_dataset(dataframe, shuffle = True, batch_size = len(dataframe.index/2)):
+    dataframe = dataframe.copy()
+    labels = dataframe.pop('city')
+    ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
+    if shuffle:
+        ds = ds.shuffle(buffer_size = len(dataframe))
+        ds = ds.batch(batch_size)
 
-#  def input_fn():
-    # create features, columns
-#    features = {k: pandas_to_tf(df[k]) for k in FEATURES}
-#    labels = tf.constant(df[TARGET].values)
-#    return features, labels
-#  return input_fn
+    return ds
 
-#def make_feature_cols():
-#  input_columns = [tf.contrib.layers.real_valued_column(k) for k in FEATURES]
-#  return input_columns
-##################################
 #%%
 ##STEP 2
 #create layers
