@@ -1190,9 +1190,9 @@ print('MSE score = ', mean_squared_error(y_val, y_test), '/ 0.0')
 #features: X
 #target: Y
 
-features = np.array(X_train)
+features = np.array(X_train_scaled)
 targets = np.array(y_train)
-features_validation = np.array(X_test)
+features_validation = np.array(X_test_scaled)
 targets_validation = np.array(y_test)
 
 print(features[:10])
@@ -1376,7 +1376,8 @@ def df_to_dataset(dataframe, shuffle = True, batch_size = len(dataframe.index/3)
     labels = dataframe.pop('account_score')
     ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
     if shuffle:
-        ds = ds.shuffle(buffer_size = len(dataframe))
+        #buffer size is read into memory!
+        ds = ds.shuffle(buffer_size = 512)
         ds = ds.batch(batch_size)
 
     return ds
