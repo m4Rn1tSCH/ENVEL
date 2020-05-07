@@ -110,8 +110,8 @@ def df_encoder(rng = 4):
                             columns = ['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
     #%%
     #dateframe to gather MA bank data from one randomly chosen user
-    #std random_state is 4
-    #new rnd st is 8
+    #test user 1= 4
+    #test user 2= 8
     rng = 4
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n = 1, random_state = rng):
@@ -427,7 +427,7 @@ def df_encoder(rng = 4):
     #         bank_df[f"{col}_week"] = bank_df[col].dt.week
     #         bank_df[f"{col}_weekday"] = bank_df[col].dt.weekday
 
-    #FEATURE ENGINEERING II
+    #FEATURE ENGINEERING
     #typical engineered features based on lagging metrics
     #mean + stdev of past 3d/7d/30d/ + rolling volume
     date_index = bank_df.index.values
@@ -463,7 +463,6 @@ def df_encoder(rng = 4):
         bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
     #%%
     #the first two rows of lagging values have NaNs which need to be dropped
-    #drop the first and second row since the indicators refer to previous non-existant days
     #set optimized transaction_date as index for later
     bank_df.set_index(date_index, drop = False, inplace=True)
     bank_df = bank_df.dropna()
@@ -482,8 +481,13 @@ def df_encoder(rng = 4):
     #then the double square brackets (slicing it as a new dataframe) break the pipeline
     model_label = bank_df['amount_mean_lag7']
     ####
-    if model_label.dtype == 'float32' or model_label.dtype == 'float64':
+    if model_label.dtype == 'float32':
+        model_label = model_label.astype('int32')
+    elif model_label.dtype == 'float64':
         model_label = model_label.astype('int64')
+    else:
+        print("model label has unsuitable data type!")
+
 
     #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
     X_train, X_test, y_train, y_test = train_test_split(model_features,
@@ -538,7 +542,6 @@ def df_encoder(rng = 4):
     #determine number of groups needed or desired for
     kmeans = KMeans(n_clusters = 10, random_state = 10)
     train_clusters = kmeans.fit(X_train_scaled)
-    cl = kmeans.n_clusters
 
     kmeans = KMeans(n_clusters = 10, random_state = 10)
     test_clusters = kmeans.fit(X_test_scaled)
@@ -1047,6 +1050,7 @@ def score_df():
 '''
 Catching the predictions and converting them back to merchants
 Should the prediction turn out to be wrong ask for input by the user
+Label needs to be primary_merchant_name
 '''
 def merch_pred():
     merch_list = []
@@ -1064,16 +1068,39 @@ def merch_pred():
         Catching the predictions and converting them back to lagging amounts
 Should the prediction turn out to be wrong ask for input by the user
 '''
-def merch_pred():
+def amount_pred():
     #append pred to a list and ten compare current value with previous value
     weekly_mean = []
+    budget_dict = {}
 
-    for i in grid_search.predict(X_test):
-        weekly_mean.append(i)
+    for key, value in budget_dict:
+        for i in grid_search.predict(X_test):
+            weekly_mean.append(i)
+            budget_dict[key].append(i)
+        for i, item in enumerate(weekly_mean):
+            if item > test[i-1]:
+                print("Your weekly average expenses increased\
+                      more money will be put into savings")
+                budget_dict[].append
+            elif item < test[i-1]:
+                print("Your weekly average expenses decreased\
+                      Keep up the good budgeting")
 
+            else:
+                print("Your expenses are stable")
 #%%
-#accuracy negative; model toally off
+'''
+        Application of Transformed Linear Regression
+
 #n_quantiles needs to be smaller than the number of samples (standard is 1000)
+
+PRIMARY_MERCHANT_NAME
+#accuracy negative; model totally off
+---
+AMOUNT_MEAN_LAG7
+q-t R2-score: 0.896
+unprocessed R2-score: 0.926
+'''
 transformer = QuantileTransformer(n_quantiles=750, output_distribution='normal')
 regressor = LinearRegression()
 regr = TransformedTargetRegressor(regressor=regressor,
