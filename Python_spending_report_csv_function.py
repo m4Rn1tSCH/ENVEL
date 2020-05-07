@@ -27,14 +27,6 @@ import pandas as pd
 
 def spending_report(df):
     #%%
-    #temporary test section
-#    test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
-    #relative path to test the file sitting directly in the folder with the script
-    #test_path_2 = './2020-01-28 envel.ai Working Class Sample.xlsx'
-
-#    df_card = pd.read_excel(os.path.abspath(test_path), sheet_name = "Card Panel")
-#    card_members = df_card['unique_mem_id'].unique()
-    #%%
     '''
     Datetime engineering for card and bank panel
     These columns help with reporting like weekly or monthly expenses and
