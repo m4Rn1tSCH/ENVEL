@@ -714,14 +714,16 @@ Best accuracy with parameters: 0.5158026283963557
 #replace with gradient boosted at this point or regressor
 pipe = Pipeline([
     ('feature_selection', SelectKBest(score_func = chi2)),
-    ('reg', LogisticRegression(C = 1.0, random_state = 42))])
+    ('reg', LogisticRegression(random_state = 12))])
 
 #Create a parameter grid
 #parameter grids provide the values for the models to try
 #PARAMETERS NEED TO HAVE THE SAME LENGTH
 params = {
     'feature_selection__k':[5, 6, 7, 8, 9],
-    'reg__max_iter':[800, 1000, 1500, 2000]}
+    'reg__max_iter':[800, 1000, 1500, 2000],
+    'reg__C':[10, 1, 0.1, 0.01, 0.001],
+    }
 
 #Initialize the grid search object
 grid_search = GridSearchCV(pipe, param_grid = params)
@@ -733,8 +735,8 @@ grid_search = GridSearchCV(pipe, param_grid = params)
 
 #Fit it to the data and print the best value combination
 print(f"Pipeline 1; {dt.today()}")
-print(grid_search.fit(X_train_minmax, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test_minmax, y_test)))
+print(grid_search.fit(X_train, y_train).best_params_)
+print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 '''
