@@ -1070,29 +1070,29 @@ Should the prediction turn out to be wrong ask for input by the user
 '''
 def amount_pred():
     #append pred to a list and ten compare current value with previous value
-    weekly_mean = []
+    #weekly_mean = []
     budget_dict = {}
-    weekly_exp_list = zip(grid_search.predict(X_test).tolist())
+    #weekly_exp_list = enumerate(grid_search.predict(X_test))
 
-    for i in weekly_exp_list:
+    for index, i in enumerate(grid_search.predict(X_test)):
+        print(index, i)
+        #weekly_mean.append(i)
 
-        weekly_mean.append(item)
-
-        if i > weekly_exp_list[i-1]:
-            print("Your weekly average expenses increased\
-                  more money will be put into savings")
+        if i > [i-1]:
+            print("Your weekly average expenses increased; more money will be put into savings")
             msg_1 = "Your weekly average expenses increased"
-            budget_dict[item].append(msg_1)
-        elif i < test[i-1]:
-            print("Your weekly average expenses decreased\
-                  Keep up the good budgeting")
+
+            budget_dict[key].append(msg_1)
+        elif i < [i-1]:
+            print("Your weekly average expenses decreased. Keep up the good budgeting")
             msg_2 = "Your weekly average expenses decreased"
-            budget_dict[item].append(msg_2)
+
+            budget_dict[key].append(msg_2)
         else:
             print("Your expenses are stable")
             msg_3 = "Your expenses are stable"
-            budget_dict[item].append(msg_3)
 
+            budget_dict[key].append(msg_3)
 #%%
 '''
         Application of Transformed Linear Regression
