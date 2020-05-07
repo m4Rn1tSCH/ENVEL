@@ -190,7 +190,7 @@ def df_encoder(rng = 4):
     '''
     #Pie chart States - works
     state_ct = Counter(list(bank_df['state']))
-    #asterisk picks all keys as iterator if a dict
+    #The * operator can be used in conjunction with zip() to unzip the list.
     labels, values = zip(*state_ct.items())
     #Pie chart, where the slices will be ordered and plotted counter-clockwise:
     fig1, ax = plt.subplots(figsize = (18, 12))
@@ -204,7 +204,7 @@ def df_encoder(rng = 4):
 
     #Pie chart transaction type -works
     trans_ct = Counter(list(bank_df['transaction_category_name']))
-    #asterisk look up, what is that?
+    #The * operator can be used in conjunction with zip() to unzip the list.
     labels_2, values_2 = zip(*trans_ct.items())
     #Pie chart, where the slices will be ordered and plotted counter-clockwise:
     fig1, ax = plt.subplots(figsize = (20, 12))
@@ -1072,22 +1072,27 @@ def amount_pred():
     #append pred to a list and ten compare current value with previous value
     weekly_mean = []
     budget_dict = {}
+    weekly_exp_list = zip(grid_search.predict(X_test).tolist())
 
-    for key, value in budget_dict:
-        for i in grid_search.predict(X_test):
-            weekly_mean.append(i)
-            budget_dict[key].append(i)
-        for i, item in enumerate(weekly_mean):
-            if item > test[i-1]:
-                print("Your weekly average expenses increased\
-                      more money will be put into savings")
-                budget_dict[].append
-            elif item < test[i-1]:
-                print("Your weekly average expenses decreased\
-                      Keep up the good budgeting")
+    for i in weekly_exp_list:
 
-            else:
-                print("Your expenses are stable")
+        weekly_mean.append(item)
+
+        if i > weekly_exp_list[i-1]:
+            print("Your weekly average expenses increased\
+                  more money will be put into savings")
+            msg_1 = "Your weekly average expenses increased"
+            budget_dict[item].append(msg_1)
+        elif i < test[i-1]:
+            print("Your weekly average expenses decreased\
+                  Keep up the good budgeting")
+            msg_2 = "Your weekly average expenses decreased"
+            budget_dict[item].append(msg_2)
+        else:
+            print("Your expenses are stable")
+            msg_3 = "Your expenses are stable"
+            budget_dict[item].append(msg_3)
+
 #%%
 '''
         Application of Transformed Linear Regression
