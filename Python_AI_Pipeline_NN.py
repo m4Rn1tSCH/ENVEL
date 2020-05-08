@@ -49,6 +49,8 @@ import PostgreSQL_credentials as acc
 #from flask_auto_setup import activate_flask
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
+#AI functions
+from Python_eda_ai import pipeline_mlp
 #%%
 def df_encoder(rng = 4):
     '''

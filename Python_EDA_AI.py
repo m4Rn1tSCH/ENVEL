@@ -464,8 +464,9 @@ def df_encoder(rng = 4):
     bank_df.set_index(date_index, drop = False, inplace=True)
     bank_df = bank_df.dropna()
     #csv_export(df=bank_df, file_name='encoded_bank_dataframe')
-    #return 'dataframe encoding complete; CSVs are located in the working directory(inactivated for testing)'
+    return bank_df
     #%%
+def split_data():
     ###################SPLITTING UP THE DATA###########################
     #drop target variable in feature df
     #all remaining columns will be the features
@@ -498,7 +499,7 @@ def df_encoder(rng = 4):
     print(f"Shape of the split training data set X_test: {X_test.shape}")
     print(f"Shape of the split training data set y_train: {y_train.shape}")
     print(f"Shape of the split training data set y_test: {y_test.shape}")
-    #%%
+
     #STD SCALING - does not work yet
     #fit the scaler to the training data first
     #standard scaler works only with maximum 2 dimensions
@@ -509,7 +510,7 @@ def df_encoder(rng = 4):
     X_test_scaled = scaler.transform(X_test)
     scaler_mean = scaler.mean_
     stadard_scale = scaler.scale_
-    #%%
+
     #MINMAX SCALING - works with Select K Best
     min_max_scaler = MinMaxScaler()
     X_train_minmax = min_max_scaler.fit_transform(X_train)
@@ -517,7 +518,7 @@ def df_encoder(rng = 4):
     X_test_minmax = min_max_scaler.transform(X_test)
     minmax_scale = min_max_scaler.scale_
     min_max_minimum = min_max_scaler.min_
-    #%%
+
     #Principal Component Reduction
     #first scale
     #then reduce
@@ -530,7 +531,7 @@ def df_encoder(rng = 4):
     X_test_pca = pca.transform(X_test_scaled)
     print("Original shape: {}".format(str(X_train_scaled.shape)))
     print("Reduced shape: {}".format(str(X_train_pca.shape)))
-    #%%
+
     '''
                 Plotting of PCA/ Cluster Pairs
 
@@ -564,39 +565,47 @@ def df_encoder(rng = 4):
 
     #isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
     #np.corrcoef(np.array(isCredit_num), amounts)
+
+    return X_train, X_train_scaled, X_train_minmax, X_train_pca, X_test, X_test_scaled, X_test_minmax, X_test_pca, y_train, y_test
 #%%
-'''
-#TEST_RESULTS 4/23/2020 - all unscaled
-#Selected features: ['amount', 'description', 'post_date', 'file_created_date',
-#'optimized_transaction_date', 'panel_file_created_date', 'account_score', 'amount_std_lag3']
-#--
-#TEST_RESULTS 5/6/2020 - all unscaled
-Selected features: ['description', 'post_date', 'file_created_date', 'optimized_transaction_date',
-                    'panel_file_created_date', 'account_score', 'amount_std_lag3', 'amount_std_lag7']
-'''
+def pipeline_rfe():
+
+    """
+    #TEST_RESULTS 4/23/2020 - all unscaled
+    #Selected features: ['amount', 'description', 'post_date', 'file_created_date',
+    #'optimized_transaction_date', 'panel_file_created_date', 'account_score', 'amount_std_lag3']
+    #--
+    #TEST_RESULTS 5/6/2020 - all unscaled
+    Selected features: ['description', 'post_date', 'file_created_date', 'optimized_transaction_date',
+                        'panel_file_created_date', 'account_score', 'amount_std_lag3', 'amount_std_lag7']
+    """
 
 
 
-#cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
-#X_train = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
-#y_train = bank_df['primary_merchant_name']
-#X_test = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
-#y_test = bank_df['primary_merchant_name']
+    #cols = [c for c in bank_df if bank_df[c].dtype == 'int64' or 'float64']
+    #X_train = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
+    #y_train = bank_df['primary_merchant_name']
+    #X_test = bank_df[cols].drop(columns = ['primary_merchant_name'], axis = 1)
+    #y_test = bank_df['primary_merchant_name']
 
-#build a logistic regression and use recursive feature elimination to exclude trivial features
-log_reg = LogisticRegression(C = 1.0, max_iter = 2000)
-# create the RFE model and select most striking attributes
-rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
-rfe = rfe.fit(X_train, y_train)
-#selected attributes
-print('Selected features: %s' % list(X_train.columns[rfe.support_]))
-print(rfe.ranking_)
-#following df contains only significant features
-X_train_kbest = X_train[X_train.columns[rfe.support_]]
-X_test_kbest = X_test[X_test.columns[rfe.support_]]
-#log_reg_param = rfe.set_params(C = 0.01, max_iter = 200, tol = 0.001)
+    #build a logistic regression and use recursive feature elimination to exclude trivial features
+    log_reg = LogisticRegression(C = 1.0, max_iter = 2000)
+    # create the RFE model and select most striking attributes
+    rfe = RFE(estimator = log_reg, n_features_to_select = 8, step = 1)
+    rfe = rfe.fit(X_train, y_train)
+    #selected attributes
+    print('Selected features: %s' % list(X_train.columns[rfe.support_]))
+    print(rfe.ranking_)
+    #following df contains only significant features
+    X_train_rfe = X_train[X_train.columns[rfe.support_]]
+    X_test_rfe = X_test[X_test.columns[rfe.support_]]
+    #log_reg_param = rfe.set_params(C = 0.01, max_iter = 200, tol = 0.001)
+    return X_train_rfe, X_test_rfe
 #%%
-'''
+def pipeline_rfe_cv():
+
+
+    """
         Application of Recursive Feature Extraction - Cross Validation
         IMPORTANT
         Accuracy: for classification problems
@@ -627,59 +636,157 @@ SGDReg
     Selected features: ['description', 'post_date', 'file_created_date',
                         'optimized_transaction_date', 'panel_file_created_date', 'account_score',
                         'amount_mean_lag3', 'amount_std_lag3', 'amount_std_lag7']
-EVALUATION METRICS DOCUMENTATION
-https://scikit-learn.org/stable/modules/model_evaluation.html
-'''
-#Use the Cross-Validation function of the RFE modul
-#accuracy describes the number of correct classifications
-#LOGISTIC REGRESSION
-est_logreg = LogisticRegression(max_iter = 2000)
-#SGD REGRESSOR
-est_sgd = SGDRegressor(loss='squared_loss',
-                            penalty='l1',
-                            alpha=0.001,
-                            l1_ratio=0.15,
-                            fit_intercept=True,
-                            max_iter=1000,
-                            tol=0.001,
-                            shuffle=True,
-                            verbose=0,
-                            epsilon=0.1,
-                            random_state=None,
-                            learning_rate='constant',
-                            eta0=0.01,
-                            power_t=0.25,
-                            early_stopping=False,
-                            validation_fraction=0.1,
-                            n_iter_no_change=5,
-                            warm_start=False,
-                            average=False)
-#SUPPORT VECTOR REGRESSOR
-est_svr = SVR(kernel = 'linear',
-                  C = 1.0,
-                  epsilon = 0.01)
+    EVALUATION METRICS DOCUMENTATION
+    https://scikit-learn.org/stable/modules/model_evaluation.html
+    """
 
-#WORKS WITH LOGREG(pick r2), SGDRregressor(r2;rmse)
-rfecv = RFECV(estimator = est_logreg,
-              step = 2,
-#cross_calidation determines if clustering scorers can be used or regression based!
-#needs to be aligned with estimator
-              cv = None,
-              scoring = 'completeness_score')
-rfecv.fit(X_train, y_train)
+    #Use the Cross-Validation function of the RFE modul
+    #accuracy describes the number of correct classifications
+    #LOGISTIC REGRESSION
+    est_logreg = LogisticRegression(max_iter = 2000)
+    #SGD REGRESSOR
+    est_sgd = SGDRegressor(loss='squared_loss',
+                                penalty='l1',
+                                alpha=0.001,
+                                l1_ratio=0.15,
+                                fit_intercept=True,
+                                max_iter=1000,
+                                tol=0.001,
+                                shuffle=True,
+                                verbose=0,
+                                epsilon=0.1,
+                                random_state=None,
+                                learning_rate='constant',
+                                eta0=0.01,
+                                power_t=0.25,
+                                early_stopping=False,
+                                validation_fraction=0.1,
+                                n_iter_no_change=5,
+                                warm_start=False,
+                                average=False)
+    #SUPPORT VECTOR REGRESSOR
+    est_svr = SVR(kernel = 'linear',
+                      C = 1.0,
+                      epsilon = 0.01)
 
-print("Optimal number of features: %d" % rfecv.n_features_)
-print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
+    #WORKS WITH LOGREG(pick r2), SGDRregressor(r2;rmse)
+    rfecv = RFECV(estimator = est_logreg,
+                  step = 2,
+    #cross_calidation determines if clustering scorers can be used or regression based!
+    #needs to be aligned with estimator
+                  cv = None,
+                  scoring = 'completeness_score')
+    rfecv.fit(X_train, y_train)
 
-#plot number of features VS. cross-validation scores
-plt.figure(figsize = (10,7))
-plt.suptitle(f"{RFECV.get_params}")
-plt.xlabel("Number of features selected")
-plt.ylabel("Cross validation score (nb of correct classifications)")
-plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-plt.show()
+    print("Optimal number of features: %d" % rfecv.n_features_)
+    rfecv_num_features = rfecv.n_features_
+    print('Selected features: %s' % list(X_train.columns[rfecv.support_]))
+    rfecv_features = X_train.columns[rfecv.support_]
+
+    #plot number of features VS. cross-validation scores
+    plt.figure(figsize = (10,7))
+    plt.suptitle(f"{RFECV.get_params}")
+    plt.xlabel("Number of features selected")
+    plt.ylabel("Cross validation score (nb of correct classifications)")
+    plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+    plt.show()
+    return rfecv_features, rfecv_num_features
 #%%
 def pipeline_logreg():
+
+    """
+    1.) split up the data
+    2.) fit to the pipeline
+    """
+    '''
+        SPLITTING UP THE DATA
+    '''
+    #drop target variable in feature df
+    #all remaining columns will be the features
+    bank_df = bank_df.drop(['unique_mem_id',
+                            'unique_bank_account_id',
+                            'unique_bank_transaction_id'], axis = 1)
+    ####
+    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
+    #On some occasions the label needs to be a 1d array;
+    #then the double square brackets (slicing it as a new dataframe) break the pipeline
+    model_label = bank_df['amount_mean_lag7']
+    ####
+    if model_label.dtype == 'float32':
+        model_label = model_label.astype('int32')
+    elif model_label.dtype == 'float64':
+        model_label = model_label.astype('int64')
+    else:
+        print("model label has unsuitable data type!")
+
+
+    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
+    X_train, X_test, y_train, y_test = train_test_split(model_features,
+                                                        model_label,
+                                                        random_state = 7,
+                                                        shuffle = True,
+                                                        test_size = 0.4)
+
+    #create a validation set from the training set
+    print(f"Shape of the split training data set X_train:{X_train.shape}")
+    print(f"Shape of the split training data set X_test: {X_test.shape}")
+    print(f"Shape of the split training data set y_train: {y_train.shape}")
+    print(f"Shape of the split training data set y_test: {y_test.shape}")
+
+    #STD SCALING - does not work yet
+    #fit the scaler to the training data first
+    #standard scaler works only with maximum 2 dimensions
+    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
+    #transform test data with the object learned from the training data
+    X_test_scaled = scaler.transform(X_test)
+    scaler_mean = scaler.mean_
+    stadard_scale = scaler.scale_
+
+    #MINMAX SCALING - works with Select K Best
+    min_max_scaler = MinMaxScaler()
+    X_train_minmax = min_max_scaler.fit_transform(X_train)
+    X_test_minmax = min_max_scaler.transform(X_test)
+    minmax_scale = min_max_scaler.scale_
+    min_max_minimum = min_max_scaler.min_
+
+    '''
+        Principal Component Reduction
+    '''
+
+    #first scale
+    #then reduce
+    #keep the most important features of the data
+    pca = PCA(n_components = int(len(bank_df.columns) / 2))
+    #fit PCA model to breast cancer data
+    pca.fit(X_train_scaled)
+    #transform data onto the first two principal components
+    X_train_pca = pca.transform(X_train_scaled)
+    X_test_pca = pca.transform(X_test_scaled)
+    print("Original shape: {}".format(str(X_train_scaled.shape)))
+    print("Reduced shape: {}".format(str(X_train_pca.shape)))
+
+    '''
+                Plotting of PCA/ Cluster Pairs
+    '''
+    #Kmeans clusters to categorize groups WITH SCALED DATA
+    #determine number of groups needed or desired for
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    train_clusters = kmeans.fit(X_train_scaled)
+
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    test_clusters = kmeans.fit(X_test_scaled)
+    #Creating the plot
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
+    #styles for title: normal; italic; oblique
+    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
+    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
+    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    #principal components of bank panel has better results than card panel with clearer borders
+
     '''
                 Setting up a pipeline
     Pipeline 1 - SelectKBest and Logistic Regression (non-neg only)
@@ -702,11 +809,17 @@ def pipeline_logreg():
     {'feature_selection__k': 5, 'reg__max_iter': 800}
     Overall score: 0.4706
     Best accuracy with parameters: 0.5158026283963557
-    '''
+
     #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
     #F_CLASSIFIER;FOR CLASSIFICATION TASKS determines features based on the f-values between features & labels;
     #Chi2: for regression tasks; requires non-neg values
     #other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
+
+    takes unscaled numerical so far and minmax scaled arguments
+    #numerical and minmax scaled leads to the same results being picked
+    f_classif for classification tasks
+    chi2 for regression tasks
+    '''
 
     #Create pipeline with feature selector and regressor
     #replace with gradient boosted at this point or regressor
@@ -737,9 +850,104 @@ def pipeline_logreg():
     print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search.best_score_}")
 
-    return grid_search
+    return grid_search_lr
 #%%
 def pipeline_sgd_reg():
+
+    """
+    1.) split up the data
+    2.) fit to the pipeline
+    """
+
+    '''
+        SPLITTING UP THE DATA
+    '''
+    #drop target variable in feature df
+    #all remaining columns will be the features
+    bank_df = bank_df.drop(['unique_mem_id',
+                            'unique_bank_account_id',
+                            'unique_bank_transaction_id'], axis = 1)
+    ####
+    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
+    #On some occasions the label needs to be a 1d array;
+    #then the double square brackets (slicing it as a new dataframe) break the pipeline
+    model_label = bank_df['amount_mean_lag7']
+    ####
+    if model_label.dtype == 'float32':
+        model_label = model_label.astype('int32')
+    elif model_label.dtype == 'float64':
+        model_label = model_label.astype('int64')
+    else:
+        print("model label has unsuitable data type!")
+
+
+    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
+    X_train, X_test, y_train, y_test = train_test_split(model_features,
+                                                        model_label,
+                                                        random_state = 7,
+                                                        shuffle = True,
+                                                        test_size = 0.4)
+
+    #create a validation set from the training set
+    print(f"Shape of the split training data set X_train:{X_train.shape}")
+    print(f"Shape of the split training data set X_test: {X_test.shape}")
+    print(f"Shape of the split training data set y_train: {y_train.shape}")
+    print(f"Shape of the split training data set y_test: {y_test.shape}")
+
+    #STD SCALING - does not work yet
+    #fit the scaler to the training data first
+    #standard scaler works only with maximum 2 dimensions
+    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
+    #transform test data with the object learned from the training data
+    X_test_scaled = scaler.transform(X_test)
+    scaler_mean = scaler.mean_
+    stadard_scale = scaler.scale_
+
+    #MINMAX SCALING - works with Select K Best
+    min_max_scaler = MinMaxScaler()
+    X_train_minmax = min_max_scaler.fit_transform(X_train)
+    X_test_minmax = min_max_scaler.transform(X_test)
+    minmax_scale = min_max_scaler.scale_
+    min_max_minimum = min_max_scaler.min_
+    #%%
+    '''
+        Principal Component Reduction
+    '''
+
+    #first scale
+    #then reduce
+    #keep the most important features of the data
+    pca = PCA(n_components = int(len(bank_df.columns) / 2))
+    #fit PCA model to breast cancer data
+    pca.fit(X_train_scaled)
+    #transform data onto the first two principal components
+    X_train_pca = pca.transform(X_train_scaled)
+    X_test_pca = pca.transform(X_test_scaled)
+    print("Original shape: {}".format(str(X_train_scaled.shape)))
+    print("Reduced shape: {}".format(str(X_train_pca.shape)))
+
+    '''
+                Plotting of PCA/ Cluster Pairs
+    '''
+    #Kmeans clusters to categorize groups WITH SCALED DATA
+    #determine number of groups needed or desired for
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    train_clusters = kmeans.fit(X_train_scaled)
+
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    test_clusters = kmeans.fit(X_test_scaled)
+    #Creating the plot
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
+    #styles for title: normal; italic; oblique
+    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
+    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
+    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    #principal components of bank panel has better results than card panel with clearer borders
+
     '''
     Pipeline 2 - SelectKBest and SGDRegressor -needs non-negative values
     Pipeline 2; 2020-04-29 14:13:46
@@ -772,9 +980,104 @@ def pipeline_sgd_reg():
     print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search.best_score_}")
 
-    return grid_search
+    return grid_search_sgd
 #%%
 def pipeline_rfr():
+
+    """
+    1.) split up the data
+    2.) fit to the pipeline
+    """
+    '''
+        SPLITTING UP THE DATA
+    '''
+    #drop target variable in feature df
+    #all remaining columns will be the features
+    bank_df = bank_df.drop(['unique_mem_id',
+                            'unique_bank_account_id',
+                            'unique_bank_transaction_id'], axis = 1)
+    ####
+    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
+    #On some occasions the label needs to be a 1d array;
+    #then the double square brackets (slicing it as a new dataframe) break the pipeline
+    model_label = bank_df['amount_mean_lag7']
+    ####
+    if model_label.dtype == 'float32':
+        model_label = model_label.astype('int32')
+    elif model_label.dtype == 'float64':
+        model_label = model_label.astype('int64')
+    else:
+        print("model label has unsuitable data type!")
+
+
+    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
+    X_train, X_test, y_train, y_test = train_test_split(model_features,
+                                                        model_label,
+                                                        random_state = 7,
+                                                        shuffle = True,
+                                                        test_size = 0.4)
+
+    #create a validation set from the training set
+    print(f"Shape of the split training data set X_train:{X_train.shape}")
+    print(f"Shape of the split training data set X_test: {X_test.shape}")
+    print(f"Shape of the split training data set y_train: {y_train.shape}")
+    print(f"Shape of the split training data set y_test: {y_test.shape}")
+
+    #STD SCALING - does not work yet
+    #fit the scaler to the training data first
+    #standard scaler works only with maximum 2 dimensions
+    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
+    #transform test data with the object learned from the training data
+    X_test_scaled = scaler.transform(X_test)
+    scaler_mean = scaler.mean_
+    stadard_scale = scaler.scale_
+
+    #MINMAX SCALING - works with Select K Best
+    min_max_scaler = MinMaxScaler()
+    X_train_minmax = min_max_scaler.fit_transform(X_train)
+    X_test_minmax = min_max_scaler.transform(X_test)
+    minmax_scale = min_max_scaler.scale_
+    min_max_minimum = min_max_scaler.min_
+
+    '''
+        Principal Component Reduction
+    '''
+
+    #first scale
+    #then reduce
+    #keep the most important features of the data
+    pca = PCA(n_components = int(len(bank_df.columns) / 2))
+    #fit PCA model to breast cancer data
+    pca.fit(X_train_scaled)
+    #transform data onto the first two principal components
+    X_train_pca = pca.transform(X_train_scaled)
+    X_test_pca = pca.transform(X_test_scaled)
+    print("Original shape: {}".format(str(X_train_scaled.shape)))
+    print("Reduced shape: {}".format(str(X_train_pca.shape)))
+
+    '''
+                Plotting of PCA/ Cluster Pairs
+    '''
+    #Kmeans clusters to categorize groups WITH SCALED DATA
+    #determine number of groups needed or desired for
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    train_clusters = kmeans.fit(X_train_scaled)
+
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    test_clusters = kmeans.fit(X_test_scaled)
+    #Creating the plot
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
+    #styles for title: normal; italic; oblique
+    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
+    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
+    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    #principal components of bank panel has better results than card panel with clearer borders
+
+
     '''
     Pipeline 3 - SelectKBest and Random Forest Regressor
         PRIMARY_MERCHANT_NAME
@@ -836,55 +1139,153 @@ def pipeline_rfr():
     print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search.best_score_}")
 
-    return grid_search
+    return grid_search_rfr
 #%%
-'''
-Pipeline 4 - Logistic Regression and Support Vector Kernel -needs non-negative values
----------
-Pipeline 4; 2020-05-01 10:06:03
-{'feature_selection__k': 8, 'reg__C': 0.1, 'reg__epsilon': 0.3}
-Overall score: 0.1292
-Best accuracy with parameters: 0.08389477382390549
---------
-    AMOUNT_MEAN_LAG7
-Pipeline 4; 2020-05-06 16:13:22
-{'feature_selection__k': 4, 'reg__C': 1.0, 'reg__epsilon': 0.1}
-Overall score: 0.6325
-Best accuracy with parameters: 0.5934902153570164
-'''
-#Create pipeline with feature selector and regressor
-#replace with gradient boosted at this point or regressor
-pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = chi2)),
-    ('reg', SVR(kernel = 'linear'))
-    ])
+def pipeline_svr():
 
-#Create a parameter grid
-#parameter grids provide the values for the models to try
-#PARAMETERs NEED TO HAVE THE SAME LENGTH
-#C regularization parameter that is applied to all terms
-#to push down their individual impact and reduce overfitting
-#Epsilon tube around actual values; threshold beyond which regularization is applied
-#the more features picked the more prone the model is to overfitting
-#stricter C and e to counteract
-params = {
-    'feature_selection__k':[4, 6, 7, 8, 9],
-    'reg__C':[1.0, 0.1, 0.01, 0.001],
-    'reg__epsilon':[0.30, 0.25, 0.15, 0.10],
-    }
 
-#Initialize the grid search object
-grid_search = GridSearchCV(pipe, param_grid = params)
+    """
+    1.) split up the data
+    2.) fit to the pipeline
+    """
+    '''
+        SPLITTING UP THE DATA
+    '''
+    #drop target variable in feature df
+    #all remaining columns will be the features
+    bank_df = bank_df.drop(['unique_mem_id',
+                            'unique_bank_account_id',
+                            'unique_bank_transaction_id'], axis = 1)
+    ####
+    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
+    #On some occasions the label needs to be a 1d array;
+    #then the double square brackets (slicing it as a new dataframe) break the pipeline
+    model_label = bank_df['amount_mean_lag7']
+    ####
+    if model_label.dtype == 'float32':
+        model_label = model_label.astype('int32')
+    elif model_label.dtype == 'float64':
+        model_label = model_label.astype('int64')
+    else:
+        print("model label has unsuitable data type!")
 
-#best combination of feature selector and the regressor
-#grid_search.best_params_
-#best score
-#grid_search.best_score_
-#Fit it to the data and print the best value combination
-print(f"Pipeline 4; {dt.today()}")
-print(grid_search.fit(X_train_minmax, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test_minmax, y_test)))
-print(f"Best accuracy with parameters: {grid_search.best_score_}")
+
+    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
+    X_train, X_test, y_train, y_test = train_test_split(model_features,
+                                                        model_label,
+                                                        random_state = 7,
+                                                        shuffle = True,
+                                                        test_size = 0.4)
+
+    #create a validation set from the training set
+    print(f"Shape of the split training data set X_train:{X_train.shape}")
+    print(f"Shape of the split training data set X_test: {X_test.shape}")
+    print(f"Shape of the split training data set y_train: {y_train.shape}")
+    print(f"Shape of the split training data set y_test: {y_test.shape}")
+
+    #STD SCALING - does not work yet
+    #fit the scaler to the training data first
+    #standard scaler works only with maximum 2 dimensions
+    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
+    #transform test data with the object learned from the training data
+    X_test_scaled = scaler.transform(X_test)
+    scaler_mean = scaler.mean_
+    stadard_scale = scaler.scale_
+
+    #MINMAX SCALING - works with Select K Best
+    min_max_scaler = MinMaxScaler()
+    X_train_minmax = min_max_scaler.fit_transform(X_train)
+    X_test_minmax = min_max_scaler.transform(X_test)
+    minmax_scale = min_max_scaler.scale_
+    min_max_minimum = min_max_scaler.min_
+
+    '''
+        Principal Component Reduction
+    '''
+
+    #first scale
+    #then reduce
+    #keep the most important features of the data
+    pca = PCA(n_components = int(len(bank_df.columns) / 2))
+    #fit PCA model to breast cancer data
+    pca.fit(X_train_scaled)
+    #transform data onto the first two principal components
+    X_train_pca = pca.transform(X_train_scaled)
+    X_test_pca = pca.transform(X_test_scaled)
+    print("Original shape: {}".format(str(X_train_scaled.shape)))
+    print("Reduced shape: {}".format(str(X_train_pca.shape)))
+
+    '''
+                Plotting of PCA/ Cluster Pairs
+    '''
+    #Kmeans clusters to categorize groups WITH SCALED DATA
+    #determine number of groups needed or desired for
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    train_clusters = kmeans.fit(X_train_scaled)
+
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    test_clusters = kmeans.fit(X_test_scaled)
+    #Creating the plot
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
+    #styles for title: normal; italic; oblique
+    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
+    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
+    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    #principal components of bank panel has better results than card panel with clearer borders
+
+    '''
+    Pipeline 4 - Logistic Regression and Support Vector Kernel -needs non-negative values
+    ---------
+    Pipeline 4; 2020-05-01 10:06:03
+    {'feature_selection__k': 8, 'reg__C': 0.1, 'reg__epsilon': 0.3}
+    Overall score: 0.1292
+    Best accuracy with parameters: 0.08389477382390549
+    --------
+        AMOUNT_MEAN_LAG7
+    Pipeline 4; 2020-05-06 16:13:22
+    {'feature_selection__k': 4, 'reg__C': 1.0, 'reg__epsilon': 0.1}
+    Overall score: 0.6325
+    Best accuracy with parameters: 0.5934902153570164
+    '''
+    #Create pipeline with feature selector and regressor
+    #replace with gradient boosted at this point or regressor
+    pipe = Pipeline([
+        ('feature_selection', SelectKBest(score_func = chi2)),
+        ('reg', SVR(kernel = 'linear'))
+        ])
+
+    #Create a parameter grid
+    #parameter grids provide the values for the models to try
+    #PARAMETERs NEED TO HAVE THE SAME LENGTH
+    #C regularization parameter that is applied to all terms
+    #to push down their individual impact and reduce overfitting
+    #Epsilon tube around actual values; threshold beyond which regularization is applied
+    #the more features picked the more prone the model is to overfitting
+    #stricter C and e to counteract
+    params = {
+        'feature_selection__k':[4, 6, 7, 8, 9],
+        'reg__C':[1.0, 0.1, 0.01, 0.001],
+        'reg__epsilon':[0.30, 0.25, 0.15, 0.10],
+        }
+
+    #Initialize the grid search object
+    grid_search = GridSearchCV(pipe, param_grid = params)
+
+    #best combination of feature selector and the regressor
+    #grid_search.best_params_
+    #best score
+    #grid_search.best_score_
+    #Fit it to the data and print the best value combination
+    print(f"Pipeline 4; {dt.today()}")
+    print(grid_search.fit(X_train_minmax, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search.score(X_test_minmax, y_test)))
+    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+
+    return grid_search_svr
 #%%
 #BUGGED
 '''
@@ -913,6 +1314,101 @@ print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 def pipeline_knn():
+
+    """
+    1.) split up the data
+    2.) fit to the pipeline
+    """
+    '''
+        SPLITTING UP THE DATA
+    '''
+    #drop target variable in feature df
+    #all remaining columns will be the features
+    bank_df = bank_df.drop(['unique_mem_id',
+                            'unique_bank_account_id',
+                            'unique_bank_transaction_id'], axis = 1)
+    ####
+    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
+    #On some occasions the label needs to be a 1d array;
+    #then the double square brackets (slicing it as a new dataframe) break the pipeline
+    model_label = bank_df['amount_mean_lag7']
+    ####
+    if model_label.dtype == 'float32':
+        model_label = model_label.astype('int32')
+    elif model_label.dtype == 'float64':
+        model_label = model_label.astype('int64')
+    else:
+        print("model label has unsuitable data type!")
+
+
+    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
+    X_train, X_test, y_train, y_test = train_test_split(model_features,
+                                                        model_label,
+                                                        random_state = 7,
+                                                        shuffle = True,
+                                                        test_size = 0.4)
+
+    #create a validation set from the training set
+    print(f"Shape of the split training data set X_train:{X_train.shape}")
+    print(f"Shape of the split training data set X_test: {X_test.shape}")
+    print(f"Shape of the split training data set y_train: {y_train.shape}")
+    print(f"Shape of the split training data set y_test: {y_test.shape}")
+
+    #STD SCALING - does not work yet
+    #fit the scaler to the training data first
+    #standard scaler works only with maximum 2 dimensions
+    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
+    #transform test data with the object learned from the training data
+    X_test_scaled = scaler.transform(X_test)
+    scaler_mean = scaler.mean_
+    stadard_scale = scaler.scale_
+
+    #MINMAX SCALING - works with Select K Best
+    min_max_scaler = MinMaxScaler()
+    X_train_minmax = min_max_scaler.fit_transform(X_train)
+    X_test_minmax = min_max_scaler.transform(X_test)
+    minmax_scale = min_max_scaler.scale_
+    min_max_minimum = min_max_scaler.min_
+
+    '''
+        Principal Component Reduction
+    '''
+
+    #first scale
+    #then reduce
+    #keep the most important features of the data
+    pca = PCA(n_components = int(len(bank_df.columns) / 2))
+    #fit PCA model to breast cancer data
+    pca.fit(X_train_scaled)
+    #transform data onto the first two principal components
+    X_train_pca = pca.transform(X_train_scaled)
+    X_test_pca = pca.transform(X_test_scaled)
+    print("Original shape: {}".format(str(X_train_scaled.shape)))
+    print("Reduced shape: {}".format(str(X_train_pca.shape)))
+
+    '''
+                Plotting of PCA/ Cluster Pairs
+    '''
+    #Kmeans clusters to categorize groups WITH SCALED DATA
+    #determine number of groups needed or desired for
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    train_clusters = kmeans.fit(X_train_scaled)
+
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    test_clusters = kmeans.fit(X_test_scaled)
+    #Creating the plot
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
+    #styles for title: normal; italic; oblique
+    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
+    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
+    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    #principal components of bank panel has better results than card panel with clearer borders
+
+
     '''
     Pipeline 6 - SelectKBest and K Nearest Neighbor
     ----------
@@ -968,9 +1464,103 @@ def pipeline_knn():
     print(grid_search.fit(X_train, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search.best_score_}")
-    return grid_search
+    return grid_search_knn
 #%%
 def pipeline_svc():
+
+    """
+    1.) split up the data
+    2.) fit to the pipeline
+    """
+    '''
+        SPLITTING UP THE DATA
+    '''
+    #drop target variable in feature df
+    #all remaining columns will be the features
+    bank_df = bank_df.drop(['unique_mem_id',
+                            'unique_bank_account_id',
+                            'unique_bank_transaction_id'], axis = 1)
+    ####
+    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
+    #On some occasions the label needs to be a 1d array;
+    #then the double square brackets (slicing it as a new dataframe) break the pipeline
+    model_label = bank_df['amount_mean_lag7']
+    ####
+    if model_label.dtype == 'float32':
+        model_label = model_label.astype('int32')
+    elif model_label.dtype == 'float64':
+        model_label = model_label.astype('int64')
+    else:
+        print("model label has unsuitable data type!")
+
+
+    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
+    X_train, X_test, y_train, y_test = train_test_split(model_features,
+                                                        model_label,
+                                                        random_state = 7,
+                                                        shuffle = True,
+                                                        test_size = 0.4)
+
+    #create a validation set from the training set
+    print(f"Shape of the split training data set X_train:{X_train.shape}")
+    print(f"Shape of the split training data set X_test: {X_test.shape}")
+    print(f"Shape of the split training data set y_train: {y_train.shape}")
+    print(f"Shape of the split training data set y_test: {y_test.shape}")
+
+    #STD SCALING - does not work yet
+    #fit the scaler to the training data first
+    #standard scaler works only with maximum 2 dimensions
+    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
+    #transform test data with the object learned from the training data
+    X_test_scaled = scaler.transform(X_test)
+    scaler_mean = scaler.mean_
+    stadard_scale = scaler.scale_
+
+    #MINMAX SCALING - works with Select K Best
+    min_max_scaler = MinMaxScaler()
+    X_train_minmax = min_max_scaler.fit_transform(X_train)
+    X_test_minmax = min_max_scaler.transform(X_test)
+    minmax_scale = min_max_scaler.scale_
+    min_max_minimum = min_max_scaler.min_
+
+    '''
+        Principal Component Reduction
+    '''
+
+    #first scale
+    #then reduce
+    #keep the most important features of the data
+    pca = PCA(n_components = int(len(bank_df.columns) / 2))
+    #fit PCA model to breast cancer data
+    pca.fit(X_train_scaled)
+    #transform data onto the first two principal components
+    X_train_pca = pca.transform(X_train_scaled)
+    X_test_pca = pca.transform(X_test_scaled)
+    print("Original shape: {}".format(str(X_train_scaled.shape)))
+    print("Reduced shape: {}".format(str(X_train_pca.shape)))
+
+    '''
+                Plotting of PCA/ Cluster Pairs
+    '''
+    #Kmeans clusters to categorize groups WITH SCALED DATA
+    #determine number of groups needed or desired for
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    train_clusters = kmeans.fit(X_train_scaled)
+
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    test_clusters = kmeans.fit(X_test_scaled)
+    #Creating the plot
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
+    #styles for title: normal; italic; oblique
+    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
+    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
+    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    #principal components of bank panel has better results than card panel with clearer borders
+
     '''
     Pipeline 7 - SelectKBest and Support Vector Classifier
     ##########
@@ -1046,7 +1636,7 @@ def pipeline_svc():
     print(grid_search.fit(X_train, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search.best_score_}")
-    return grid_search
+    return grid_search_svc
 #%%
 #generate a dataframe for pipeline values
 def score_df():
@@ -1107,6 +1697,100 @@ def amount_pred():
             budget_dict[key].append(msg_3)
 #%%
 def pipeline_trans_reg():
+
+    """
+    1.) split up the data
+    2.) fit to the pipeline
+    """
+    '''
+        SPLITTING UP THE DATA
+    '''
+    #drop target variable in feature df
+    #all remaining columns will be the features
+    bank_df = bank_df.drop(['unique_mem_id',
+                            'unique_bank_account_id',
+                            'unique_bank_transaction_id'], axis = 1)
+    ####
+    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
+    #On some occasions the label needs to be a 1d array;
+    #then the double square brackets (slicing it as a new dataframe) break the pipeline
+    model_label = bank_df['amount_mean_lag7']
+    ####
+    if model_label.dtype == 'float32':
+        model_label = model_label.astype('int32')
+    elif model_label.dtype == 'float64':
+        model_label = model_label.astype('int64')
+    else:
+        print("model label has unsuitable data type!")
+
+
+    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
+    X_train, X_test, y_train, y_test = train_test_split(model_features,
+                                                        model_label,
+                                                        random_state = 7,
+                                                        shuffle = True,
+                                                        test_size = 0.4)
+
+    #create a validation set from the training set
+    print(f"Shape of the split training data set X_train:{X_train.shape}")
+    print(f"Shape of the split training data set X_test: {X_test.shape}")
+    print(f"Shape of the split training data set y_train: {y_train.shape}")
+    print(f"Shape of the split training data set y_test: {y_test.shape}")
+
+    #STD SCALING - does not work yet
+    #fit the scaler to the training data first
+    #standard scaler works only with maximum 2 dimensions
+    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
+    #transform test data with the object learned from the training data
+    X_test_scaled = scaler.transform(X_test)
+    scaler_mean = scaler.mean_
+    stadard_scale = scaler.scale_
+
+    #MINMAX SCALING - works with Select K Best
+    min_max_scaler = MinMaxScaler()
+    X_train_minmax = min_max_scaler.fit_transform(X_train)
+    X_test_minmax = min_max_scaler.transform(X_test)
+    minmax_scale = min_max_scaler.scale_
+    min_max_minimum = min_max_scaler.min_
+    #%%
+    '''
+        Principal Component Reduction
+    '''
+
+    #first scale
+    #then reduce
+    #keep the most important features of the data
+    pca = PCA(n_components = int(len(bank_df.columns) / 2))
+    #fit PCA model to breast cancer data
+    pca.fit(X_train_scaled)
+    #transform data onto the first two principal components
+    X_train_pca = pca.transform(X_train_scaled)
+    X_test_pca = pca.transform(X_test_scaled)
+    print("Original shape: {}".format(str(X_train_scaled.shape)))
+    print("Reduced shape: {}".format(str(X_train_pca.shape)))
+
+    '''
+                Plotting of PCA/ Cluster Pairs
+    '''
+    #Kmeans clusters to categorize groups WITH SCALED DATA
+    #determine number of groups needed or desired for
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    train_clusters = kmeans.fit(X_train_scaled)
+
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    test_clusters = kmeans.fit(X_test_scaled)
+    #Creating the plot
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
+    #styles for title: normal; italic; oblique
+    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
+    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
+    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    #principal components of bank panel has better results than card panel with clearer borders
+
     '''
             Application of Transformed Linear Regression
 
@@ -1200,6 +1884,100 @@ print(f"TESTINFO MLP: [{dt.today()}]--[Parameters: hidden layers:{MLP.hidden_lay
       Test set Validation: {MLP.score(X_test, y_val)}")
 #%%
 def pipeline_mlp():
+
+    """
+    1.) split up the data
+    2.) fit to the pipeline
+    """
+    '''
+        SPLITTING UP THE DATA
+    '''
+    #drop target variable in feature df
+    #all remaining columns will be the features
+    bank_df = bank_df.drop(['unique_mem_id',
+                            'unique_bank_account_id',
+                            'unique_bank_transaction_id'], axis = 1)
+    ####
+    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
+    #On some occasions the label needs to be a 1d array;
+    #then the double square brackets (slicing it as a new dataframe) break the pipeline
+    model_label = bank_df['amount_mean_lag7']
+    ####
+    if model_label.dtype == 'float32':
+        model_label = model_label.astype('int32')
+    elif model_label.dtype == 'float64':
+        model_label = model_label.astype('int64')
+    else:
+        print("model label has unsuitable data type!")
+
+
+    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
+    X_train, X_test, y_train, y_test = train_test_split(model_features,
+                                                        model_label,
+                                                        random_state = 7,
+                                                        shuffle = True,
+                                                        test_size = 0.4)
+
+    #create a validation set from the training set
+    print(f"Shape of the split training data set X_train:{X_train.shape}")
+    print(f"Shape of the split training data set X_test: {X_test.shape}")
+    print(f"Shape of the split training data set y_train: {y_train.shape}")
+    print(f"Shape of the split training data set y_test: {y_test.shape}")
+
+    #STD SCALING - does not work yet
+    #fit the scaler to the training data first
+    #standard scaler works only with maximum 2 dimensions
+    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
+    #transform test data with the object learned from the training data
+    X_test_scaled = scaler.transform(X_test)
+    scaler_mean = scaler.mean_
+    stadard_scale = scaler.scale_
+
+    #MINMAX SCALING - works with Select K Best
+    min_max_scaler = MinMaxScaler()
+    X_train_minmax = min_max_scaler.fit_transform(X_train)
+    X_test_minmax = min_max_scaler.transform(X_test)
+    minmax_scale = min_max_scaler.scale_
+    min_max_minimum = min_max_scaler.min_
+
+    '''
+        Principal Component Reduction
+    '''
+
+    #first scale
+    #then reduce
+    #keep the most important features of the data
+    pca = PCA(n_components = int(len(bank_df.columns) / 2))
+    #fit PCA model to breast cancer data
+    pca.fit(X_train_scaled)
+    #transform data onto the first two principal components
+    X_train_pca = pca.transform(X_train_scaled)
+    X_test_pca = pca.transform(X_test_scaled)
+    print("Original shape: {}".format(str(X_train_scaled.shape)))
+    print("Reduced shape: {}".format(str(X_train_pca.shape)))
+
+    '''
+                Plotting of PCA/ Cluster Pairs
+    '''
+    #Kmeans clusters to categorize groups WITH SCALED DATA
+    #determine number of groups needed or desired for
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    train_clusters = kmeans.fit(X_train_scaled)
+
+    kmeans = KMeans(n_clusters = 10, random_state = 10)
+    test_clusters = kmeans.fit(X_test_scaled)
+    #Creating the plot
+    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
+    #styles for title: normal; italic; oblique
+    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
+    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
+    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    #principal components of bank panel has better results than card panel with clearer borders
+
     '''
     Pipeline 8 - SelectKBest and Multi-Layer Perceptron
     ##########
@@ -1239,25 +2017,28 @@ def pipeline_mlp():
     print(f"Best accuracy with parameters: {grid_search.best_score_}")
     return grid_search
 #%%
-'''
-        Usage of a Pickle Model -Storage of a trained Model
-'''
 def store_pickle(model):
+
+    """
+    Usage of a Pickle Model -Storage of a trained Model
+    """
+
     model_file = "gridsearch_model.sav"
     with open(model_file, mode='wb') as m_f:
         pickle.dump(model, m_f)
     return model_file
 #%%
-'''
+def open_pickle(model_file):
+
+    """
         Usage of a Pickle Model -Loading of a Pickle File
 
-model file can be opened either with FILE NAME
-open_pickle(model_file="gridsearch_model.sav")
-INTERNAL PARAMETER
-open_pickle(model_file=model_file)
-'''
+    model file can be opened either with FILE NAME
+    open_pickle(model_file="gridsearch_model.sav")
+    INTERNAL PARAMETER
+    open_pickle(model_file=model_file)
+    """
 
-def open_pickle(model_file):
     with open(model_file, mode='rb') as m_f:
         grid_search = pickle.load(m_f)
         result = grid_search.score(X_test, y_test)
@@ -1267,7 +2048,6 @@ def open_pickle(model_file):
         print("Training Accuracy Result: %.4f" %(result))
         return 'grid_search parameters loaded'
 #%%
-
 #y_val = y_pred as the split is still unfisnished
 print('R2 score = ', r2_score(y_val, y_test), '/ 1.0')
 print('MSE score = ', mean_squared_error(y_val, y_test), '/ 0.0')

@@ -28,7 +28,7 @@ from sklearn.compose import TransformedTargetRegressor
 
 from sklearn.linear_model import LogisticRegression, LinearRegression, SGDRegressor
 from sklearn.neighbors import KNeighborsClassifier, LocalOutlierFactor
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier, RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 
 from sklearn.svm import SVR, SVC
 from sklearn.cluster import KMeans
@@ -48,6 +48,7 @@ import PostgreSQL_credentials as acc
 #from flask_auto_setup import activate_flask
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
+from Python_eda_ai import pipeline_rfr, pipeline_sgd_reg, pipeline_trans_reg, pipeline_logreg, score_df, store_pickle, open_pickle
 #%%
 def df_encoder(rng = 4):
     '''
@@ -391,10 +392,11 @@ def df_encoder(rng = 4):
         bank_df[f"{feature}_std_lag{t1}"] = bank_df_std_3d[feature]
         bank_df[f"{feature}_std_lag{t2}"] = bank_df_std_7d[feature]
         bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
-    #%%
-    #the first two rows of lagging values have NaNs which need to be dropped
-    #set optimized transaction_date as index for later
+
     bank_df.set_index(date_index, drop = False, inplace=True)
     bank_df = bank_df.dropna()
     #csv_export(df=bank_df, file_name='encoded_bank_dataframe')
+
     return bank_df
+
+

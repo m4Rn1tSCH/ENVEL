@@ -22,11 +22,9 @@ import seaborn as sns
 from sklearn.feature_selection import SelectKBest , chi2, f_classif, RFE, RFECV
 from sklearn.model_selection import GridSearchCV, train_test_split
 
-from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler, QuantileTransformer
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
-from sklearn.compose import TransformedTargetRegressor
 
-from sklearn.linear_model import LogisticRegression, LinearRegression, SGDRegressor
 from sklearn.neighbors import KNeighborsClassifier, LocalOutlierFactor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier, RandomForestClassifier
 
@@ -47,6 +45,7 @@ import PostgreSQL_credentials as acc
 #from flask_auto_setup import activate_flask
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
+from Python_eda_ai import pipeline_svc, pipeline_knn
 #%%
 def df_encoder(rng = 4):
     '''
