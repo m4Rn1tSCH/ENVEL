@@ -17,10 +17,7 @@ SECOND STAGE: randomly pick a user ID; encode thoroughly and yield the df
 THIRD STAGE: encode all columns to numerical values and store corresponding dictionaries
 '''
 
-#load needed packages
-
-
-
+#load packages
 import pandas as pd
 pd.set_option('display.width', 1000)
 import numpy as np
@@ -682,156 +679,164 @@ plt.ylabel("Cross validation score (nb of correct classifications)")
 plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
 plt.show()
 #%%
-'''
-            Setting up a pipeline
-Pipeline 1 - SelectKBest and Logistic Regression (non-neg only)
-    PRIMARY_MERCHANT_NAME
-Pipeline 1; 2020-04-29 11:02:06
-{'feature_selection__k': 5, 'reg__max_iter': 800}
-Overall score: 0.3696
-Best accuracy with parameters: 0.34202115158636903
-Pipeline 1; 2020-05-01 09:44:29
-{'feature_selection__k': 8, 'reg__max_iter': 800}
-Overall score: 0.5972
-Best accuracy with parameters: 0.605607476635514
-    CITY
-Pipeline 1; 2020-05-04 14:38:23 Full Set
-{'feature_selection__k': 8, 'reg__max_iter': 800}
-Overall score: 0.7953
-Best accuracy with parameters: 0.8155763239875389
-----
-Pipeline 1; 2020-05-04 17:00:59 Sparse Set
-{'feature_selection__k': 5, 'reg__max_iter': 800}
-Overall score: 0.4706
-Best accuracy with parameters: 0.5158026283963557
-'''
-#SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
-#F_CLASSIFIER;FOR CLASSIFICATION TASKS determines features based on the f-values between features & labels;
-#Chi2: for regression tasks; requires non-neg values
-#other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
+def pipeline_logreg():
+    '''
+                Setting up a pipeline
+    Pipeline 1 - SelectKBest and Logistic Regression (non-neg only)
+        PRIMARY_MERCHANT_NAME
+    Pipeline 1; 2020-04-29 11:02:06
+    {'feature_selection__k': 5, 'reg__max_iter': 800}
+    Overall score: 0.3696
+    Best accuracy with parameters: 0.34202115158636903
+    Pipeline 1; 2020-05-01 09:44:29
+    {'feature_selection__k': 8, 'reg__max_iter': 800}
+    Overall score: 0.5972
+    Best accuracy with parameters: 0.605607476635514
+        CITY
+    Pipeline 1; 2020-05-04 14:38:23 Full Set
+    {'feature_selection__k': 8, 'reg__max_iter': 800}
+    Overall score: 0.7953
+    Best accuracy with parameters: 0.8155763239875389
+    ----
+    Pipeline 1; 2020-05-04 17:00:59 Sparse Set
+    {'feature_selection__k': 5, 'reg__max_iter': 800}
+    Overall score: 0.4706
+    Best accuracy with parameters: 0.5158026283963557
+    '''
+    #SelectKBest picks features based on their f-value to find the features that can optimally predict the labels
+    #F_CLASSIFIER;FOR CLASSIFICATION TASKS determines features based on the f-values between features & labels;
+    #Chi2: for regression tasks; requires non-neg values
+    #other functions: mutual_info_classif; chi2, f_regression; mutual_info_regression
 
-#Create pipeline with feature selector and regressor
-#replace with gradient boosted at this point or regressor
-pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = chi2)),
-    ('reg', LogisticRegression(random_state = 12))])
+    #Create pipeline with feature selector and regressor
+    #replace with gradient boosted at this point or regressor
+    pipe = Pipeline([
+        ('feature_selection', SelectKBest(score_func = chi2)),
+        ('reg', LogisticRegression(random_state = 12))])
 
-#Create a parameter grid
-#parameter grids provide the values for the models to try
-#PARAMETERS NEED TO HAVE THE SAME LENGTH
-params = {
-    'feature_selection__k':[5, 6, 7, 8, 9],
-    'reg__max_iter':[800, 1000, 1500, 2000],
-    'reg__C':[10, 1, 0.1, 0.01, 0.001],
-    }
+    #Create a parameter grid
+    #parameter grids provide the values for the models to try
+    #PARAMETERS NEED TO HAVE THE SAME LENGTH
+    params = {
+        'feature_selection__k':[5, 6, 7, 8, 9],
+        'reg__max_iter':[800, 1000, 1500, 2000],
+        'reg__C':[10, 1, 0.1, 0.01, 0.001],
+        }
 
-#Initialize the grid search object
-grid_search = GridSearchCV(pipe, param_grid = params)
+    #Initialize the grid search object
+    grid_search = GridSearchCV(pipe, param_grid = params)
 
-#best combination of feature selector and the regressor
-#grid_search.best_params_
-#best score
-#grid_search.best_score_
+    #best combination of feature selector and the regressor
+    #grid_search.best_params_
+    #best score
+    #grid_search.best_score_
 
-#Fit it to the data and print the best value combination
-print(f"Pipeline 1; {dt.today()}")
-print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    #Fit it to the data and print the best value combination
+    print(f"Pipeline 1; {dt.today()}")
+    print(grid_search.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+
+    return grid_search
 #%%
-'''
-Pipeline 2 - SelectKBest and SGDRegressor -needs non-negative values
-Pipeline 2; 2020-04-29 14:13:46
-{'feature_selection__k': 5, 'reg__alpha': 0.0001, 'reg__max_iter': 800}
-Overall score: -12552683945869548245665121782413383849471150345158656.0000
-Best accuracy with parameters: -1.459592722067248e+50
-'''
-#Create pipeline with feature selector and regressor
-#replace with gradient boosted at this point or regressor
-pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = chi2)),
-    ('reg', SGDRegressor(loss='squared_loss', penalty='l1'))
-    ])
+def pipeline_sgd_reg():
+    '''
+    Pipeline 2 - SelectKBest and SGDRegressor -needs non-negative values
+    Pipeline 2; 2020-04-29 14:13:46
+    {'feature_selection__k': 5, 'reg__alpha': 0.0001, 'reg__max_iter': 800}
+    Overall score: -12552683945869548245665121782413383849471150345158656.0000
+    Best accuracy with parameters: -1.459592722067248e+50
+    '''
+    #Create pipeline with feature selector and regressor
+    #replace with gradient boosted at this point or regressor
+    pipe = Pipeline([
+        ('feature_selection', SelectKBest(score_func = chi2)),
+        ('reg', SGDRegressor(loss='squared_loss', penalty='l1'))
+        ])
 
-#Create a parameter grid
-#parameter grids provide the values for the models to try
-#PARAMETERS NEED TO HAVE THE SAME LENGTH
-params = {
-    'feature_selection__k':[5, 6, 7],
-    'reg__alpha':[0.01, 0.001, 0.0001],
-    'reg__max_iter':[800, 1000, 1500]
-    }
+    #Create a parameter grid
+    #parameter grids provide the values for the models to try
+    #PARAMETERS NEED TO HAVE THE SAME LENGTH
+    params = {
+        'feature_selection__k':[5, 6, 7],
+        'reg__alpha':[0.01, 0.001, 0.0001],
+        'reg__max_iter':[800, 1000, 1500]
+        }
 
-#Initialize the grid search object
-grid_search = GridSearchCV(pipe, param_grid = params)
+    #Initialize the grid search object
+    grid_search = GridSearchCV(pipe, param_grid = params)
 
-#Fit it to the data and print the best value combination
-print(f"Pipeline 2; {dt.today()}")
-print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    #Fit it to the data and print the best value combination
+    print(f"Pipeline 2; {dt.today()}")
+    print(grid_search.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+
+    return grid_search
 #%%
-#BUGGED
-'''
-Pipeline 3 - SelectKBest and Random Forest Regressor
-    PRIMARY_MERCHANT_NAME
----------
-Pipeline 3; 2020-04-29 11:13:21
-{'feature_selection__k': 7, 'reg__min_samples_split': 8, 'reg__n_estimators': 150}
-Overall score: 0.6965
-Best accuracy with parameters: 0.6820620369181245
----
-Pipeline 3; 2020-05-01 10:01:18
-{'feature_selection__k': 7, 'reg__min_samples_split': 4, 'reg__n_estimators': 100}
-Overall score: 0.9319
-Best accuracy with parameters: 0.9181502112642107
-    CITY
-Pipeline 3; 2020-05-04 14:50:00 Full Set
-{'feature_selection__k': 7, 'reg__min_samples_split': 4, 'reg__n_estimators': 100}
-Overall score: 0.8422
-Best accuracy with parameters: 0.8558703875627366
----
-Pipeline 3; 2020-05-04 17:10:16 Sparse Set
-{'feature_selection__k': 7, 'reg__min_samples_split': 4, 'reg__n_estimators': 150}
-Overall score: 0.7186
-Best accuracy with parameters: 0.75653465869764
----
-Pipeline 3; 2020-05-06 10:13:08 with kbest features
-{'feature_selection__k': 5, 'reg__min_samples_split': 8, 'reg__n_estimators': 150}
-Overall score: 0.6255
-Best accuracy with parameters: 0.5813314519498283
----
-Pipeline 3; 2020-05-06 16:02:09 Amount_mean_lag7
-{'feature_selection__k': 5, 'reg__min_samples_split': 4, 'reg__n_estimators': 100}
-Overall score: 0.9641
-Best accuracy with parameters: 0.9727385020905415
-'''
-#Create pipeline with feature selector and classifier
-#replace with gradient boosted at this point or regessor
-pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = f_classif)),
-    ('reg', RandomForestRegressor(n_estimators = 75,
-                                  max_depth = len(bank_df.columns)/2,
-                                  min_samples_split = 4))
-    ])
+def pipeline_rfr():
+    '''
+    Pipeline 3 - SelectKBest and Random Forest Regressor
+        PRIMARY_MERCHANT_NAME
+    ---------
+    Pipeline 3; 2020-04-29 11:13:21
+    {'feature_selection__k': 7, 'reg__min_samples_split': 8, 'reg__n_estimators': 150}
+    Overall score: 0.6965
+    Best accuracy with parameters: 0.6820620369181245
+    ---
+    Pipeline 3; 2020-05-01 10:01:18
+    {'feature_selection__k': 7, 'reg__min_samples_split': 4, 'reg__n_estimators': 100}
+    Overall score: 0.9319
+    Best accuracy with parameters: 0.9181502112642107
+        CITY
+    Pipeline 3; 2020-05-04 14:50:00 Full Set
+    {'feature_selection__k': 7, 'reg__min_samples_split': 4, 'reg__n_estimators': 100}
+    Overall score: 0.8422
+    Best accuracy with parameters: 0.8558703875627366
+    ---
+    Pipeline 3; 2020-05-04 17:10:16 Sparse Set
+    {'feature_selection__k': 7, 'reg__min_samples_split': 4, 'reg__n_estimators': 150}
+    Overall score: 0.7186
+    Best accuracy with parameters: 0.75653465869764
+    ---
+    Pipeline 3; 2020-05-06 10:13:08 with kbest features
+    {'feature_selection__k': 5, 'reg__min_samples_split': 8, 'reg__n_estimators': 150}
+    Overall score: 0.6255
+    Best accuracy with parameters: 0.5813314519498283
+    ---
+    Pipeline 3; 2020-05-06 16:02:09 Amount_mean_lag7
+    {'feature_selection__k': 5, 'reg__min_samples_split': 4, 'reg__n_estimators': 100}
+    Overall score: 0.9641
+    Best accuracy with parameters: 0.9727385020905415
+    '''
+    #Create pipeline with feature selector and classifier
+    #replace with gradient boosted at this point or regessor
+    pipe = Pipeline([
+        ('feature_selection', SelectKBest(score_func = f_classif)),
+        ('reg', RandomForestRegressor(n_estimators = 75,
+                                      max_depth = len(bank_df.columns)/2,
+                                      min_samples_split = 4))
+        ])
 
-#Create a parameter grid
-#parameter grids provide the values for the models to try
-#PARAMETERS NEED TO HAVE THE SAME LENGTH
-params = {
-    'feature_selection__k':[5, 6, 7, 8, 9],
-    'reg__n_estimators':[75, 100, 150, 200],
-    'reg__min_samples_split':[4, 8, 10, 15],
-    }
+    #Create a parameter grid
+    #parameter grids provide the values for the models to try
+    #PARAMETERS NEED TO HAVE THE SAME LENGTH
+    params = {
+        'feature_selection__k':[5, 6, 7, 8, 9],
+        'reg__n_estimators':[75, 100, 150, 200],
+        'reg__min_samples_split':[4, 8, 10, 15],
+        }
 
-#Initialize the grid search object
-grid_search = GridSearchCV(pipe, param_grid = params)
+    #Initialize the grid search object
+    grid_search = GridSearchCV(pipe, param_grid = params)
 
-#Fit it to the data and print the best value combination
-print(f"Pipeline 3; {dt.today()}")
-print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    #Fit it to the data and print the best value combination
+    print(f"Pipeline 3; {dt.today()}")
+    print(grid_search.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+
+    return grid_search
 #%%
 '''
 Pipeline 4 - Logistic Regression and Support Vector Kernel -needs non-negative values
@@ -907,137 +912,141 @@ print(grid_search.fit(X_train, y_train).best_params_)
 print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
-'''
-Pipeline 6 - SelectKBest and K Nearest Neighbor
-----------
-Pipeline 6; 2020-04-27 11:00:27
-{'clf__n_neighbors': 7, 'feature_selection__k': 3}
-Best accuracy with parameters: 0.5928202115158637
-------
-Pipeline 6; 2020-04-29 10:01:21 WITH SCALED DATA
-{'clf__n_neighbors': 4, 'feature_selection__k': 3}
-Overall score: 0.3696
-Best accuracy with parameters: 0.6156286721504113
--------
-Pipeline 6; 2020-05-01 10:21:01
-{'clf__n_neighbors': 2, 'feature_selection__k': 4}
-Overall score: 0.9243
-Best accuracy with parameters: 0.9015576323987539
--------
-    CITY
-Pipeline 6; 2020-05-04 14:51:44 Full Set
-{'clf__n_neighbors': 2, 'feature_selection__k': 3}
-Overall score: 0.9028
-Best accuracy with parameters: 0.9071651090342681
----
-Pipeline 6; 2020-05-04 17:12:14 Sparse Set
-{'clf__n_neighbors': 3, 'feature_selection__k': 5}
-Overall score: 0.6926
-Best accuracy with parameters: 0.7287349834717407
----
-    AMOUNT_MEAN_LAG7
-Pipeline 6; 2020-05-06 16:15:12
-{'clf__n_neighbors': 2, 'feature_selection__k': 1}
-Overall score: 0.1157
-Best accuracy with parameters: 0.154583568491494
-'''
-#Create pipeline with feature selector and classifier
-#replace with gradient boosted at this point or regressor
-pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = f_classif)),
-    ('clf', KNeighborsClassifier())])
+def pipeline_knn():
+    '''
+    Pipeline 6 - SelectKBest and K Nearest Neighbor
+    ----------
+    Pipeline 6; 2020-04-27 11:00:27
+    {'clf__n_neighbors': 7, 'feature_selection__k': 3}
+    Best accuracy with parameters: 0.5928202115158637
+    ------
+    Pipeline 6; 2020-04-29 10:01:21 WITH SCALED DATA
+    {'clf__n_neighbors': 4, 'feature_selection__k': 3}
+    Overall score: 0.3696
+    Best accuracy with parameters: 0.6156286721504113
+    -------
+    Pipeline 6; 2020-05-01 10:21:01
+    {'clf__n_neighbors': 2, 'feature_selection__k': 4}
+    Overall score: 0.9243
+    Best accuracy with parameters: 0.9015576323987539
+    -------
+        CITY
+    Pipeline 6; 2020-05-04 14:51:44 Full Set
+    {'clf__n_neighbors': 2, 'feature_selection__k': 3}
+    Overall score: 0.9028
+    Best accuracy with parameters: 0.9071651090342681
+    ---
+    Pipeline 6; 2020-05-04 17:12:14 Sparse Set
+    {'clf__n_neighbors': 3, 'feature_selection__k': 5}
+    Overall score: 0.6926
+    Best accuracy with parameters: 0.7287349834717407
+    ---
+        AMOUNT_MEAN_LAG7
+    Pipeline 6; 2020-05-06 16:15:12
+    {'clf__n_neighbors': 2, 'feature_selection__k': 1}
+    Overall score: 0.1157
+    Best accuracy with parameters: 0.154583568491494
+    '''
+    #Create pipeline with feature selector and classifier
+    #replace with gradient boosted at this point or regressor
+    pipe = Pipeline([
+        ('feature_selection', SelectKBest(score_func = f_classif)),
+        ('clf', KNeighborsClassifier())])
 
-#Create a parameter grid
-#parameter grids provide the values for the models to try
-#PARAMETERS NEED TO HAVE THE SAME LENGTH
-params = {
-    'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
-    'clf__n_neighbors':[2, 3, 4, 5, 6, 7, 8]}
+    #Create a parameter grid
+    #parameter grids provide the values for the models to try
+    #PARAMETERS NEED TO HAVE THE SAME LENGTH
+    params = {
+        'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
+        'clf__n_neighbors':[2, 3, 4, 5, 6, 7, 8]}
 
-#Initialize the grid search object
-grid_search = GridSearchCV(pipe, param_grid = params)
+    #Initialize the grid search object
+    grid_search = GridSearchCV(pipe, param_grid = params)
 
-#Fit it to the data and print the best value combination
-print(f"Pipeline 6; {dt.today()}")
-print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    #Fit it to the data and print the best value combination
+    print(f"Pipeline 6; {dt.today()}")
+    print(grid_search.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    return grid_search
 #%%
-'''
-Pipeline 7 - SelectKBest and Support Vector Classifier
-##########
-Pipeline 7; 2020-04-28 10:22:10
-{'clf__C': 100, 'clf__gamma': 0.1, 'feature_selection__k': 5}
-Best accuracy with parameters: 0.6742596944770858
----
-Pipeline 7; 2020-04-29 10:06:28 SCALED DATA
-{'clf__C': 0.01, 'clf__gamma': 0.1, 'feature_selection__k': 4}
-Overall score: 0.3696
-Best accuracy with parameters: 0.34202115158636903
----
-Pipeline 7; 2020-04-29 10:11:02 UNSCALED DATA
-{'clf__C': 10, 'clf__gamma': 0.01, 'feature_selection__k': 5}
-Overall score: 0.5266
-Best accuracy with parameters: 0.5592068155111634
----
-Pipeline 7; 2020-04-30 11:38:13
-{'clf__C': 1, 'clf__gamma': 0.01, 'feature_selection__k': 4}
-Overall score: 0.5408
-Best accuracy with parameters: 0.5335967104732726
----
-Pipeline 7; 2020-05-01 10:29:08
-{'clf__C': 100, 'clf__gamma': 0.01, 'feature_selection__k': 4}
-Overall score: 0.9346
-Best accuracy with parameters: 0.9102803738317757
----
-Pipeline 7; 2020-05-04 10:52:47
-{'clf__C': 10, 'clf__gamma': 0.1, 'feature_selection__k': 4}
-Overall score: 0.9121
-Best accuracy with parameters: 0.9171339563862928
----
-    CITY
-Pipeline 7; 2020-05-04 14:58:15 Full Set
-{'clf__C': 10, 'clf__gamma': 0.01, 'feature_selection__k': 5}
-Overall score: 0.8841
-Best accuracy with parameters: 0.8797507788161993
----
-Pipeline 7; 2020-05-04 17:14:48 Sparse Set
-{'clf__C': 10, 'clf__gamma': 0.1, 'feature_selection__k': 5}
-Overall score: 0.7533
-Best accuracy with parameters: 0.7908651132790454
----
-    AMOUNT-MEAN-LAG7
-Pipeline 7; 2020-05-06 16:17:40
-{'clf__C': 10, 'clf__gamma': 0.001, 'feature_selection__k': 4}
-Overall score: 0.1044
-Best accuracy with parameters: 0.16726598403612028
-'''
-#Create pipeline with feature selector and classifier
-#replace with classifier or regressor
-pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = f_classif)),
-    ('clf', SVC())])
+def pipeline_svc():
+    '''
+    Pipeline 7 - SelectKBest and Support Vector Classifier
+    ##########
+    Pipeline 7; 2020-04-28 10:22:10
+    {'clf__C': 100, 'clf__gamma': 0.1, 'feature_selection__k': 5}
+    Best accuracy with parameters: 0.6742596944770858
+    ---
+    Pipeline 7; 2020-04-29 10:06:28 SCALED DATA
+    {'clf__C': 0.01, 'clf__gamma': 0.1, 'feature_selection__k': 4}
+    Overall score: 0.3696
+    Best accuracy with parameters: 0.34202115158636903
+    ---
+    Pipeline 7; 2020-04-29 10:11:02 UNSCALED DATA
+    {'clf__C': 10, 'clf__gamma': 0.01, 'feature_selection__k': 5}
+    Overall score: 0.5266
+    Best accuracy with parameters: 0.5592068155111634
+    ---
+    Pipeline 7; 2020-04-30 11:38:13
+    {'clf__C': 1, 'clf__gamma': 0.01, 'feature_selection__k': 4}
+    Overall score: 0.5408
+    Best accuracy with parameters: 0.5335967104732726
+    ---
+    Pipeline 7; 2020-05-01 10:29:08
+    {'clf__C': 100, 'clf__gamma': 0.01, 'feature_selection__k': 4}
+    Overall score: 0.9346
+    Best accuracy with parameters: 0.9102803738317757
+    ---
+    Pipeline 7; 2020-05-04 10:52:47
+    {'clf__C': 10, 'clf__gamma': 0.1, 'feature_selection__k': 4}
+    Overall score: 0.9121
+    Best accuracy with parameters: 0.9171339563862928
+    ---
+        CITY
+    Pipeline 7; 2020-05-04 14:58:15 Full Set
+    {'clf__C': 10, 'clf__gamma': 0.01, 'feature_selection__k': 5}
+    Overall score: 0.8841
+    Best accuracy with parameters: 0.8797507788161993
+    ---
+    Pipeline 7; 2020-05-04 17:14:48 Sparse Set
+    {'clf__C': 10, 'clf__gamma': 0.1, 'feature_selection__k': 5}
+    Overall score: 0.7533
+    Best accuracy with parameters: 0.7908651132790454
+    ---
+        AMOUNT-MEAN-LAG7
+    Pipeline 7; 2020-05-06 16:17:40
+    {'clf__C': 10, 'clf__gamma': 0.001, 'feature_selection__k': 4}
+    Overall score: 0.1044
+    Best accuracy with parameters: 0.16726598403612028
+    '''
+    #Create pipeline with feature selector and classifier
+    #replace with classifier or regressor
+    pipe = Pipeline([
+        ('feature_selection', SelectKBest(score_func = f_classif)),
+        ('clf', SVC())])
 
-#Create a parameter grid
-#parameter grids provide the values for the models to try
-#PARAMETERS NEED TO HAVE THE SAME LENGTH
-#Parameter explanation
-#   C: penalty parameter
-#   gamma: [standard 'auto' = 1/n_feat], kernel coefficient
-#
-params = {
-    'feature_selection__k':[4, 5, 6, 7, 8, 9],
-    'clf__C':[0.01, 0.1, 1, 10],
-    'clf__gamma':[0.1, 0.01, 0.001]}
+    #Create a parameter grid
+    #parameter grids provide the values for the models to try
+    #PARAMETERS NEED TO HAVE THE SAME LENGTH
+    #Parameter explanation
+    #   C: penalty parameter
+    #   gamma: [standard 'auto' = 1/n_feat], kernel coefficient
+    #
+    params = {
+        'feature_selection__k':[4, 5, 6, 7, 8, 9],
+        'clf__C':[0.01, 0.1, 1, 10],
+        'clf__gamma':[0.1, 0.01, 0.001]}
 
-#Initialize the grid search object
-grid_search = GridSearchCV(pipe, param_grid = params)
+    #Initialize the grid search object
+    grid_search = GridSearchCV(pipe, param_grid = params)
 
-#Fit it to the data and print the best value combination
-print(f"Pipeline 7; {dt.today()}")
-print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    #Fit it to the data and print the best value combination
+    print(f"Pipeline 7; {dt.today()}")
+    print(grid_search.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    return grid_search
 #%%
 #generate a dataframe for pipeline values
 def score_df():
@@ -1066,6 +1075,7 @@ def merch_pred():
             #     merch_list.append("Wrong prediction")
     return merch_list
 #%%
+#BUGGED
 '''
         Catching the predictions and converting them back to lagging amounts
 Should the prediction turn out to be wrong ask for input by the user
@@ -1096,30 +1106,32 @@ def amount_pred():
 
             budget_dict[key].append(msg_3)
 #%%
-'''
-        Application of Transformed Linear Regression
+def pipeline_trans_reg():
+    '''
+            Application of Transformed Linear Regression
 
-#n_quantiles needs to be smaller than the number of samples (standard is 1000)
+    #n_quantiles needs to be smaller than the number of samples (standard is 1000)
 
-PRIMARY_MERCHANT_NAME
-#accuracy negative; model totally off
----
-AMOUNT_MEAN_LAG7
-q-t R2-score: 0.896
-unprocessed R2-score: 0.926
-'''
-transformer = QuantileTransformer(n_quantiles=750, output_distribution='normal')
-regressor = LinearRegression()
-regr = TransformedTargetRegressor(regressor=regressor,
-                                   transformer=transformer)
+    PRIMARY_MERCHANT_NAME
+    #accuracy negative; model totally off
+    ---
+    AMOUNT_MEAN_LAG7
+    q-t R2-score: 0.896
+    unprocessed R2-score: 0.926
+    '''
+    transformer = QuantileTransformer(n_quantiles=750, output_distribution='normal')
+    regressor = LinearRegression()
+    regr = TransformedTargetRegressor(regressor=regressor,
+                                       transformer=transformer)
 
-regr.fit(X_train, y_train)
+    regr.fit(X_train, y_train)
 
-TransformedTargetRegressor(...)
-print('q-t R2-score: {0:.3f}'.format(regr.score(X_test, y_test)))
+    TransformedTargetRegressor(...)
+    print('q-t R2-score: {0:.3f}'.format(regr.score(X_test, y_test)))
 
-raw_target_regr = LinearRegression().fit(X_train, y_train)
-print('unprocessed R2-score: {0:.3f}'.format(raw_target_regr.score(X_test, y_test)))
+    raw_target_regr = LinearRegression().fit(X_train, y_train)
+    print('unprocessed R2-score: {0:.3f}'.format(raw_target_regr.score(X_test, y_test)))
+    return regr, raw_target_regr
 #%%
 #Overfitting
 '''
@@ -1187,43 +1199,45 @@ print(f"TESTINFO MLP: [{dt.today()}]--[Parameters: hidden layers:{MLP.hidden_lay
       Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)};\
       Test set Validation: {MLP.score(X_test, y_val)}")
 #%%
-'''
-Pipeline 8 - SelectKBest and Multi-Layer Perceptron
-##########
-Pipeline 7; 2020-05-06 10:20:51 CITY (sgd + adaptive learning rate)
-{'clf__alpha': 0.0001, 'clf__max_iter': 2000, 'feature_selection__k': 5}
-Overall score: 0.2808
-Best accuracy with parameters: 0.26102555833266144
-'''
-#Create pipeline with feature selector and classifier
-#replace with classifier or regressor
-#learning_rate = 'adaptive'; when solver='sgd'
-pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = chi2)),
-    ('clf', MLPClassifier(activation='relu',
-                          solver='sgd',
-                          learning_rate='adaptive'))])
+def pipeline_mlp():
+    '''
+    Pipeline 8 - SelectKBest and Multi-Layer Perceptron
+    ##########
+    Pipeline 7; 2020-05-06 10:20:51 CITY (sgd + adaptive learning rate)
+    {'clf__alpha': 0.0001, 'clf__max_iter': 2000, 'feature_selection__k': 5}
+    Overall score: 0.2808
+    Best accuracy with parameters: 0.26102555833266144
+    '''
+    #Create pipeline with feature selector and classifier
+    #replace with classifier or regressor
+    #learning_rate = 'adaptive'; when solver='sgd'
+    pipe = Pipeline([
+        ('feature_selection', SelectKBest(score_func = chi2)),
+        ('clf', MLPClassifier(activation='relu',
+                              solver='sgd',
+                              learning_rate='adaptive'))])
 
-#Create a parameter grid
-#parameter grids provide the values for the models to try
-#PARAMETERS NEED TO HAVE THE SAME LENGTH
-#Parameter explanation
-#   C: penalty parameter
-#   gamma: [standard 'auto' = 1/n_feat], kernel coefficient
-#
-params = {
-    'feature_selection__k':[4, 5, 6, 7],
-    'clf__max_iter':[1500, 2000],
-    'clf__alpha':[0.0001, 0.001]}
+    #Create a parameter grid
+    #parameter grids provide the values for the models to try
+    #PARAMETERS NEED TO HAVE THE SAME LENGTH
+    #Parameter explanation
+    #   C: penalty parameter
+    #   gamma: [standard 'auto' = 1/n_feat], kernel coefficient
+    #
+    params = {
+        'feature_selection__k':[4, 5, 6, 7],
+        'clf__max_iter':[1500, 2000],
+        'clf__alpha':[0.0001, 0.001]}
 
-#Initialize the grid search object
-grid_search = GridSearchCV(pipe, param_grid = params)
+    #Initialize the grid search object
+    grid_search = GridSearchCV(pipe, param_grid = params)
 
-#Fit it to the data and print the best value combination
-print(f"Pipeline 7; {dt.today()}")
-print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    #Fit it to the data and print the best value combination
+    print(f"Pipeline 7; {dt.today()}")
+    print(grid_search.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    return grid_search
 #%%
 '''
         Usage of a Pickle Model -Storage of a trained Model

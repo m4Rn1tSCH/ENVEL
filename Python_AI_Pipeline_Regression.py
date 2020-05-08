@@ -29,7 +29,7 @@ from sklearn.compose import TransformedTargetRegressor
 from sklearn.linear_model import LogisticRegression, LinearRegression, SGDRegressor
 from sklearn.neighbors import KNeighborsClassifier, LocalOutlierFactor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier, RandomForestClassifier
-from sklearn.neural_network import MLPClassifier
+
 from sklearn.svm import SVR, SVC
 from sklearn.cluster import KMeans
 
@@ -433,4 +433,4 @@ def df_encoder(rng = 4):
     bank_df.set_index(date_index, drop = False, inplace=True)
     bank_df = bank_df.dropna()
     #csv_export(df=bank_df, file_name='encoded_bank_dataframe')
-    #return 'dataframe encoding complete; CSVs are located in the working directory(inactivated for testing)'
+    return bank_df

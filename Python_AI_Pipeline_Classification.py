@@ -29,7 +29,7 @@ from sklearn.compose import TransformedTargetRegressor
 from sklearn.linear_model import LogisticRegression, LinearRegression, SGDRegressor
 from sklearn.neighbors import KNeighborsClassifier, LocalOutlierFactor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier, RandomForestClassifier
-from sklearn.neural_network import MLPClassifier
+
 from sklearn.svm import SVR, SVC
 from sklearn.cluster import KMeans
 
