@@ -112,42 +112,6 @@ def df_encoder(rng = 4):
             connection.rollback
     #csv_export(df=bank_df, file_name='bank_dataframe')
     #%%
-    #Plot template
-    # fig, ax = plt.subplots(2, 1, figsize = (25, 25))
-    # ax[0].plot(df.index.values, df['x'], color = 'green', lw = 4, ls = '-.', marker = 'o', label = 'line_1')
-    # ax[1].plot(df.index.values, df['y'], color = 'orange', lw = 0, marker = 'o', label = 'line_2')
-    # ax[0].legend(loc = 'upper right')
-    # ax[1].legend(loc = 'lower center')
-
-    #Pie chart template
-    # labels, values = zip(*tx_types.items())
-    # # Pie chart, where the slices will be ordered and plotted counter-clockwise:
-    # fig1, ax1 = plt.subplots()
-    # ax1.pie(values, labels=labels, autopct='%1.1f%%',
-    #         shadow=True, startangle=90)
-    # ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    # plt.show()
-
-    # #Pie chart States
-    # state_ct = Counter(list(bank_df['state']))
-    # #asterisk look up, what is that?
-    # labels, values = zip(*state_ct.items())
-    # #Pie chart, where the slices will be ordered and plotted counter-clockwise:
-    # fig1, ax1 = plt.subplots()
-    # ax1.pie(values, labels = labels, autopct = '%1.1f%%',
-    #         shadow = True, startangle = 90)
-    # #Equal aspect ratio ensures that pie is drawn as a circle.
-    # ax1.axis('equal')
-    # plt.show()
-
-    #Boxplot template
-    # cat_var = ["type", "check", "institutionName", "feeDescription", "Student", "isCredit", "CS_FICO_str"]
-    # quant_var = ["Age", "amount"]
-    # for c_var in cat_var:
-    #     for q_var in quant_var:
-    #         df.boxplot(column=q_var, by=c_var)
-    #         plt.xticks([])
-    #%%
     '''
     Plotting of various relations
     The Counter object keeps track of permutations in a dictionary which can then be read and
