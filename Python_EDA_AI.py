@@ -459,11 +459,12 @@ def df_encoder(rng = 4):
         bank_df[f"{feature}_std_lag{t2}"] = bank_df_std_7d[feature]
         bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
 
-    #the first two rows of lagging values have NaNs which need to be dropped
-    #set optimized transaction_date as index for later
     bank_df.set_index(date_index, drop = False, inplace=True)
     bank_df = bank_df.dropna()
-    #csv_export(df=bank_df, file_name='encoded_bank_dataframe')
+    #drop user IDs to avoid overfitting with useless information
+    bank_df = bank_df.drop(['unique_mem_id',
+                            'unique_bank_account_id',
+                            'unique_bank_transaction_id'], axis = 1)
     return bank_df
     #%%
 def split_data():
@@ -534,7 +535,6 @@ def split_data():
 
     '''
                 Plotting of PCA/ Cluster Pairs
-
     '''
     #Kmeans clusters to categorize groups WITH SCALED DATA
     #determine number of groups needed or desired for
@@ -553,15 +553,6 @@ def split_data():
     ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
     ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
     #principal components of bank panel has better results than card panel with clearer borders
-    '''
-    takes unscaled numerical so far and minmax scaled arguments
-    #numerical and minmax scaled leads to the same results being picked
-    f_classif for classification tasks
-    chi2 for regression tasks
-    '''
-    k_best = SelectKBest(score_func = chi2, k = 5)
-    k_best.fit(X_train, y_train)
-    k_best.get_params()
 
     #isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
     #np.corrcoef(np.array(isCredit_num), amounts)
@@ -698,91 +689,7 @@ def pipeline_logreg():
     1.) split up the data
     2.) fit to the pipeline
     """
-    '''
-        SPLITTING UP THE DATA
-    '''
-    #drop target variable in feature df
-    #all remaining columns will be the features
-    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
-    #On some occasions the label needs to be a 1d array;
-    #then the double square brackets (slicing it as a new dataframe) break the pipeline
-    model_label = bank_df['amount_mean_lag7']
-    ####
-    if model_label.dtype == 'float32':
-        model_label = model_label.astype('int32')
-    elif model_label.dtype == 'float64':
-        model_label = model_label.astype('int64')
-    else:
-        print("model label has unsuitable data type!")
 
-
-    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
-    X_train, X_test, y_train, y_test = train_test_split(model_features,
-                                                        model_label,
-                                                        random_state = 7,
-                                                        shuffle = True,
-                                                        test_size = 0.4)
-
-    #create a validation set from the training set
-    print(f"Shape of the split training data set X_train:{X_train.shape}")
-    print(f"Shape of the split training data set X_test: {X_test.shape}")
-    print(f"Shape of the split training data set y_train: {y_train.shape}")
-    print(f"Shape of the split training data set y_test: {y_test.shape}")
-
-    #STD SCALING - does not work yet
-    #fit the scaler to the training data first
-    #standard scaler works only with maximum 2 dimensions
-    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
-    #transform test data with the object learned from the training data
-    X_test_scaled = scaler.transform(X_test)
-    scaler_mean = scaler.mean_
-    stadard_scale = scaler.scale_
-
-    #MINMAX SCALING - works with Select K Best
-    min_max_scaler = MinMaxScaler()
-    X_train_minmax = min_max_scaler.fit_transform(X_train)
-    X_test_minmax = min_max_scaler.transform(X_test)
-    minmax_scale = min_max_scaler.scale_
-    min_max_minimum = min_max_scaler.min_
-
-    '''
-        Principal Component Reduction
-    '''
-
-    #first scale
-    #then reduce
-    #keep the most important features of the data
-    pca = PCA(n_components = int(len(bank_df.columns) / 2))
-    #fit PCA model to breast cancer data
-    pca.fit(X_train_scaled)
-    #transform data onto the first two principal components
-    X_train_pca = pca.transform(X_train_scaled)
-    X_test_pca = pca.transform(X_test_scaled)
-    print("Original shape: {}".format(str(X_train_scaled.shape)))
-    print("Reduced shape: {}".format(str(X_train_pca.shape)))
-
-
-    '''
-                Plotting of PCA/ Cluster Pairs
-    '''
-    #Kmeans clusters to categorize groups WITH SCALED DATA
-    #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    train_clusters = kmeans.fit(X_train_scaled)
-
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    test_clusters = kmeans.fit(X_test_scaled)
-    #Creating the plot
-    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
-    #styles for title: normal; italic; oblique
-    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
-    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
-    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
-    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
-    #principal components of bank panel has better results than card panel with clearer borders
 
     '''
                 Setting up a pipeline
@@ -851,96 +758,6 @@ def pipeline_logreg():
 #%%
 def pipeline_sgd_reg():
 
-    """
-    1.) split up the data
-    2.) fit to the pipeline
-    """
-
-    '''
-        Splitting up the Data
-    '''
-    #drop target variable in feature df
-    #all remaining columns will be the features
-    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
-    #On some occasions the label needs to be a 1d array;
-    #then the double square brackets (slicing it as a new dataframe) break the pipeline
-    model_label = bank_df['amount_mean_lag7']
-    ####
-    if model_label.dtype == 'float32':
-        model_label = model_label.astype('int32')
-    elif model_label.dtype == 'float64':
-        model_label = model_label.astype('int64')
-    else:
-        print("model label has unsuitable data type!")
-
-
-    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
-    X_train, X_test, y_train, y_test = train_test_split(model_features,
-                                                        model_label,
-                                                        random_state = 7,
-                                                        shuffle = True,
-                                                        test_size = 0.4)
-
-    #create a validation set from the training set
-    print(f"Shape of the split training data set X_train:{X_train.shape}")
-    print(f"Shape of the split training data set X_test: {X_test.shape}")
-    print(f"Shape of the split training data set y_train: {y_train.shape}")
-    print(f"Shape of the split training data set y_test: {y_test.shape}")
-
-    #STD SCALING - does not work yet
-    #fit the scaler to the training data first
-    #standard scaler works only with maximum 2 dimensions
-    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
-    #transform test data with the object learned from the training data
-    X_test_scaled = scaler.transform(X_test)
-    scaler_mean = scaler.mean_
-    stadard_scale = scaler.scale_
-
-    #MINMAX SCALING - works with Select K Best
-    min_max_scaler = MinMaxScaler()
-    X_train_minmax = min_max_scaler.fit_transform(X_train)
-    X_test_minmax = min_max_scaler.transform(X_test)
-    minmax_scale = min_max_scaler.scale_
-    min_max_minimum = min_max_scaler.min_
-
-    '''
-                Principal Component Reduction
-    '''
-
-    #first scale
-    #then reduce
-    #keep the most important features of the data
-    pca = PCA(n_components = int(len(bank_df.columns) / 2))
-    #fit PCA model to breast cancer data
-    pca.fit(X_train_scaled)
-    #transform data onto the first two principal components
-    X_train_pca = pca.transform(X_train_scaled)
-    X_test_pca = pca.transform(X_test_scaled)
-    print("Original shape: {}".format(str(X_train_scaled.shape)))
-    print("Reduced shape: {}".format(str(X_train_pca.shape)))
-
-    '''
-                Plotting of PCA/ Cluster Pairs
-    '''
-    #Kmeans clusters to categorize groups WITH SCALED DATA
-    #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    train_clusters = kmeans.fit(X_train_scaled)
-
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    test_clusters = kmeans.fit(X_test_scaled)
-    #Creating the plot
-    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
-    #styles for title: normal; italic; oblique
-    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
-    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
-    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
-    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
-    #principal components of bank panel has better results than card panel with clearer borders
-
     '''
     Pipeline 2 - SelectKBest and SGDRegressor -needs non-negative values
     Pipeline 2; 2020-04-29 14:13:46
@@ -976,96 +793,6 @@ def pipeline_sgd_reg():
     return grid_search_sgd
 #%%
 def pipeline_rfr():
-
-    """
-    1.) split up the data
-    2.) fit to the pipeline
-    """
-    '''
-        Splitting up the Data
-    '''
-    #drop target variable in feature df
-    #all remaining columns will be the features
-    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
-    #On some occasions the label needs to be a 1d array;
-    #then the double square brackets (slicing it as a new dataframe) break the pipeline
-    model_label = bank_df['amount_mean_lag7']
-    ####
-    if model_label.dtype == 'float32':
-        model_label = model_label.astype('int32')
-    elif model_label.dtype == 'float64':
-        model_label = model_label.astype('int64')
-    else:
-        print("model label has unsuitable data type!")
-
-
-    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
-    X_train, X_test, y_train, y_test = train_test_split(model_features,
-                                                        model_label,
-                                                        random_state = 7,
-                                                        shuffle = True,
-                                                        test_size = 0.4)
-
-    #create a validation set from the training set
-    print(f"Shape of the split training data set X_train:{X_train.shape}")
-    print(f"Shape of the split training data set X_test: {X_test.shape}")
-    print(f"Shape of the split training data set y_train: {y_train.shape}")
-    print(f"Shape of the split training data set y_test: {y_test.shape}")
-
-    #STD SCALING - does not work yet
-    #fit the scaler to the training data first
-    #standard scaler works only with maximum 2 dimensions
-    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
-    #transform test data with the object learned from the training data
-    X_test_scaled = scaler.transform(X_test)
-    scaler_mean = scaler.mean_
-    stadard_scale = scaler.scale_
-
-    #MINMAX SCALING - works with Select K Best
-    min_max_scaler = MinMaxScaler()
-    X_train_minmax = min_max_scaler.fit_transform(X_train)
-    X_test_minmax = min_max_scaler.transform(X_test)
-    minmax_scale = min_max_scaler.scale_
-    min_max_minimum = min_max_scaler.min_
-
-    '''
-        Principal Component Reduction
-    '''
-
-    #first scale
-    #then reduce
-    #keep the most important features of the data
-    pca = PCA(n_components = int(len(bank_df.columns) / 2))
-    #fit PCA model to breast cancer data
-    pca.fit(X_train_scaled)
-    #transform data onto the first two principal components
-    X_train_pca = pca.transform(X_train_scaled)
-    X_test_pca = pca.transform(X_test_scaled)
-    print("Original shape: {}".format(str(X_train_scaled.shape)))
-    print("Reduced shape: {}".format(str(X_train_pca.shape)))
-
-    '''
-                Plotting of PCA/ Cluster Pairs
-    '''
-    #Kmeans clusters to categorize groups WITH SCALED DATA
-    #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    train_clusters = kmeans.fit(X_train_scaled)
-
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    test_clusters = kmeans.fit(X_test_scaled)
-    #Creating the plot
-    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
-    #styles for title: normal; italic; oblique
-    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
-    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
-    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
-    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
-    #principal components of bank panel has better results than card panel with clearer borders
-
 
     '''
     Pipeline 3 - SelectKBest and Random Forest Regressor
@@ -1131,96 +858,6 @@ def pipeline_rfr():
     return grid_search_rfr
 #%%
 def pipeline_svr():
-
-
-    """
-    1.) split up the data
-    2.) fit to the pipeline
-    """
-    '''
-        Splitting up the Data
-    '''
-    #drop target variable in feature df
-    #all remaining columns will be the features
-    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
-    #On some occasions the label needs to be a 1d array;
-    #then the double square brackets (slicing it as a new dataframe) break the pipeline
-    model_label = bank_df['amount_mean_lag7']
-    ####
-    if model_label.dtype == 'float32':
-        model_label = model_label.astype('int32')
-    elif model_label.dtype == 'float64':
-        model_label = model_label.astype('int64')
-    else:
-        print("model label has unsuitable data type!")
-
-
-    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
-    X_train, X_test, y_train, y_test = train_test_split(model_features,
-                                                        model_label,
-                                                        random_state = 7,
-                                                        shuffle = True,
-                                                        test_size = 0.4)
-
-    #create a validation set from the training set
-    print(f"Shape of the split training data set X_train:{X_train.shape}")
-    print(f"Shape of the split training data set X_test: {X_test.shape}")
-    print(f"Shape of the split training data set y_train: {y_train.shape}")
-    print(f"Shape of the split training data set y_test: {y_test.shape}")
-
-    #STD SCALING - does not work yet
-    #fit the scaler to the training data first
-    #standard scaler works only with maximum 2 dimensions
-    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
-    #transform test data with the object learned from the training data
-    X_test_scaled = scaler.transform(X_test)
-    scaler_mean = scaler.mean_
-    stadard_scale = scaler.scale_
-
-    #MINMAX SCALING - works with Select K Best
-    min_max_scaler = MinMaxScaler()
-    X_train_minmax = min_max_scaler.fit_transform(X_train)
-    X_test_minmax = min_max_scaler.transform(X_test)
-    minmax_scale = min_max_scaler.scale_
-    min_max_minimum = min_max_scaler.min_
-
-    '''
-                Principal Component Reduction
-    '''
-
-    #first scale
-    #then reduce
-    #keep the most important features of the data
-    pca = PCA(n_components = int(len(bank_df.columns) / 2))
-    #fit PCA model to breast cancer data
-    pca.fit(X_train_scaled)
-    #transform data onto the first two principal components
-    X_train_pca = pca.transform(X_train_scaled)
-    X_test_pca = pca.transform(X_test_scaled)
-    print("Original shape: {}".format(str(X_train_scaled.shape)))
-    print("Reduced shape: {}".format(str(X_train_pca.shape)))
-
-    '''
-                Plotting of PCA/ Cluster Pairs
-    '''
-    #Kmeans clusters to categorize groups WITH SCALED DATA
-    #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    train_clusters = kmeans.fit(X_train_scaled)
-
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    test_clusters = kmeans.fit(X_test_scaled)
-    #Creating the plot
-    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
-    #styles for title: normal; italic; oblique
-    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
-    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
-    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
-    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
-    #principal components of bank panel has better results than card panel with clearer borders
 
     '''
     Pipeline 4 - Logistic Regression and Support Vector Kernel -needs non-negative values
@@ -1297,96 +934,6 @@ def pipeline_svr():
 #%%
 def pipeline_knn():
 
-    """
-    1.) split up the data
-    2.) fit to the pipeline
-    """
-    '''
-                Splitting up the Data
-    '''
-    #drop target variable in feature df
-    #all remaining columns will be the features
-    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
-    #On some occasions the label needs to be a 1d array;
-    #then the double square brackets (slicing it as a new dataframe) break the pipeline
-    model_label = bank_df['amount_mean_lag7']
-    ####
-    if model_label.dtype == 'float32':
-        model_label = model_label.astype('int32')
-    elif model_label.dtype == 'float64':
-        model_label = model_label.astype('int64')
-    else:
-        print("model label has unsuitable data type!")
-
-
-    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
-    X_train, X_test, y_train, y_test = train_test_split(model_features,
-                                                        model_label,
-                                                        random_state = 7,
-                                                        shuffle = True,
-                                                        test_size = 0.4)
-
-    #create a validation set from the training set
-    print(f"Shape of the split training data set X_train:{X_train.shape}")
-    print(f"Shape of the split training data set X_test: {X_test.shape}")
-    print(f"Shape of the split training data set y_train: {y_train.shape}")
-    print(f"Shape of the split training data set y_test: {y_test.shape}")
-
-    #STD SCALING - does not work yet
-    #fit the scaler to the training data first
-    #standard scaler works only with maximum 2 dimensions
-    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
-    #transform test data with the object learned from the training data
-    X_test_scaled = scaler.transform(X_test)
-    scaler_mean = scaler.mean_
-    stadard_scale = scaler.scale_
-
-    #MINMAX SCALING - works with Select K Best
-    min_max_scaler = MinMaxScaler()
-    X_train_minmax = min_max_scaler.fit_transform(X_train)
-    X_test_minmax = min_max_scaler.transform(X_test)
-    minmax_scale = min_max_scaler.scale_
-    min_max_minimum = min_max_scaler.min_
-
-    '''
-                Principal Component Reduction
-    '''
-
-    #first scale
-    #then reduce
-    #keep the most important features of the data
-    pca = PCA(n_components = int(len(bank_df.columns) / 2))
-    #fit PCA model to breast cancer data
-    pca.fit(X_train_scaled)
-    #transform data onto the first two principal components
-    X_train_pca = pca.transform(X_train_scaled)
-    X_test_pca = pca.transform(X_test_scaled)
-    print("Original shape: {}".format(str(X_train_scaled.shape)))
-    print("Reduced shape: {}".format(str(X_train_pca.shape)))
-
-    '''
-                Plotting of PCA/ Cluster Pairs
-    '''
-    #Kmeans clusters to categorize groups WITH SCALED DATA
-    #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    train_clusters = kmeans.fit(X_train_scaled)
-
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    test_clusters = kmeans.fit(X_test_scaled)
-    #Creating the plot
-    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
-    #styles for title: normal; italic; oblique
-    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
-    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
-    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
-    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
-    #principal components of bank panel has better results than card panel with clearer borders
-
-
     '''
     Pipeline 6 - SelectKBest and K Nearest Neighbor
     ----------
@@ -1445,95 +992,6 @@ def pipeline_knn():
     return grid_search_knn
 #%%
 def pipeline_svc():
-
-    """
-    1.) split up the data
-    2.) fit to the pipeline
-    """
-    '''
-        SPLITTING UP THE DATA
-    '''
-    #drop target variable in feature df
-    #all remaining columns will be the features
-    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
-    #On some occasions the label needs to be a 1d array;
-    #then the double square brackets (slicing it as a new dataframe) break the pipeline
-    model_label = bank_df['amount_mean_lag7']
-    ####
-    if model_label.dtype == 'float32':
-        model_label = model_label.astype('int32')
-    elif model_label.dtype == 'float64':
-        model_label = model_label.astype('int64')
-    else:
-        print("model label has unsuitable data type!")
-
-
-    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
-    X_train, X_test, y_train, y_test = train_test_split(model_features,
-                                                        model_label,
-                                                        random_state = 7,
-                                                        shuffle = True,
-                                                        test_size = 0.4)
-
-    #create a validation set from the training set
-    print(f"Shape of the split training data set X_train:{X_train.shape}")
-    print(f"Shape of the split training data set X_test: {X_test.shape}")
-    print(f"Shape of the split training data set y_train: {y_train.shape}")
-    print(f"Shape of the split training data set y_test: {y_test.shape}")
-
-    #STD SCALING - does not work yet
-    #fit the scaler to the training data first
-    #standard scaler works only with maximum 2 dimensions
-    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
-    #transform test data with the object learned from the training data
-    X_test_scaled = scaler.transform(X_test)
-    scaler_mean = scaler.mean_
-    stadard_scale = scaler.scale_
-
-    #MINMAX SCALING - works with Select K Best
-    min_max_scaler = MinMaxScaler()
-    X_train_minmax = min_max_scaler.fit_transform(X_train)
-    X_test_minmax = min_max_scaler.transform(X_test)
-    minmax_scale = min_max_scaler.scale_
-    min_max_minimum = min_max_scaler.min_
-
-    '''
-        Principal Component Reduction
-    '''
-
-    #first scale
-    #then reduce
-    #keep the most important features of the data
-    pca = PCA(n_components = int(len(bank_df.columns) / 2))
-    #fit PCA model to breast cancer data
-    pca.fit(X_train_scaled)
-    #transform data onto the first two principal components
-    X_train_pca = pca.transform(X_train_scaled)
-    X_test_pca = pca.transform(X_test_scaled)
-    print("Original shape: {}".format(str(X_train_scaled.shape)))
-    print("Reduced shape: {}".format(str(X_train_pca.shape)))
-
-    '''
-                Plotting of PCA/ Cluster Pairs
-    '''
-    #Kmeans clusters to categorize groups WITH SCALED DATA
-    #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    train_clusters = kmeans.fit(X_train_scaled)
-
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    test_clusters = kmeans.fit(X_test_scaled)
-    #Creating the plot
-    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
-    #styles for title: normal; italic; oblique
-    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
-    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
-    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
-    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
-    #principal components of bank panel has better results than card panel with clearer borders
 
     '''
     Pipeline 7 - SelectKBest and Support Vector Classifier
@@ -1672,95 +1130,6 @@ def amount_pred():
 #%%
 def pipeline_trans_reg():
 
-    """
-    1.) split up the data
-    2.) fit to the pipeline
-    """
-    '''
-                Splitting up the Data
-    '''
-    #drop target variable in feature df
-    #all remaining columns will be the features
-    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
-    #On some occasions the label needs to be a 1d array;
-    #then the double square brackets (slicing it as a new dataframe) break the pipeline
-    model_label = bank_df['amount_mean_lag7']
-    ####
-    if model_label.dtype == 'float32':
-        model_label = model_label.astype('int32')
-    elif model_label.dtype == 'float64':
-        model_label = model_label.astype('int64')
-    else:
-        print("model label has unsuitable data type!")
-
-
-    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
-    X_train, X_test, y_train, y_test = train_test_split(model_features,
-                                                        model_label,
-                                                        random_state = 7,
-                                                        shuffle = True,
-                                                        test_size = 0.4)
-
-    #create a validation set from the training set
-    print(f"Shape of the split training data set X_train:{X_train.shape}")
-    print(f"Shape of the split training data set X_test: {X_test.shape}")
-    print(f"Shape of the split training data set y_train: {y_train.shape}")
-    print(f"Shape of the split training data set y_test: {y_test.shape}")
-
-    #STD SCALING - does not work yet
-    #fit the scaler to the training data first
-    #standard scaler works only with maximum 2 dimensions
-    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
-    #transform test data with the object learned from the training data
-    X_test_scaled = scaler.transform(X_test)
-    scaler_mean = scaler.mean_
-    stadard_scale = scaler.scale_
-
-    #MINMAX SCALING - works with Select K Best
-    min_max_scaler = MinMaxScaler()
-    X_train_minmax = min_max_scaler.fit_transform(X_train)
-    X_test_minmax = min_max_scaler.transform(X_test)
-    minmax_scale = min_max_scaler.scale_
-    min_max_minimum = min_max_scaler.min_
-
-    '''
-                Principal Component Reduction
-    '''
-
-    #first scale
-    #then reduce
-    #keep the most important features of the data
-    pca = PCA(n_components = int(len(bank_df.columns) / 2))
-    #fit PCA model to breast cancer data
-    pca.fit(X_train_scaled)
-    #transform data onto the first two principal components
-    X_train_pca = pca.transform(X_train_scaled)
-    X_test_pca = pca.transform(X_test_scaled)
-    print("Original shape: {}".format(str(X_train_scaled.shape)))
-    print("Reduced shape: {}".format(str(X_train_pca.shape)))
-
-    '''
-                Plotting of PCA/ Cluster Pairs
-    '''
-    #Kmeans clusters to categorize groups WITH SCALED DATA
-    #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    train_clusters = kmeans.fit(X_train_scaled)
-
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    test_clusters = kmeans.fit(X_test_scaled)
-    #Creating the plot
-    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
-    #styles for title: normal; italic; oblique
-    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
-    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
-    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
-    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
-    #principal components of bank panel has better results than card panel with clearer borders
-
     '''
             Application of Transformed Linear Regression
 
@@ -1860,95 +1229,6 @@ Test 4/22/2020: val_accuracy: 1.0 -> overfitted
 #     return 'Multi-layered perceptron object ready'
 #%%
 def pipeline_mlp():
-
-    """
-    1.) split up the data
-    2.) fit to the pipeline
-    """
-    '''
-        SPLITTING UP THE DATA
-    '''
-    #drop target variable in feature df
-    #all remaining columns will be the features
-    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
-    #On some occasions the label needs to be a 1d array;
-    #then the double square brackets (slicing it as a new dataframe) break the pipeline
-    model_label = bank_df['amount_mean_lag7']
-    ####
-    if model_label.dtype == 'float32':
-        model_label = model_label.astype('int32')
-    elif model_label.dtype == 'float64':
-        model_label = model_label.astype('int64')
-    else:
-        print("model label has unsuitable data type!")
-
-
-    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
-    X_train, X_test, y_train, y_test = train_test_split(model_features,
-                                                        model_label,
-                                                        random_state = 7,
-                                                        shuffle = True,
-                                                        test_size = 0.4)
-
-    #create a validation set from the training set
-    print(f"Shape of the split training data set X_train:{X_train.shape}")
-    print(f"Shape of the split training data set X_test: {X_test.shape}")
-    print(f"Shape of the split training data set y_train: {y_train.shape}")
-    print(f"Shape of the split training data set y_test: {y_test.shape}")
-
-    #STD SCALING - does not work yet
-    #fit the scaler to the training data first
-    #standard scaler works only with maximum 2 dimensions
-    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
-    #transform test data with the object learned from the training data
-    X_test_scaled = scaler.transform(X_test)
-    scaler_mean = scaler.mean_
-    stadard_scale = scaler.scale_
-
-    #MINMAX SCALING - works with Select K Best
-    min_max_scaler = MinMaxScaler()
-    X_train_minmax = min_max_scaler.fit_transform(X_train)
-    X_test_minmax = min_max_scaler.transform(X_test)
-    minmax_scale = min_max_scaler.scale_
-    min_max_minimum = min_max_scaler.min_
-
-    '''
-        Principal Component Reduction
-    '''
-
-    #first scale
-    #then reduce
-    #keep the most important features of the data
-    pca = PCA(n_components = int(len(bank_df.columns) / 2))
-    #fit PCA model to breast cancer data
-    pca.fit(X_train_scaled)
-    #transform data onto the first two principal components
-    X_train_pca = pca.transform(X_train_scaled)
-    X_test_pca = pca.transform(X_test_scaled)
-    print("Original shape: {}".format(str(X_train_scaled.shape)))
-    print("Reduced shape: {}".format(str(X_train_pca.shape)))
-
-    '''
-                Plotting of PCA/ Cluster Pairs
-    '''
-    #Kmeans clusters to categorize groups WITH SCALED DATA
-    #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    train_clusters = kmeans.fit(X_train_scaled)
-
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    test_clusters = kmeans.fit(X_test_scaled)
-    #Creating the plot
-    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
-    #styles for title: normal; italic; oblique
-    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
-    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
-    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
-    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
-    #principal components of bank panel has better results than card panel with clearer borders
 
     '''
     Pipeline 8 - SelectKBest and Multi-Layer Perceptron

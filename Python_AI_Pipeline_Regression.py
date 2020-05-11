@@ -48,7 +48,7 @@ import PostgreSQL_credentials as acc
 #from flask_auto_setup import activate_flask
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
-from Python_eda_ai import pipeline_rfr, pipeline_sgd_reg, pipeline_trans_reg, pipeline_logreg, score_df, store_pickle, open_pickle
+from Python_eda_ai import split_data, pipeline_rfr, pipeline_sgd_reg, pipeline_trans_reg, pipeline_logreg, score_df, store_pickle, open_pickle
 #%%
 def df_encoder(rng = 4):
     '''
@@ -407,6 +407,91 @@ def store_pickle(file_name, model):
     return model_file
 #%%
 bank_df = df_encoder(rng=4)
+
+'''
+SPLITTING UP THE DATA
+'''
+#drop target variable in feature df
+#all remaining columns will be the features
+model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
+#On some occasions the label needs to be a 1d array;
+#then the double square brackets (slicing it as a new dataframe) break the pipeline
+model_label = bank_df['amount_mean_lag7']
+####
+if model_label.dtype == 'float32':
+    model_label = model_label.astype('int32')
+elif model_label.dtype == 'float64':
+    model_label = model_label.astype('int64')
+else:
+    print("model label has unsuitable data type!")
+
+
+#stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
+X_train, X_test, y_train, y_test = train_test_split(model_features,
+                                                model_label,
+                                                random_state = 7,
+                                                shuffle = True,
+                                                test_size = 0.4)
+
+#create a validation set from the training set
+print(f"Shape of the split training data set X_train:{X_train.shape}")
+print(f"Shape of the split training data set X_test: {X_test.shape}")
+print(f"Shape of the split training data set y_train: {y_train.shape}")
+print(f"Shape of the split training data set y_test: {y_test.shape}")
+
+#STD SCALING - does not work yet
+#fit the scaler to the training data first
+#standard scaler works only with maximum 2 dimensions
+scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+#transform test data with the object learned from the training data
+X_test_scaled = scaler.transform(X_test)
+scaler_mean = scaler.mean_
+stadard_scale = scaler.scale_
+
+#MINMAX SCALING - works with Select K Best
+min_max_scaler = MinMaxScaler()
+X_train_minmax = min_max_scaler.fit_transform(X_train)
+X_test_minmax = min_max_scaler.transform(X_test)
+minmax_scale = min_max_scaler.scale_
+min_max_minimum = min_max_scaler.min_
+
+'''
+Principal Component Reduction
+'''
+#first scale
+#then reduce
+#keep the most important features of the data
+pca = PCA(n_components = int(len(bank_df.columns) / 2))
+#fit PCA model to breast cancer data
+pca.fit(X_train_scaled)
+#transform data onto the first two principal components
+X_train_pca = pca.transform(X_train_scaled)
+X_test_pca = pca.transform(X_test_scaled)
+print("Original shape: {}".format(str(X_train_scaled.shape)))
+print("Reduced shape: {}".format(str(X_train_pca.shape)))
+
+'''
+        Plotting of PCA/ Cluster Pairs
+'''
+#Kmeans clusters to categorize groups WITH SCALED DATA
+#determine number of groups needed or desired for
+kmeans = KMeans(n_clusters = 10, random_state = 10)
+train_clusters = kmeans.fit(X_train_scaled)
+
+kmeans = KMeans(n_clusters = 10, random_state = 10)
+test_clusters = kmeans.fit(X_test_scaled)
+#Creating the plot
+fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
+#styles for title: normal; italic; oblique
+ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
+ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
+ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
+#principal components of bank panel has better results than card panel with clearer borders
+
 #generate all gridsearch files and determine the accuracy
 grid_search_lr = pipeline_logreg()
 grid_search_sgd = pipeline_sgd_reg()
@@ -416,10 +501,12 @@ grid_search_treg = pipeline_trans_reg()
 
 #append objects to a list first
 pipeline_dictionary = {}
-estimators= [grid_search_lr, grid_search_rfr]
+
+estimators= [grid_search_lr, grid_search_sgd, grid_search_svr,
+             grid_search_rfr, grid_search_treg]
 
 for element in estimators:
-
+    print(element.best_score_)
     #add accuracies to dictionary
     regressor = element.estimator
     accuracy = element.score(X_test, y_test)
