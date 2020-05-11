@@ -190,7 +190,7 @@ def df_encoder(rng = 4):
     #The * operator can be used in conjunction with zip() to unzip the list.
     labels, values = zip(*state_ct.items())
     #Pie chart, where the slices will be ordered and plotted counter-clockwise:
-    fig1, ax = plt.subplots(figsize = (18, 12))
+    fig1, ax = plt.subplots(figsize = (20, 12))
     ax.pie(values, labels = labels, autopct = '%1.1f%%',
             shadow = True, startangle = 90)
     #Equal aspect ratio ensures that pie is drawn as a circle.
