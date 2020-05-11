@@ -393,12 +393,28 @@ def df_encoder(rng = 4):
     #csv_export(df=bank_df, file_name='encoded_bank_dataframe')
 
     return bank_df
+
+def store_pickle(file_name, model):
+
+    """
+    Usage of a Pickle Model -Storage of a trained Model
+    """
+    #specify file name in letter strings
+    model_file = file_name
+    with open(model_file, mode='wb') as m_f:
+        pickle.dump(model, m_f)
+    print(f"Model saved in: {os.getcwd()}")
+    return model_file
 #%%
 bank_df = df_encoder(rng=4)
 
 grid_search_lr = pipeline_logreg()
+grid_search_svr = pipelne_svr()
+grid_search_rfr = pipeline_rfr()
+grid_search_sgd = pipeline_sgd_reg()
+grid_search_treg = pipeline_trans_reg()
 
-store_pickle(model=grid_search_lr)
+logistic_regression_file = store_pickle(file_name="regression_model.sav", model=grid_search_lr)
 
 
 

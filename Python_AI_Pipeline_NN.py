@@ -62,10 +62,10 @@ def df_encoder(rng = 4):
 
     Returns
     -------
-    None.
+    bank_df.
 
     '''
-    #%%
+
     connection = create_connection(db_name = acc.YDB_name,
                                    db_user = acc.YDB_user,
                                    db_password = acc.YDB_password,
@@ -77,7 +77,7 @@ def df_encoder(rng = 4):
     transaction_query = execute_read_query(connection, filter_query)
     query_df = pd.DataFrame(transaction_query,
                             columns = ['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
-    #%%
+
     #dateframe to gather MA bank data from one randomly chosen user
     #test user 1= 4
     #test user 2= 8
@@ -115,7 +115,7 @@ def df_encoder(rng = 4):
             print(f"The error '{e}' occurred")
             connection.rollback
     #csv_export(df=bank_df, file_name='bank_dataframe')
-    #%%
+
     '''
     Plotting of various relations
     The Counter object keeps track of permutations in a dictionary which can then be read and
@@ -150,21 +150,12 @@ def df_encoder(rng = 4):
     plt.show()
 
     #seaborn plots
-    ax_desc = bank_df['description'].astype('int64', errors='ignore')
-    ax_amount = bank_df['amount'].astype('int64',errors='ignore')
-    sns.pairplot(bank_df)
-    sns.boxplot(x=ax_desc, y=ax_amount)
-    sns.heatmap(bank_df)
+    # ax_desc = bank_df['description'].astype('int64', errors='ignore')
+    # ax_amount = bank_df['amount'].astype('int64',errors='ignore')
+    # sns.pairplot(bank_df)
+    # sns.boxplot(x=ax_desc, y=ax_amount)
+    # sns.heatmap(bank_df)
 
-#BUGGED
-    #Boxplot template
-    # cat_var = ["unique_mem_id", "primary_merchant_name"]
-    # quant_var = ["amount"]
-    # for c_var in cat_var:
-    #     for q_var in quant_var:
-    #         bank_df.boxplot(column=q_var, by=c_var)
-    #         plt.xticks([])
-    #%%
     '''
     Generate a spending report of the unaltered dataframe
     Use the datetime columns just defined
@@ -193,7 +184,7 @@ def df_encoder(rng = 4):
     Fri: 4
     '''
     #spending_report(df = bank_df.copy())
-    #%%
+
     '''
     After successfully loading the data, columns that are of no importance have been removed and missing values replaced
     Then the dataframe is ready to be encoded to get rid of all non-numerical data
@@ -243,7 +234,7 @@ def df_encoder(rng = 4):
     except (TypeError, OSError, ValueError) as e:
         print("Problem with conversion:")
         print(e)
-    #%%
+
     '''
     The columns PRIMARY_MERCHANT_NAME; CITY, STATE, DESCRIPTION, TRANSACTION_CATEGORY_NAME, CURRENCY
     are encoded manually and cleared of empty values
@@ -344,7 +335,7 @@ def df_encoder(rng = 4):
     except:
         print("Column currency was not converted.")
         pass
-    #%%
+
     '''
     IMPORTANT
     The lagging features produce NaN for the first two rows due to unavailability
@@ -394,10 +385,31 @@ def df_encoder(rng = 4):
         bank_df[f"{feature}_std_lag{t1}"] = bank_df_std_3d[feature]
         bank_df[f"{feature}_std_lag{t2}"] = bank_df_std_7d[feature]
         bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
-    #%%
-    #the first two rows of lagging values have NaNs which need to be dropped
-    #set optimized transaction_date as index for later
+
     bank_df.set_index(date_index, drop = False, inplace=True)
     bank_df = bank_df.dropna()
+    #drop user IDs to avoid overfitting with useless information
+    bank_df = bank_df.drop(['unique_mem_id',
+                            'unique_bank_account_id',
+                            'unique_bank_transaction_id'], axis = 1)
     #csv_export(df=bank_df, file_name='encoded_bank_dataframe')
-    #return 'dataframe encoding complete; CSVs are located in the working directory(inactivated for testing)'
+
+    return bank_df
+
+def store_pickle(file_name, model):
+
+    """
+    Usage of a Pickle Model -Storage of a trained Model
+    """
+    #specify file name in letter strings
+    model_file = file_name
+    with open(model_file, mode='wb') as m_f:
+        pickle.dump(model, m_f)
+    print(f"Model saved in: {os.getcwd()}")
+    return model_file
+#%%
+bank_df = df_encoder(rng=4)
+
+grid_search_mlp = pipeline_mlp()
+
+NN_file = store_pickle(file_name="nn_model.sav", model=grid_search_mlp)

@@ -1997,7 +1997,8 @@ def store_pickle(model):
     model_file = "gridsearch_model.sav"
     with open(model_file, mode='wb') as m_f:
         pickle.dump(model, m_f)
-    return (model_file, f'model saved in {os.getcwd()}')
+    print(f"Model saved in: {os.getcwd()}")
+    return model_file
 #%%
 def open_pickle(model_file):
 
