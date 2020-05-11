@@ -551,7 +551,7 @@ def split_data():
     ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
     ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
     ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
     #principal components of bank panel has better results than card panel with clearer borders
     '''
     takes unscaled numerical so far and minmax scaled arguments
@@ -784,7 +784,7 @@ def pipeline_logreg():
     ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
     ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
     ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
     #principal components of bank panel has better results than card panel with clearer borders
 
     '''
@@ -945,7 +945,7 @@ def pipeline_sgd_reg():
     ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
     ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
     ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
     #principal components of bank panel has better results than card panel with clearer borders
 
     '''
@@ -1074,7 +1074,7 @@ def pipeline_rfr():
     ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
     ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
     ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
     #principal components of bank panel has better results than card panel with clearer borders
 
 
@@ -1234,7 +1234,7 @@ def pipeline_svr():
     ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
     ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
     ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
     #principal components of bank panel has better results than card panel with clearer borders
 
     '''
@@ -1288,30 +1288,27 @@ def pipeline_svr():
     return grid_search_svr
 #%%
 #BUGGED
-'''
-Pipeline 5 - SelectKBest and Gradient Boosting Classifier
-'''
-#Create pipeline with feature selector and classifier
-#replace with gradient boosted at this point or regressor
-pipe = Pipeline([
-    ('feature_selection', SelectKBest(score_func = f_classif)),
-    ('clf', GradientBoostingClassifier(random_state = 42))])
+# '''
+# Pipeline 5 - SelectKBest and Gradient Boosting Classifier
+# '''
+# #Create pipeline with feature selector and classifier
+# pipe = Pipeline([
+#     ('feature_selection', SelectKBest(score_func = f_classif)),
+#     ('clf', GradientBoostingClassifier(random_state = 42))])
 
-#Create a parameter grid
-#parameter grids provide the values for the models to try
-#PARAMETERS NEED TO HAVE THE SAME LENGTH
-params = {
-    'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
-    'clf__n_estimators':[15, 25, 50, 75, 120, 200, 350]}
+# #Create a parameter grid
+# params = {
+#     'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
+#     'clf__n_estimators':[15, 25, 50, 75, 120, 200, 350]}
 
-#Initialize the grid search object
-grid_search = GridSearchCV(pipe, param_grid = params)
+# #Initialize the grid search object
+# grid_search = GridSearchCV(pipe, param_grid = params)
 
-#Fit it to the data and print the best value combination
-print(f"Pipeline 5; {dt.today()}")
-print(grid_search.fit(X_train, y_train).best_params_)
-print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-print(f"Best accuracy with parameters: {grid_search.best_score_}")
+# #Fit it to the data and print the best value combination
+# print(f"Pipeline 5; {dt.today()}")
+# print(grid_search.fit(X_train, y_train).best_params_)
+# print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
+# print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
 def pipeline_knn():
 
@@ -1405,7 +1402,7 @@ def pipeline_knn():
     ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
     ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
     ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
     #principal components of bank panel has better results than card panel with clearer borders
 
 
@@ -1558,7 +1555,7 @@ def pipeline_svc():
     ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
     ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
     ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
     #principal components of bank panel has better results than card panel with clearer borders
 
     '''
