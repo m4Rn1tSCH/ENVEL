@@ -214,11 +214,11 @@ def df_encoder(rng = 4):
     plt.show()
 
     #seaborn plots
-    ax_desc = bank_df['description'].astype('int64', errors='ignore')
-    ax_amount = bank_df['amount'].astype('int64',errors='ignore')
-    sns.pairplot(bank_df)
-    sns.boxplot(x=ax_desc, y=ax_amount)
-    sns.heatmap(bank_df)
+    # ax_desc = bank_df['description'].astype('int64', errors='ignore')
+    # ax_amount = bank_df['amount'].astype('int64',errors='ignore')
+    # sns.pairplot(bank_df)
+    # sns.boxplot(x=ax_desc, y=ax_amount)
+    # sns.heatmap(bank_df)
 
 #BUGGED
     #Boxplot template
@@ -703,10 +703,6 @@ def pipeline_logreg():
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
-    bank_df.drop(['unique_mem_id',
-                  'unique_bank_account_id',
-                  'unique_bank_transaction_id'], axis = 1)
-    ####
     model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
     #On some occasions the label needs to be a 1d array;
     #then the double square brackets (slicing it as a new dataframe) break the pipeline
@@ -864,10 +860,6 @@ def pipeline_sgd_reg():
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
-    bank_df = bank_df.drop(['unique_mem_id',
-                            'unique_bank_account_id',
-                            'unique_bank_transaction_id'], axis = 1)
-    ####
     model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
     #On some occasions the label needs to be a 1d array;
     #then the double square brackets (slicing it as a new dataframe) break the pipeline
@@ -993,10 +985,6 @@ def pipeline_rfr():
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
-    bank_df = bank_df.drop(['unique_mem_id',
-                            'unique_bank_account_id',
-                            'unique_bank_transaction_id'], axis = 1)
-    ####
     model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
     #On some occasions the label needs to be a 1d array;
     #then the double square brackets (slicing it as a new dataframe) break the pipeline
@@ -1153,10 +1141,6 @@ def pipeline_svr():
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
-    bank_df = bank_df.drop(['unique_mem_id',
-                            'unique_bank_account_id',
-                            'unique_bank_transaction_id'], axis = 1)
-    ####
     model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
     #On some occasions the label needs to be a 1d array;
     #then the double square brackets (slicing it as a new dataframe) break the pipeline
@@ -1321,10 +1305,6 @@ def pipeline_knn():
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
-    bank_df = bank_df.drop(['unique_mem_id',
-                            'unique_bank_account_id',
-                            'unique_bank_transaction_id'], axis = 1)
-    ####
     model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
     #On some occasions the label needs to be a 1d array;
     #then the double square brackets (slicing it as a new dataframe) break the pipeline
@@ -1474,10 +1454,6 @@ def pipeline_svc():
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
-    bank_df = bank_df.drop(['unique_mem_id',
-                            'unique_bank_account_id',
-                            'unique_bank_transaction_id'], axis = 1)
-    ####
     model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
     #On some occasions the label needs to be a 1d array;
     #then the double square brackets (slicing it as a new dataframe) break the pipeline
@@ -1704,10 +1680,6 @@ def pipeline_trans_reg():
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
-    bank_df = bank_df.drop(['unique_mem_id',
-                            'unique_bank_account_id',
-                            'unique_bank_transaction_id'], axis = 1)
-    ####
     model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
     #On some occasions the label needs to be a 1d array;
     #then the double square brackets (slicing it as a new dataframe) break the pipeline
@@ -1897,10 +1869,6 @@ def pipeline_mlp():
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
-    bank_df = bank_df.drop(['unique_mem_id',
-                            'unique_bank_account_id',
-                            'unique_bank_transaction_id'], axis = 1)
-    ####
     model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
     #On some occasions the label needs to be a 1d array;
     #then the double square brackets (slicing it as a new dataframe) break the pipeline

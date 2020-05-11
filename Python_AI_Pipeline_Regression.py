@@ -48,7 +48,7 @@ import PostgreSQL_credentials as acc
 #from flask_auto_setup import activate_flask
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
-from Python_eda_ai import df_encoder, pipeline_rfr, pipeline_sgd_reg, pipeline_trans_reg, pipeline_logreg, score_df, store_pickle, open_pickle
+from Python_eda_ai import pipeline_rfr, pipeline_sgd_reg, pipeline_trans_reg, pipeline_logreg, score_df, store_pickle, open_pickle
 #%%
 def df_encoder(rng = 4):
     '''
@@ -386,6 +386,10 @@ def df_encoder(rng = 4):
 
     bank_df.set_index(date_index, drop = False, inplace=True)
     bank_df = bank_df.dropna()
+    #drop user IDs to avoid overfitting with useless information
+    bank_df = bank_df.drop(['unique_mem_id',
+                            'unique_bank_account_id',
+                            'unique_bank_transaction_id'], axis = 1)
     #csv_export(df=bank_df, file_name='encoded_bank_dataframe')
 
     return bank_df
