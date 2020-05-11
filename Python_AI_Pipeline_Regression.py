@@ -48,7 +48,7 @@ import PostgreSQL_credentials as acc
 #from flask_auto_setup import activate_flask
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
-from Python_eda_ai import pipeline_rfr, pipeline_sgd_reg, pipeline_trans_reg, pipeline_logreg, score_df, store_pickle, open_pickle
+from Python_eda_ai import df_encoder, pipeline_rfr, pipeline_sgd_reg, pipeline_trans_reg, pipeline_logreg, score_df, store_pickle, open_pickle
 #%%
 def df_encoder(rng = 4):
     '''
@@ -60,22 +60,22 @@ def df_encoder(rng = 4):
 
     Returns
     -------
-    None.
+    bank_df.
 
     '''
-    #%%
+
     connection = create_connection(db_name = acc.YDB_name,
                                    db_user = acc.YDB_user,
                                    db_password = acc.YDB_password,
                                    db_host = acc.YDB_host,
                                    db_port = acc.YDB_port)
-    #%%
+
     #establish connection to get user IDs
     filter_query = f"SELECT unique_mem_id, state, city, zip_code, income_class, file_created_date FROM user_demographic WHERE state = 'MA'"
     transaction_query = execute_read_query(connection, filter_query)
     query_df = pd.DataFrame(transaction_query,
                             columns = ['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
-    #%%
+
     #dateframe to gather MA bank data from one randomly chosen user
     #test user 1= 4
     #test user 2= 8
@@ -113,7 +113,7 @@ def df_encoder(rng = 4):
             print(f"The error '{e}' occurred")
             connection.rollback
     #csv_export(df=bank_df, file_name='bank_dataframe')
-    #%%
+
     '''
     Plotting of various relations
     The Counter object keeps track of permutations in a dictionary which can then be read and
@@ -148,21 +148,12 @@ def df_encoder(rng = 4):
     plt.show()
 
     #seaborn plots
-    ax_desc = bank_df['description'].astype('int64', errors='ignore')
-    ax_amount = bank_df['amount'].astype('int64',errors='ignore')
-    sns.pairplot(bank_df)
-    sns.boxplot(x=ax_desc, y=ax_amount)
-    sns.heatmap(bank_df)
+    # ax_desc = bank_df['description'].astype('int64', errors='ignore')
+    # ax_amount = bank_df['amount'].astype('int64',errors='ignore')
+    # sns.pairplot(bank_df)
+    # sns.boxplot(x=ax_desc, y=ax_amount)
+    # sns.heatmap(bank_df)
 
-#BUGGED
-    #Boxplot template
-    # cat_var = ["unique_mem_id", "primary_merchant_name"]
-    # quant_var = ["amount"]
-    # for c_var in cat_var:
-    #     for q_var in quant_var:
-    #         bank_df.boxplot(column=q_var, by=c_var)
-    #         plt.xticks([])
-    #%%
     '''
     Generate a spending report of the unaltered dataframe
     Use the datetime columns just defined
@@ -191,7 +182,7 @@ def df_encoder(rng = 4):
     Fri: 4
     '''
     #spending_report(df = bank_df.copy())
-    #%%
+
     '''
     After successfully loading the data, columns that are of no importance have been removed and missing values replaced
     Then the dataframe is ready to be encoded to get rid of all non-numerical data
@@ -241,7 +232,7 @@ def df_encoder(rng = 4):
     except (TypeError, OSError, ValueError) as e:
         print("Problem with conversion:")
         print(e)
-    #%%
+
     '''
     The columns PRIMARY_MERCHANT_NAME; CITY, STATE, DESCRIPTION, TRANSACTION_CATEGORY_NAME, CURRENCY
     are encoded manually and cleared of empty values
@@ -342,7 +333,7 @@ def df_encoder(rng = 4):
     except:
         print("Column currency was not converted.")
         pass
-    #%%
+
     '''
     IMPORTANT
     The lagging features produce NaN for the first two rows due to unavailability
@@ -398,5 +389,13 @@ def df_encoder(rng = 4):
     #csv_export(df=bank_df, file_name='encoded_bank_dataframe')
 
     return bank_df
+#%%
+bank_df = df_encoder(rng=4)
+
+grid_search_lr = pipeline_logreg()
+
+store_pickle(model=grid_search_lr)
+
+
 
 

@@ -90,22 +90,22 @@ def df_encoder(rng = 4):
 
     Returns
     -------
-    None.
+    bank_df.
 
     '''
-    #%%
+
     connection = create_connection(db_name = acc.YDB_name,
                                    db_user = acc.YDB_user,
                                    db_password = acc.YDB_password,
                                    db_host = acc.YDB_host,
                                    db_port = acc.YDB_port)
-    #%%
+
     #establish connection to get user IDs
     filter_query = f"SELECT unique_mem_id, state, city, zip_code, income_class, file_created_date FROM user_demographic WHERE state = 'MA'"
     transaction_query = execute_read_query(connection, filter_query)
     query_df = pd.DataFrame(transaction_query,
                             columns = ['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
-    #%%
+
     #dateframe to gather MA bank data from one randomly chosen user
     #test user 1= 4
     #test user 2= 8
@@ -143,7 +143,7 @@ def df_encoder(rng = 4):
             print(f"The error '{e}' occurred")
             connection.rollback
     #csv_export(df=bank_df, file_name='bank_dataframe')
-    #%%
+
     #Plot template
     # fig, ax = plt.subplots(2, 1, figsize = (25, 25))
     # ax[0].plot(df.index.values, df['x'], color = 'green', lw = 4, ls = '-.', marker = 'o', label = 'line_1')
@@ -179,7 +179,7 @@ def df_encoder(rng = 4):
     #     for q_var in quant_var:
     #         df.boxplot(column=q_var, by=c_var)
     #         plt.xticks([])
-    #%%
+
     '''
     Plotting of various relations
     The Counter object keeps track of permutations in a dictionary which can then be read and
@@ -228,7 +228,7 @@ def df_encoder(rng = 4):
     #     for q_var in quant_var:
     #         bank_df.boxplot(column=q_var, by=c_var)
     #         plt.xticks([])
-    #%%
+
     '''
     Generate a spending report of the unaltered dataframe
     Use the datetime columns just defined
@@ -257,7 +257,7 @@ def df_encoder(rng = 4):
     Fri: 4
     '''
     #spending_report(df = bank_df.copy())
-    #%%
+
     '''
     After successfully loading the data, columns that are of no importance have been removed and missing values replaced
     Then the dataframe is ready to be encoded to get rid of all non-numerical data
@@ -307,7 +307,7 @@ def df_encoder(rng = 4):
     except (TypeError, OSError, ValueError) as e:
         print("Problem with conversion:")
         print(e)
-    #%%
+
     '''
     The columns PRIMARY_MERCHANT_NAME; CITY, STATE, DESCRIPTION, TRANSACTION_CATEGORY_NAME, CURRENCY
     are encoded manually and cleared of empty values
@@ -408,7 +408,7 @@ def df_encoder(rng = 4):
     except:
         print("Column currency was not converted.")
         pass
-    #%%
+
     '''
     IMPORTANT
     The lagging features produce NaN for the first two rows due to unavailability
@@ -458,7 +458,7 @@ def df_encoder(rng = 4):
         bank_df[f"{feature}_std_lag{t1}"] = bank_df_std_3d[feature]
         bank_df[f"{feature}_std_lag{t2}"] = bank_df_std_7d[feature]
         bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
-    #%%
+
     #the first two rows of lagging values have NaNs which need to be dropped
     #set optimized transaction_date as index for later
     bank_df.set_index(date_index, drop = False, inplace=True)
@@ -703,9 +703,9 @@ def pipeline_logreg():
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
-    bank_df = bank_df.drop(['unique_mem_id',
-                            'unique_bank_account_id',
-                            'unique_bank_transaction_id'], axis = 1)
+    bank_df.drop(['unique_mem_id',
+                  'unique_bank_account_id',
+                  'unique_bank_transaction_id'], axis = 1)
     ####
     model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
     #On some occasions the label needs to be a 1d array;
@@ -837,7 +837,7 @@ def pipeline_logreg():
         }
 
     #Initialize the grid search object
-    grid_search = GridSearchCV(pipe, param_grid = params)
+    grid_search_lr = GridSearchCV(pipe, param_grid = params)
 
     #best combination of feature selector and the regressor
     #grid_search.best_params_
@@ -846,9 +846,9 @@ def pipeline_logreg():
 
     #Fit it to the data and print the best value combination
     print(f"Pipeline 1; {dt.today()}")
-    print(grid_search.fit(X_train, y_train).best_params_)
-    print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    print(grid_search_lr.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search_lr.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search_lr.best_score_}")
 
     return grid_search_lr
 #%%
@@ -860,7 +860,7 @@ def pipeline_sgd_reg():
     """
 
     '''
-        SPLITTING UP THE DATA
+        Splitting up the Data
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
@@ -910,9 +910,9 @@ def pipeline_sgd_reg():
     X_test_minmax = min_max_scaler.transform(X_test)
     minmax_scale = min_max_scaler.scale_
     min_max_minimum = min_max_scaler.min_
-    #%%
+
     '''
-        Principal Component Reduction
+                Principal Component Reduction
     '''
 
     #first scale
@@ -972,13 +972,13 @@ def pipeline_sgd_reg():
         }
 
     #Initialize the grid search object
-    grid_search = GridSearchCV(pipe, param_grid = params)
+    grid_search_sgd = GridSearchCV(pipe, param_grid = params)
 
     #Fit it to the data and print the best value combination
     print(f"Pipeline 2; {dt.today()}")
-    print(grid_search.fit(X_train, y_train).best_params_)
-    print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    print(grid_search_sgd.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search_sgd.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search_sgd.best_score_}")
 
     return grid_search_sgd
 #%%
@@ -989,7 +989,7 @@ def pipeline_rfr():
     2.) fit to the pipeline
     """
     '''
-        SPLITTING UP THE DATA
+        Splitting up the Data
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
@@ -1131,13 +1131,13 @@ def pipeline_rfr():
         }
 
     #Initialize the grid search object
-    grid_search = GridSearchCV(pipe, param_grid = params)
+    grid_search_rfr = GridSearchCV(pipe, param_grid = params)
 
     #Fit it to the data and print the best value combination
     print(f"Pipeline 3; {dt.today()}")
-    print(grid_search.fit(X_train, y_train).best_params_)
-    print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    print(grid_search_rfr.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search_rfr.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search_rfr.best_score_}")
 
     return grid_search_rfr
 #%%
@@ -1149,7 +1149,7 @@ def pipeline_svr():
     2.) fit to the pipeline
     """
     '''
-        SPLITTING UP THE DATA
+        Splitting up the Data
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
@@ -1201,7 +1201,7 @@ def pipeline_svr():
     min_max_minimum = min_max_scaler.min_
 
     '''
-        Principal Component Reduction
+                Principal Component Reduction
     '''
 
     #first scale
@@ -1273,7 +1273,7 @@ def pipeline_svr():
         }
 
     #Initialize the grid search object
-    grid_search = GridSearchCV(pipe, param_grid = params)
+    grid_search_svr = GridSearchCV(pipe, param_grid = params)
 
     #best combination of feature selector and the regressor
     #grid_search.best_params_
@@ -1281,9 +1281,9 @@ def pipeline_svr():
     #grid_search.best_score_
     #Fit it to the data and print the best value combination
     print(f"Pipeline 4; {dt.today()}")
-    print(grid_search.fit(X_train_minmax, y_train).best_params_)
-    print("Overall score: %.4f" %(grid_search.score(X_test_minmax, y_test)))
-    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    print(grid_search_svr.fit(X_train_minmax, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search_svr.score(X_test_minmax, y_test)))
+    print(f"Best accuracy with parameters: {grid_search_svr.best_score_}")
 
     return grid_search_svr
 #%%
@@ -1317,7 +1317,7 @@ def pipeline_knn():
     2.) fit to the pipeline
     """
     '''
-        SPLITTING UP THE DATA
+                Splitting up the Data
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
@@ -1369,7 +1369,7 @@ def pipeline_knn():
     min_max_minimum = min_max_scaler.min_
 
     '''
-        Principal Component Reduction
+                Principal Component Reduction
     '''
 
     #first scale
@@ -1454,13 +1454,13 @@ def pipeline_knn():
         'clf__n_neighbors':[2, 3, 4, 5, 6, 7, 8]}
 
     #Initialize the grid search object
-    grid_search = GridSearchCV(pipe, param_grid = params)
+    grid_search_knn = GridSearchCV(pipe, param_grid = params)
 
     #Fit it to the data and print the best value combination
     print(f"Pipeline 6; {dt.today()}")
-    print(grid_search.fit(X_train, y_train).best_params_)
-    print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    print(grid_search_knn.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search_knn.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search_knn.best_score_}")
     return grid_search_knn
 #%%
 def pipeline_svc():
@@ -1626,13 +1626,13 @@ def pipeline_svc():
         'clf__gamma':[0.1, 0.01, 0.001]}
 
     #Initialize the grid search object
-    grid_search = GridSearchCV(pipe, param_grid = params)
+    grid_search_svc = GridSearchCV(pipe, param_grid = params)
 
     #Fit it to the data and print the best value combination
     print(f"Pipeline 7; {dt.today()}")
-    print(grid_search.fit(X_train, y_train).best_params_)
-    print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    print(grid_search_svc.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search_svc.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search_svc.best_score_}")
     return grid_search_svc
 #%%
 #generate a dataframe for pipeline values
@@ -1700,7 +1700,7 @@ def pipeline_trans_reg():
     2.) fit to the pipeline
     """
     '''
-        SPLITTING UP THE DATA
+                Splitting up the Data
     '''
     #drop target variable in feature df
     #all remaining columns will be the features
@@ -1750,9 +1750,9 @@ def pipeline_trans_reg():
     X_test_minmax = min_max_scaler.transform(X_test)
     minmax_scale = min_max_scaler.scale_
     min_max_minimum = min_max_scaler.min_
-    #%%
+
     '''
-        Principal Component Reduction
+                Principal Component Reduction
     '''
 
     #first scale
@@ -1814,71 +1814,77 @@ def pipeline_trans_reg():
     print('unprocessed R2-score: {0:.3f}'.format(raw_target_regr.score(X_test, y_test)))
     return regr, raw_target_regr
 #%%
-#Overfitting
+#Overfitting - model will not be used
 '''
-Random Forest Classifier
+    Random Forest Classifier
 '''
-RFC = RandomForestClassifier(n_estimators = 20, max_depth = len(bank_df.columns) /2, random_state = 7)
-RFC.fit(X_train, y_train)
-y_pred = RFC.predict(X_test)
-RFC_probability = RFC.predict_proba(X_test)
-print(f"TESTINFO Rnd F Cl: [{dt.today()}]--[Parameters: n_estimators:{RFC.n_estimators},\
-      max_depth:{RFC.max_depth}, random state:{RFC.random_state}]--Training set accuracy:\
-      {RFC.score(X_train, y_train)}; Test set accuracy: {RFC.score(X_test, y_test)};\
-          Test set validation: {RFC.score(X_test, y_pred)}")
+# RFC = RandomForestClassifier(n_estimators = 20, max_depth = len(bank_df.columns) /2, random_state = 7)
+# RFC.fit(X_train, y_train)
+# y_pred = RFC.predict(X_test)
+# RFC_probability = RFC.predict_proba(X_test)
+# print(f"TESTINFO Rnd F Cl: [{dt.today()}]--[Parameters: n_estimators:{RFC.n_estimators},\
+#       max_depth:{RFC.max_depth}, random state:{RFC.random_state}]--Training set accuracy:\
+#       {RFC.score(X_train, y_train)}; Test set accuracy: {RFC.score(X_test, y_test)};\
+#           Test set validation: {RFC.score(X_test, y_pred)}")
 #%%
-#Overfitting
+#Overfitting - model will not be used
 '''
-K Nearest Neighbor
+    K Nearest Neighbor
 '''
-KNN = KNeighborsClassifier(n_neighbors = 5, weights = 'uniform')
-KNN.fit(X_train, y_train)
-y_pred = KNN.predict(X_test)
-print(f"TESTINFO KNN: [{dt.today()}]--[Parameters: n_neighbors:{KNN.n_neighbors},\
-      weights:{KNN.weights}]--Training set accuracy: {KNN.score(X_train, y_train)};\
-      Test set accuracy: {KNN.score(X_test, y_test)}; Test set validation: {KNN.score(X_test, y_pred)}")
+# KNN = KNeighborsClassifier(n_neighbors = 5, weights = 'uniform')
+# KNN.fit(X_train, y_train)
+# y_pred = KNN.predict(X_test)
+# print(f"TESTINFO KNN: [{dt.today()}]--[Parameters: n_neighbors:{KNN.n_neighbors},\
+#       weights:{KNN.weights}]--Training set accuracy: {KNN.score(X_train, y_train)};\
+#       Test set accuracy: {KNN.score(X_test, y_test)}; Test set validation: {KNN.score(X_test, y_pred)}")
 #%%
-#Overfitting
+#Overfitting - model will not be used
 '''
+    Random Forest Regressor
+
 Use the random forest regressor algorithm to predict labels; DO NOT USE SCALED VARIABLES HERE
 The number of splits for each tree level is equal to half the number of columns; that way overfitting is dampened and test remains fast
 Test 4/22/2020: val_accuracy: 1.0 -> overfitted
 '''
-RFR = RandomForestRegressor(n_estimators = 75, max_depth = len(bank_df.columns)/2, min_samples_split = 4)
-RFR.fit(X_train, y_train)
-y_pred = RFR.predict(X_test)
-print(f"TESTINFO Rnd F Reg: [{dt.today()}]--[Parameters: n_estimators:{RFR.n_estimators},\
-      max_depth:{RFR.max_depth}, min_samples_split:{RFR.min_samples_split}]--Training set accuracy:\
-      {RFR.score(X_train, y_train)}; Test set accuracy: {RFR.score(X_test, y_test)}; Test set validation:\
-          {RFR.score(X_test, y_pred)}")
+# RFR = RandomForestRegressor(n_estimators = 75, max_depth = len(bank_df.columns)/2, min_samples_split = 4)
+# RFR.fit(X_train, y_train)
+# y_pred = RFR.predict(X_test)
+# print(f"TESTINFO Rnd F Reg: [{dt.today()}]--[Parameters: n_estimators:{RFR.n_estimators},\
+#       max_depth:{RFR.max_depth}, min_samples_split:{RFR.min_samples_split}]--Training set accuracy:\
+#       {RFR.score(X_train, y_train)}; Test set accuracy: {RFR.score(X_test, y_test)}; Test set validation:\
+#           {RFR.score(X_test, y_pred)}")
 #%%
-'''
-                APPLICATION OF SKLEARN NEURAL NETWORK
+#model is overfitting extremely
+# def mlp_raw_pred():
 
-Test; [1000l;alpha=0.001] [2020-04-22 00:00]; Training set accuracy: 0.002171552660152009;\
-                                                                    Test set accuracy: 0.0
-Test; [1500l; alpha=0.0001] [2020-04-22 14:16:43]; Training set accuracy: 0.3517915309446254;
-                                                   Test set accuracy: 0.3468354430379747
-Test; [2020-04-29 14:32:25]--[Parameters: hidden layers:1500, alpha:0.0001]--\
-                                            Training set accuracy: 0.35868187579214195;\
-                                            Test set accuracy: 0.3377609108159393;\
-                                            Test set Validation: 1.0
-Test; [2020-05-01 10:31:28.213131]--[Parameters: hidden layers:1500, alpha:0.0001]--\
-                                        Training set accuracy: 0.33084112149532713;\
-                                        Test set accuracy: 0.3317757009345794;\
-                                        Test set Validation: 1.0
-'''
-#adam: all-round solver for data
-#hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
-#match with input features
-#alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
-MLP = MLPClassifier(hidden_layer_sizes = 1500, solver='sgd', learning_rate= 'adaptive', alpha=0.0001 )
-MLP.fit(X_train, y_train)
-y_val = MLP.predict(X_test)
-#y_val.reshape(-1, 1)
-print(f"TESTINFO MLP: [{dt.today()}]--[Parameters: hidden layers:{MLP.hidden_layer_sizes}, alpha:{MLP.alpha}]--\
-      Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)};\
-      Test set Validation: {MLP.score(X_test, y_val)}")
+#     '''
+#                     APPLICATION OF SKLEARN NEURAL NETWORK
+
+#     Test; [1000l;alpha=0.001] [2020-04-22 00:00]; Training set accuracy: 0.002171552660152009;\
+#                                                                         Test set accuracy: 0.0
+#     Test; [1500l; alpha=0.0001] [2020-04-22 14:16:43]; Training set accuracy: 0.3517915309446254;
+#                                                        Test set accuracy: 0.3468354430379747
+#     Test; [2020-04-29 14:32:25]--[Parameters: hidden layers:1500, alpha:0.0001]--\
+#                                                 Training set accuracy: 0.35868187579214195;\
+#                                                 Test set accuracy: 0.3377609108159393;\
+#                                                 Test set Validation: 1.0
+#     Test; [2020-05-01 10:31:28.213131]--[Parameters: hidden layers:1500, alpha:0.0001]--\
+#                                             Training set accuracy: 0.33084112149532713;\
+#                                             Test set accuracy: 0.3317757009345794;\
+#                                             Test set Validation: 1.0
+#     '''
+#     #adam: all-round solver for data
+#     #hidden_layer_sizes: no. of nodes/no. of hidden weights used to obtain final weights;
+#     #match with input features
+#     #alpha: regularization parameter that shrinks weights toward 0 (the greater the stricter)
+#     MLP = MLPClassifier(hidden_layer_sizes = 1500, solver='sgd', learning_rate= 'adaptive', alpha=0.0001)
+#     MLP.fit(X_train, y_train)
+#     y_val = MLP.predict(X_test)
+#     #y_val.reshape(-1, 1)
+#     print(f"TESTINFO MLP: [{dt.today()}]--[Parameters: hidden layers:{MLP.hidden_layer_sizes}, alpha:{MLP.alpha}]--\
+#           Training set accuracy: {MLP.score(X_train, y_train)}; Test set accuracy: {MLP.score(X_test, y_test)};\
+#           Test set Validation: {MLP.score(X_test, y_val)}")
+#     return 'Multi-layered perceptron object ready'
 #%%
 def pipeline_mlp():
 
@@ -1972,7 +1978,7 @@ def pipeline_mlp():
     ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
     ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
     ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
+    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
     #principal components of bank panel has better results than card panel with clearer borders
 
     '''
@@ -1989,8 +1995,8 @@ def pipeline_mlp():
     pipe = Pipeline([
         ('feature_selection', SelectKBest(score_func = chi2)),
         ('clf', MLPClassifier(activation='relu',
-                              solver='sgd',
-                              learning_rate='adaptive'))])
+                              solver='lbfgs',
+                              learning_rate='constant'))])
 
     #Create a parameter grid
     #parameter grids provide the values for the models to try
@@ -2012,7 +2018,7 @@ def pipeline_mlp():
     print(grid_search.fit(X_train, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search.best_score_}")
-    return grid_search
+    return grid_search_mlp
 #%%
 def store_pickle(model):
 
@@ -2023,7 +2029,7 @@ def store_pickle(model):
     model_file = "gridsearch_model.sav"
     with open(model_file, mode='wb') as m_f:
         pickle.dump(model, m_f)
-    return model_file
+    return (model_file, f'model saved in {os.getcwd()}')
 #%%
 def open_pickle(model_file):
 
