@@ -762,6 +762,7 @@ def pipeline_logreg():
     print("Original shape: {}".format(str(X_train_scaled.shape)))
     print("Reduced shape: {}".format(str(X_train_pca.shape)))
 
+
     '''
                 Plotting of PCA/ Cluster Pairs
     '''
@@ -841,7 +842,7 @@ def pipeline_logreg():
     #grid_search.best_score_
 
     #Fit it to the data and print the best value combination
-    print(f"Pipeline 1; {dt.today()}")
+    print(f"Pipeline logreg; {dt.today()}")
     print(grid_search_lr.fit(X_train, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search_lr.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search_lr.best_score_}")
@@ -967,7 +968,7 @@ def pipeline_sgd_reg():
     grid_search_sgd = GridSearchCV(pipe, param_grid = params)
 
     #Fit it to the data and print the best value combination
-    print(f"Pipeline 2; {dt.today()}")
+    print(f"Pipeline sgd-reg; {dt.today()}")
     print(grid_search_sgd.fit(X_train, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search_sgd.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search_sgd.best_score_}")
@@ -1122,7 +1123,7 @@ def pipeline_rfr():
     grid_search_rfr = GridSearchCV(pipe, param_grid = params)
 
     #Fit it to the data and print the best value combination
-    print(f"Pipeline 3; {dt.today()}")
+    print(f"Pipeline rfr; {dt.today()}")
     print(grid_search_rfr.fit(X_train, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search_rfr.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search_rfr.best_score_}")
@@ -1264,7 +1265,7 @@ def pipeline_svr():
     #best score
     #grid_search.best_score_
     #Fit it to the data and print the best value combination
-    print(f"Pipeline 4; {dt.today()}")
+    print(f"Pipeline svr; {dt.today()}")
     print(grid_search_svr.fit(X_train_minmax, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search_svr.score(X_test_minmax, y_test)))
     print(f"Best accuracy with parameters: {grid_search_svr.best_score_}")
@@ -1437,7 +1438,7 @@ def pipeline_knn():
     grid_search_knn = GridSearchCV(pipe, param_grid = params)
 
     #Fit it to the data and print the best value combination
-    print(f"Pipeline 6; {dt.today()}")
+    print(f"Pipeline knn; {dt.today()}")
     print(grid_search_knn.fit(X_train, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search_knn.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search_knn.best_score_}")

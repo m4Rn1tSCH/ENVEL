@@ -407,12 +407,25 @@ def store_pickle(file_name, model):
     return model_file
 #%%
 bank_df = df_encoder(rng=4)
-
+#generate all gridsearch files and determine the accuracy
 grid_search_lr = pipeline_logreg()
-grid_search_svr = pipelne_svr()
-grid_search_rfr = pipeline_rfr()
 grid_search_sgd = pipeline_sgd_reg()
+grid_search_svr = pipeline_svr()
+grid_search_rfr = pipeline_rfr()
 grid_search_treg = pipeline_trans_reg()
+
+#append objects to a list first
+pipeline_dictionary = {}
+estimators= [grid_search_lr, grid_search_rfr]
+
+for element in estimators:
+
+    #add accuracies to dictionary
+    regressor = element.estimator
+    accuracy = element.score(X_test, y_test)
+    best_accuracy= element.best_score_
+    #regressor as key and accuracies as tuple value
+    pipeline_dictionary[regressor].append((accuracy, best_accuracy))
 
 logistic_regression_file = store_pickle(file_name="regression_model.sav", model=grid_search_lr)
 
