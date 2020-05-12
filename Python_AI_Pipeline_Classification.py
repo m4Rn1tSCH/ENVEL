@@ -412,10 +412,10 @@ SPLITTING UP THE DATA
 '''
 #drop target variable in feature df
 #all remaining columns will be the features
-model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
+model_features = bank_df.drop(['primary_merchant_name'], axis = 1)
 #On some occasions the label needs to be a 1d array;
 #then the double square brackets (slicing it as a new dataframe) break the pipeline
-model_label = bank_df['amount_mean_lag7']
+model_label = bank_df['primary_merchant_name']
 ####
 if model_label.dtype == 'float32':
     model_label = model_label.astype('int32')
@@ -492,7 +492,7 @@ ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
 ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
 #principal components of bank panel has better results than card panel with clearer borders
 
-grid_search_rfr = pipeline_rfr()
+grid_search_rfr = pipeline_svc()
 grid_search_knn = pipeline_knn()
 
 #append objects to a list first

@@ -496,7 +496,10 @@ ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
 grid_search_lr = pipeline_logreg()
 grid_search_sgd = pipeline_sgd_reg()
 grid_search_svr = pipeline_svr()
+
+#best accuracy
 grid_search_rfr = pipeline_rfr()
+
 grid_search_treg = pipeline_trans_reg()
 
 #append objects to a list first
@@ -514,7 +517,7 @@ for element in estimators:
     #regressor as key and accuracies as tuple value
     pipeline_dictionary[regressor].append((accuracy, best_accuracy))
 
-logistic_regression_file = store_pickle(file_name="regression_model.sav", model=grid_search_lr)
+logistic_regression_file = store_pickle(file_name="regression_model.sav", model=grid_search_rfr)
 
 
 
