@@ -396,6 +396,8 @@ def df_encoder(rng = 4):
 
     return bank_df
 
+@app.route('/store_nn_pickle')
+
 def store_pickle(file_name, model):
 
     """
@@ -407,6 +409,28 @@ def store_pickle(file_name, model):
         pickle.dump(model, m_f)
     print(f"Model saved in: {os.getcwd()}")
     return model_file
+
+@app.route('/open_nn_pickle')
+
+def open_pickle(model_file):
+
+    """
+        Usage of a Pickle Model -Loading of a Pickle File
+
+    model file can be opened either with FILE NAME
+    open_pickle(model_file="gridsearch_model.sav")
+    INTERNAL PARAMETER
+    open_pickle(model_file=model_file)
+    """
+
+    with open(model_file, mode='rb') as m_f:
+        grid_search = pickle.load(m_f)
+        result = grid_search.score(X_test, y_test)
+        print("Employed Estimator:", grid_search.get_params)
+        print("--------------------")
+        print("BEST PARAMETER COMBINATION:", grid_search.best_params_)
+        print("Training Accuracy Result: %.4f" %(result))
+        return 'grid_search parameters loaded'
 #%%
 bank_df = df_encoder(rng=4)
 

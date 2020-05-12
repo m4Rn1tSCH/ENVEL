@@ -32,10 +32,9 @@ from Python_SQL_connection import *
 import PostgreSQL_credentials as acc
 #produces lists of unique member IDs from the bank_panel/card_panel
 import Python_IDs_demo_panel
-#executes flask_app env var in the command shell of the OS
-import flask_auto_setup as fl_setup
+
 #%%
-fl_setup.activate_flask()
+
 #CONNECTION TO FLASK/SQL
 app = Flask(__name__)
 

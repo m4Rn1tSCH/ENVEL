@@ -48,8 +48,36 @@ import PostgreSQL_credentials as acc
 #from flask_auto_setup import activate_flask
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
-from Python_eda_ai import split_data, pipeline_rfr, pipeline_sgd_reg, pipeline_trans_reg, pipeline_logreg, score_df, store_pickle, open_pickle
+from Python_eda_ai import split_data, pipeline_rfr, pipeline_sgd_reg, pipeline_trans_reg, pipeline_logreg, score_df, open_pickle
 #%%
+
+#CONNECTION TO FLASK/SQL
+app = Flask(__name__)
+
+#function can be bound to the script by adding a new URL
+@app.route('/encoder')
+
+    #SETTING THE ENVIRONMENT VARIABLE
+    #$ set FLASK_APP=file_name.py
+    #$ flask run
+    # * Running on http://127.0.0.1:5000/
+
+    ####COMMAND PROMPT#####
+    #set env var in windows with name: FLASK_APP and value: path to app.py
+    #switch in dev consolde to this path
+    #C:\path\to\app>set FLASK_APP=hello.py
+
+    #make the flask app listen to all public IPs
+    #flask run --host=0.0.0.0
+
+    #to enable all development features, like debugger and
+    #automatic restart when code changes
+    #set FLASK_ENV=development
+
+    ##joint command to set env var and run the app
+    #env FLASK_APP=Python_inc_exp_bal_database.py flask run
+
+
 def df_encoder(rng = 4):
     '''
 
@@ -394,6 +422,8 @@ def df_encoder(rng = 4):
 
     return bank_df
 
+@app.route('/store_regression_pickle')
+
 def store_pickle(file_name, model):
 
     """
@@ -405,6 +435,28 @@ def store_pickle(file_name, model):
         pickle.dump(model, m_f)
     print(f"Model saved in: {os.getcwd()}")
     return model_file
+
+@app.route('/open_regression_pickle')
+
+def open_pickle(model_file):
+
+    """
+        Usage of a Pickle Model -Loading of a Pickle File
+
+    model file can be opened either with FILE NAME
+    open_pickle(model_file="gridsearch_model.sav")
+    INTERNAL PARAMETER
+    open_pickle(model_file=model_file)
+    """
+
+    with open(model_file, mode='rb') as m_f:
+        grid_search = pickle.load(m_f)
+        result = grid_search.score(X_test, y_test)
+        print("Employed Estimator:", grid_search.get_params)
+        print("--------------------")
+        print("BEST PARAMETER COMBINATION:", grid_search.best_params_)
+        print("Training Accuracy Result: %.4f" %(result))
+        return 'grid_search parameters loaded'
 #%%
 
 '''STEP 1'''

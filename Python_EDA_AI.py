@@ -559,6 +559,7 @@ def split_data():
 
     return X_train, X_train_scaled, X_train_minmax, X_train_pca, X_test, X_test_scaled, X_test_minmax, X_test_pca, y_train, y_test
 #%%
+@app.route('/pipeline_rfe')
 def pipeline_rfe():
 
     """
@@ -593,6 +594,7 @@ def pipeline_rfe():
     #log_reg_param = rfe.set_params(C = 0.01, max_iter = 200, tol = 0.001)
     return X_train_rfe, X_test_rfe
 #%%
+@app.route('/pipeline_rfe_cv')
 def pipeline_rfe_cv():
 
 
@@ -683,6 +685,7 @@ SGDReg
     plt.show()
     return rfecv_features, rfecv_num_features
 #%%
+@app.route('/pipeline_logreg')
 def pipeline_logreg():
 
     """
@@ -756,6 +759,7 @@ def pipeline_logreg():
 
     return grid_search_lr
 #%%
+@app.route('/pipeline_sgd_reg')
 def pipeline_sgd_reg():
 
     '''
@@ -792,6 +796,7 @@ def pipeline_sgd_reg():
 
     return grid_search_sgd
 #%%
+@app.route('/pipeline_rfr')
 def pipeline_rfr():
 
     '''
@@ -857,6 +862,7 @@ def pipeline_rfr():
 
     return grid_search_rfr
 #%%
+@app.route('/pipeline_svr')
 def pipeline_svr():
 
     '''
@@ -932,6 +938,7 @@ def pipeline_svr():
 # print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 # print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
+@app.route('/pipeline_knn')
 def pipeline_knn():
 
     '''
@@ -991,6 +998,7 @@ def pipeline_knn():
     print(f"Best accuracy with parameters: {grid_search_knn.best_score_}")
     return grid_search_knn
 #%%
+@app.route('/pipeline_svc')
 def pipeline_svc():
 
     '''
@@ -1128,6 +1136,7 @@ def amount_pred():
 
             budget_dict[key].append(msg_3)
 #%%
+@app.route('/pipeline_trans_reg')
 def pipeline_trans_reg():
 
     '''
@@ -1228,6 +1237,7 @@ Test 4/22/2020: val_accuracy: 1.0 -> overfitted
 #           Test set Validation: {MLP.score(X_test, y_val)}")
 #     return 'Multi-layered perceptron object ready'
 #%%
+@app.route('/pipeline_mlp')
 def pipeline_mlp():
 
     '''
@@ -1269,6 +1279,7 @@ def pipeline_mlp():
     print(f"Best accuracy with parameters: {grid_search.best_score_}")
     return grid_search_mlp
 #%%
+#flask connection in respective pipeline folder
 def store_pickle(model):
 
     """
@@ -1281,6 +1292,7 @@ def store_pickle(model):
     print(f"Model saved in: {os.getcwd()}")
     return model_file
 #%%
+#flask connection in respective pipeline folder
 def open_pickle(model_file):
 
     """
