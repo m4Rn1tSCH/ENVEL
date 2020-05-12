@@ -406,9 +406,12 @@ def store_pickle(file_name, model):
     print(f"Model saved in: {os.getcwd()}")
     return model_file
 #%%
+
+'''STEP 1'''
 bank_df = df_encoder(rng=4)
 
 '''
+STEP 2
 SPLITTING UP THE DATA
 '''
 #drop target variable in feature df
@@ -493,31 +496,32 @@ ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
 #principal components of bank panel has better results than card panel with clearer borders
 
 #generate all gridsearch files and determine the accuracy
-grid_search_lr = pipeline_logreg()
-grid_search_sgd = pipeline_sgd_reg()
-grid_search_svr = pipeline_svr()
+#grid_search_lr = pipeline_logreg()
+#grid_search_sgd = pipeline_sgd_reg()
+#grid_search_svr = pipeline_svr()
 
 #best accuracy
-grid_search_rfr = pipeline_rfr()
-
+#grid_search_rfr = pipeline_rfr()
+'''STEP 2'''
 grid_search_treg = pipeline_trans_reg()
 
 #append objects to a list first
-pipeline_dictionary = {}
+# pipeline_dictionary = {}
 
-estimators= [grid_search_lr, grid_search_sgd, grid_search_svr,
-             grid_search_rfr, grid_search_treg]
+# estimators= [grid_search_lr, grid_search_sgd, grid_search_svr,
+#              grid_search_rfr, grid_search_treg]
 
-for element in estimators:
-    print(element.best_score_)
-    #add accuracies to dictionary
-    regressor = element.estimator
-    accuracy = element.score(X_test, y_test)
-    best_accuracy= element.best_score_
-    #regressor as key and accuracies as tuple value
-    pipeline_dictionary[regressor].append((accuracy, best_accuracy))
+# for element in estimators:
+#     print(element.best_score_)
+#     #add accuracies to dictionary
+#     regressor = element.estimator
+#     accuracy = element.score(X_test, y_test)
+#     best_accuracy= element.best_score_
+#     #regressor as key and accuracies as tuple value
+#     pipeline_dictionary[regressor].append((accuracy, best_accuracy))
 
-logistic_regression_file = store_pickle(file_name="regression_model.sav", model=grid_search_rfr)
+'''STEP 3'''
+logistic_regression_file = store_pickle(file_name="regression_model.sav", model=grid_search_treg)
 
 
 

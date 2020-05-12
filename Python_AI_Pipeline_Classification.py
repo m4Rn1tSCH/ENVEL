@@ -496,17 +496,17 @@ grid_search_rfr = pipeline_svc()
 grid_search_knn = pipeline_knn()
 
 #append objects to a list first
-pipeline_dictionary = {}
+# pipeline_dictionary = {}
 
-estimators= [grid_search_rfr, grid_search_knn]
+# estimators= [grid_search_rfr, grid_search_knn]
 
-for element in estimators:
-    print(element.best_score_)
-    #add accuracies to dictionary
-    regressor = element.estimator
-    accuracy = element.score(X_test, y_test)
-    best_accuracy= element.best_score_
-    #regressor as key and accuracies as tuple value
-    pipeline_dictionary[regressor].append((accuracy, best_accuracy))
+# for element in estimators:
+#     print(element.best_score_)
+#     #add accuracies to dictionary
+#     regressor = element.estimator
+#     accuracy = element.score(X_test, y_test)
+#     best_accuracy= element.best_score_
+#     #regressor as key and accuracies as tuple value
+#     pipeline_dictionary[regressor].append((accuracy, best_accuracy))
 
 classification_file = store_pickle(file_name="classification_model.sav", model=grid_search_rfr)
