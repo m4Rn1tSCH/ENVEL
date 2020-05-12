@@ -48,7 +48,7 @@ import PostgreSQL_credentials as acc
 #from flask_auto_setup import activate_flask
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
-from Python_eda_ai import split_data, pipeline_rfr, pipeline_sgd_reg, pipeline_trans_reg, pipeline_logreg, score_df, open_pickle
+from Python_eda_ai import split_data, pipeline_rfr, pipeline_sgd_reg, pipeline_trans_reg, pipeline_logreg, score_df
 #%%
 
 #CONNECTION TO FLASK/SQL
