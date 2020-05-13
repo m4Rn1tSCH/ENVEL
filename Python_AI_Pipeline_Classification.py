@@ -47,6 +47,32 @@ import PostgreSQL_credentials as acc
 from Python_CSV_export_function import csv_export
 from Python_eda_ai import pipeline_svc, pipeline_knn
 #%%
+#CONNECTION TO FLASK/SQL
+app = Flask(__name__)
+
+#function can be bound to the script by adding a new URL
+@app.route('/encoder')
+
+    #SETTING THE ENVIRONMENT VARIABLE
+    #$ set FLASK_APP=file_name.py
+    #$ flask run
+    # * Running on http://127.0.0.1:5000/
+
+    ####COMMAND PROMPT#####
+    #set env var in windows with name: FLASK_APP and value: path to app.py
+    #switch in dev consolde to this path
+    #C:\path\to\app>set FLASK_APP=hello.py
+
+    #make the flask app listen to all public IPs
+    #flask run --host=0.0.0.0
+
+    #to enable all development features, like debugger and
+    #automatic restart when code changes
+    #set FLASK_ENV=development
+
+    ##joint command to set env var and run the app
+    #env FLASK_APP=Python_inc_exp_bal_database.py flask run
+
 def df_encoder(rng = 4):
     '''
 

@@ -70,7 +70,6 @@ from flask import Flask
 from Python_CSV_export_function import csv_export
 #%%
 #set up flask first as environment variable and start with the command console
-#activate_flask()
     #CONNECTION TO FLASK/SQL
 app = Flask(__name__)
 

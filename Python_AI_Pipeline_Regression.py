@@ -51,7 +51,6 @@ from flask import Flask
 from Python_CSV_export_function import csv_export
 from Python_eda_ai import split_data, pipeline_rfr, pipeline_sgd_reg, pipeline_trans_reg, pipeline_logreg, score_df
 #%%
-
 #CONNECTION TO FLASK/SQL
 app = Flask(__name__)
 
