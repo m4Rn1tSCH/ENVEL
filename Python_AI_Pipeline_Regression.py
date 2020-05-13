@@ -45,6 +45,7 @@ from Python_SQL_connection import execute_read_query, create_connection, close_c
 #contains all credentials
 import PostgreSQL_credentials as acc
 #loads flask into the environment variables
+from flask import Flask
 #from flask_auto_setup import activate_flask
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export

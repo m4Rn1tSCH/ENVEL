@@ -65,20 +65,20 @@ from Python_SQL_connection import execute_read_query, create_connection, close_c
 #contains all credentials
 import PostgreSQL_credentials as acc
 #loads flask into the environment variables
-#from flask_auto_setup import activate_flask
+from flask import Flask
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
 #%%
 #set up flask first as environment variable and start with the command console
 #activate_flask()
     #CONNECTION TO FLASK/SQL
-#app = Flask(__name__)
+app = Flask(__name__)
 
 ##put address here
 #function can be bound to the script by adding a new URL
 #e.g. route('/start') would then start the entire function that follows
 #same can be split up
-#@app.route('/encode')
+@app.route('/encode')
 
 def df_encoder(rng = 4):
     '''
@@ -467,6 +467,7 @@ def df_encoder(rng = 4):
                             'unique_bank_transaction_id'], axis = 1)
     return bank_df
     #%%
+@app.route('/encode')
 def split_data():
     ###################SPLITTING UP THE DATA###########################
     #drop target variable in feature df
