@@ -32,38 +32,7 @@ from Python_SQL_connection import *
 import PostgreSQL_credentials as acc
 #produces lists of unique member IDs from the bank_panel/card_panel
 import Python_IDs_demo_panel
-#%%
-#CONNECTION TO FLASK/SQL
-app = Flask(__name__)
 
-##put address here
-#function can be bound to the script by adding a new URL
-#e.g. route('/start') would then start the entire function that follows
-#same can be split up
-@app.route('/start')
-
-    ########SETTING THE ENVIRONMENT VARIABLE#######
-    #$ set FLASK_APP=file_name.py
-    #$ flask run
-    # * Running on http://127.0.0.1:5000/
-
-    ####COMMAND PROMPT#####
-    #set env var in windows with name: FLASK_APP and value: path to app.py
-    #switch in dev consolde to this path
-    #C:\path\to\app>set FLASK_APP=hello.py
-    ####for production use##
-    #make the flask app listen to all public IPs
-    ##ONLY FOR TESTING; MAJOR SECURITY ISSUE
-    #flask run --host=0.0.0.0
-
-    #to enable all development features, like debugger and
-    #automatic restart when code changes
-    #set FLASK_ENV=development
-
-    ##joint command to set env var and run the app
-    #env FLASK_APP=Python_inc_exp_bal_database.py flask run
-
-##remove paths outside of functions before running it with flask
 
 def preprocessing():
     '''
