@@ -1354,6 +1354,8 @@ print('MSE score = ', mean_squared_error(y_val, y_test), '/ 0.0')
 #%%
 '''
                         APPLICATION OF KERAS
+works as of 5/20/2020; mean sq error is nugged that model can be evaluated wihtout
+accuracy currently not suitable
 '''
 #features: X
 #target: Y
@@ -1427,87 +1429,108 @@ print(len(test), 'test examples')
 #setting up various columns to be features and encode them to be ready for a NN
 layer
 '''
+#packages that are community-created
+#tf.contrib.learn.DNNClassifier
+
+#packages that are a part of the TF core
+#tf.Estimator.DNNClassifier)
+
 #feature columns to use in the layers
 feature_columns_container = []
 
-#numeric column needed in the model
-#wrap all non-numerical columns with indicator col or embedding col
-#the argument default_value governs out of vocabulary values and how to replace them
-
-for header in bank_df.columns:
-    feature_columns_container.append(feature_column.numeric_column(header))
+#this one can only be used with core tensorflow estimators
+for feat in bank_df.columns.values:
+    feature_columns_container.append(tf.feature_column.numeric_column(feat))
 
 #indicator columns
-city = feature_column.numeric_column("city")
-city_ind = feature_column.indicator_column(city)
-feature_columns_container.append(city_ind)
+# city = feature_column.numeric_column("city")
+# city_ind = feature_column.indicator_column(city)
+# feature_columns_container.append(city_ind)
 
-#BUCKETIZED COLUMN
-#categorical column with vocabulary list
-type_col = feature_column.categorical_column_with_vocabulary_list(
-        'type', ['CorePro Deposit',
-                 'CorePro Withdrawal',
-                 'Internal CorePro Transfer',
-                 'Interest Paid',
-                 'CorePro Recurring Withdrawal',
-                 'Manual Adjustment',
-                 'Interest Adjustment'])
-type_pos = feature_column.indicator_column(type_col)
-type_pos_2 = feature_column.embedding_column(type_col, dimension = 8)
-feature_columns_container.append(type_pos)
-feature_columns_container.append(type_pos_2)
+# state = feature_column.numeric_column("state")
+# state_ind = feature_column.indicator_column(state)
+# feature_columns_container.append(state_ind)
 
-#idea: words or fragments are a bucket and can be used to recognize recurring bills
-friendly_desc = feature_column.categorical_column_with_hash_bucket(
-        'friendlyDescription', hash_bucket_size = 2500)
-fr_desc_pos = feature_column.embedding_column(friendly_desc, dimension = 250)
-feature_columns_container.append(fr_desc_pos)
+# merch = feature_column.numeric_column("primary_merchant_name")
+# merch_ind = feature_column.indicator_column(merch)
+# feature_columns_container.append(merch_ind)
+
+# amount_lag = feature_column.numeric_column("amount_mean_lag30")
+# am_f = feature_column.indicator_column(amount_lag)
+# feature_columns_container.append(am_f)
+
+# amount_lag7 = feature_column.numeric_column("amount_mean_lag7")
+# am_f7 = feature_column.indicator_column(amount_lag7)
+# feature_columns_container.append(am_f7)
+#############################
+
+
+# #BUCKETIZED COLUMN
+# categorical column with vocabulary list
+# type_col = feature_column.categorical_column_with_vocabulary_list(
+#         'type', ['CorePro Deposit',
+#                  'CorePro Withdrawal',
+#                  'Internal CorePro Transfer',
+#                  'Interest Paid',
+#                  'CorePro Recurring Withdrawal',
+#                  'Manual Adjustment',
+#                  'Interest Adjustment'])
+# type_pos = feature_column.indicator_column(type_col)
+# type_pos_2 = feature_column.embedding_column(type_col, dimension = 8)
+# feature_columns_container.append(type_pos)
+# feature_columns_container.append(type_pos_2)
+
+# #idea: words or fragments are a bucket and can be used to recognize recurring bills
+# friendly_desc = feature_column.categorical_column_with_hash_bucket(
+#         'friendlyDescription', hash_bucket_size = 2500)
+# fr_desc_pos = feature_column.embedding_column(friendly_desc, dimension = 250)
+# feature_columns_container.append(fr_desc_pos)
 
 #created_date = feature_column.categorical_column_with_hash_bucket(
-        'createdDate', hash_bucket_size = 365)
+#        'createdDate', hash_bucket_size = 365)
 
 #set the indicator column
-cr_d_pos = feature_column.indicator_column(created_date)
-feature_columns_container.append(cr_d_pos)
+#cr_d_pos = feature_column.indicator_column(created_date)
+#feature_columns_container.append(cr_d_pos)
 
 
-#fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
-                                                             ['RGD',
-                                                              'RTN',
-                                                              'NSF'])
-#set the embedding column
-fee_pos = feature_column.embedding_column(fee, dimension = 3)
-feature_columns_container.append(fee_pos)
+# fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
+#                                                              ['RGD',
+#                                                               'RTN',
+#                                                               'NSF'])
+# #set the embedding column
+# fee_pos = feature_column.embedding_column(fee, dimension = 3)
+# feature_columns_container.append(fee_pos)
 
-FICO 700 is the initial score and also the average in the US
-The CS_FICO_num column is in this version converted to a bucketized column
-instead of passing it to the feature_column_container
-#columns remains bucketized without wrapping to embedded or indicator
-fico_num = feature_column.bucketized_column(feature_column.numeric_column('CS_FICO_num'),
-                                                boundaries = [300,
-                                                              580,
-                                                              670,
-                                                              700,
-                                                              740,
-                                                              800,
-                                                              850])
-feature_columns_container.append(fico_num)
+# FICO 700 is the initial score and also the average in the US
+# The CS_FICO_num column is in this version converted to a bucketized column
+# instead of passing it to the feature_column_container
+# #columns remains bucketized without wrapping to embedded or indicator
+# fico_num = feature_column.bucketized_column(feature_column.numeric_column('CS_FICO_num'),
+#                                                 boundaries = [300,
+#                                                               580,
+#                                                               670,
+#                                                               700,
+#                                                               740,
+#                                                               800,
+#                                                               850])
+# feature_columns_container.append(fico_num)
 
 
-institutions = feature_column.categorical_column_with_vocabulary_list(
-        'institutionName', [
-            'Bank of America', 'Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
-            'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
-            'State Street Corporation', 'MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
-            'New York Community Bank', 'CIT Group', 'Santander Bank',
-            'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank'
-            ])
-institutions_pos = feature_column.indicator_column(institutions)
-feature_columns_container.append(institutions_pos)
+# institutions = feature_column.categorical_column_with_vocabulary_list(
+#         'institutionName', [
+#             'Bank of America', 'Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
+#             'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
+#             'State Street Corporation', 'MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
+#             'New York Community Bank', 'CIT Group', 'Santander Bank',
+#             'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank'
+#             ])
+# institutions_pos = feature_column.indicator_column(institutions)
+# feature_columns_container.append(institutions_pos)
 
-crossed_feat = feature_column.crossed_column([age, fico_num], hash_bucket_size = 1000)
-crossed_feat = feature_column.indicator_column(crossed_feat)
-feature_columns_container.append(crossed_feat)
+# crossed_feat = feature_column.crossed_column([age, fico_num], hash_bucket_size = 1000)
+# crossed_feat = feature_column.indicator_column(crossed_feat)
+# feature_columns_container.append(crossed_feat)
 
 ###########EXAMPLES#######
 #numeric column
@@ -1539,9 +1562,9 @@ feature_columns_container.append(crossed_feat)
 ##########################
 #%%
 # A utility method to create a tf.data dataset from a Pandas Dataframe
-def df_to_dataset(dataframe, shuffle = True, batch_size = len(dataframe.index/3)):
+def df_to_dataset(dataframe, shuffle = True, batch_size = 250):
     #dataframe = dataframe.copy()
-    label = dataframe.pop('city')
+    label = dataframe.pop('amount_mean_lag3')
     ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), label))
     if shuffle:
         #buffer size is read into memory!
@@ -1551,9 +1574,9 @@ def df_to_dataset(dataframe, shuffle = True, batch_size = len(dataframe.index/3)
     return ds
 #%%
 ##STEP 2
-#create layers
+#create layers- based on the container that was filled with various encoded columns
 feature_layer = tf.keras.layers.DenseFeatures(feature_columns_container)
-#print(feature_layer)
+
 #%%
 #STEP 3
 batch_size = 250
