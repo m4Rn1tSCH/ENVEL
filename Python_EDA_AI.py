@@ -38,7 +38,7 @@ from sklearn.compose import TransformedTargetRegressor
 from sklearn.linear_model import LogisticRegression, LinearRegression, SGDRegressor
 from sklearn.neighbors import KNeighborsClassifier, LocalOutlierFactor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier, RandomForestClassifier
-from sklearn.neural_network import MLPClassifier
+from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.svm import SVR, SVC
 from sklearn.cluster import KMeans
 
@@ -470,10 +470,6 @@ def df_encoder(rng = 4):
 def split_data():
     ###################SPLITTING UP THE DATA###########################
     #drop target variable in feature df
-    #all remaining columns will be the features
-    bank_df = bank_df.drop(['unique_mem_id',
-                            'unique_bank_account_id',
-                            'unique_bank_transaction_id'], axis = 1)
     ####
     model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
     #On some occasions the label needs to be a 1d array;
@@ -1079,12 +1075,12 @@ def pipeline_svc():
     return grid_search_svc
 #%%
 #generate a dataframe for pipeline values
-def score_df():
-    gs_df = pd.DataFrame(data = {'Given Parameters':grid_search.param_grid,
-                                'Best Parameters':grid_search.best_params_,
-                                'Mean Score':grid_search.score(X_test, y_test),
-                                'Mean Score(scaled)':grid_search.score(X_test_scaled, y_test),
-                                'Highest Prediction Score':grid_search.best_score_
+def score_df(gs_object):
+    gs_df = pd.DataFrame(data = {'Given Parameters':gs_object.param_grid,
+                                'Best Parameters':gs_object.best_params_,
+                                'Mean Score':gs_object.score(X_test, y_test),
+                                'Mean Score(scaled)':gs_object.score(X_test_scaled, y_test),
+                                'Highest Prediction Score':gs_object.best_score_
                                 })
     print(gs_df)
 #%%
@@ -1258,8 +1254,6 @@ def pipeline_mlp():
                               learning_rate='constant'))])
 
     #Create a parameter grid
-    #parameter grids provide the values for the models to try
-    #PARAMETERS NEED TO HAVE THE SAME LENGTH
     #Parameter explanation
     #   C: penalty parameter
     #   gamma: [standard 'auto' = 1/n_feat], kernel coefficient
@@ -1270,14 +1264,55 @@ def pipeline_mlp():
         'clf__alpha':[0.0001, 0.001]}
 
     #Initialize the grid search object
-    grid_search = GridSearchCV(pipe, param_grid = params)
+    grid_search_mlp = GridSearchCV(pipe, param_grid = params)
 
     #Fit it to the data and print the best value combination
     print(f"Pipeline 7; {dt.today()}")
-    print(grid_search.fit(X_train, y_train).best_params_)
-    print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
-    print(f"Best accuracy with parameters: {grid_search.best_score_}")
+    print(grid_search_mlp.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search_mlp.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search_mlp.best_score_}")
     return grid_search_mlp
+#%%
+@app.route('/pipeline_mlpreg')
+def pipeline_mlpreg():
+
+    '''
+    Pipeline 8 - SelectKBest and Multi-Layer Perceptron Regressor
+    ##########
+    Pipeline 8; 2020-05-20 11:50:43
+    {'clf__alpha': 0.001, 'clf__max_iter': 1200, 'feature_selection__k': 5}
+    Overall score: 0.9632
+    Best accuracy with parameters: 0.9623355019137264
+    '''
+    #Create pipeline with feature selector and classifier
+    #replace with classifier or regressor
+    #learning_rate = 'adaptive'; when solver='sgd'
+    pipe = Pipeline([
+        ('feature_selection', SelectKBest(score_func = chi2)),
+        ('clf', MLPRegressor(activation='relu',
+                              solver='lbfgs',
+                              learning_rate='constant'))])
+
+    #Create a parameter grid
+    #Parameter explanation
+    #   C: penalty parameter
+    #   gamma: [standard 'auto' = 1/n_feat], kernel coefficient
+    #
+    params = {
+        'feature_selection__k':[4, 5, 6, 7],
+        'clf__max_iter':[800, 1200, 1500],
+        'clf__alpha':[0.0001, 0.001, 0.01]}
+
+    #Initialize the grid search object
+    grid_search_mlpreg = GridSearchCV(pipe, param_grid = params)
+
+    #Fit it to the data and print the best value combination
+    print(f"Pipeline 8; {dt.today()}")
+    print(grid_search_mlpreg.fit(X_train_minmax, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search_mlpreg.score(X_test_minmax, y_test)))
+    print(f"Best accuracy with parameters: {grid_search_mlpreg.best_score_}")
+
+    return grid_search_mlpreg
 #%%
 #flask connection in respective pipeline folder
 def store_pickle(model):
@@ -1323,9 +1358,9 @@ print('MSE score = ', mean_squared_error(y_val, y_test), '/ 0.0')
 #features: X
 #target: Y
 
-features = np.array(X_train_scaled)
+features = np.array(X_train)
 targets = np.array(y_train)
-features_validation = np.array(X_test_scaled)
+features_validation = np.array(X_test)
 targets_validation = np.array(y_test)
 
 print(features[:10])
@@ -1359,7 +1394,7 @@ for i in range(epochs_ratio):
     print("Training MSE:", score[1])
     score = model.evaluate(features_validation, targets_validation)
     print("Validation MSE:", score[1], "\n")
-    hist = np.concatenate((hist, np.array(history.history['mean_squared_error'])), axis = 0)
+    #hist = np.concatenate((hist, np.array(history.history['mean_squared_error'])), axis = 0)
 #%%
 
 #plot metrics
@@ -1370,7 +1405,7 @@ predictions = model.predict(features_validation, verbose=0)
 print('R2 score = ', r2_score(y_test, predictions), '/ 1.0')
 print('MSE score = ', mean_squared_error(targets_validation, predictions), '/ 0.0')
 #######
-plt.plot(features_validation.as_matrix()[0:50], '+', color ='blue', alpha=0.7)
+plt.plot(features_validation[0:50], '+', color ='blue', alpha=0.7)
 plt.plot(predictions[0:50], 'ro', color ='red', alpha=0.5)
 plt.show()
 #%%
@@ -1409,70 +1444,70 @@ feature_columns_container.append(city_ind)
 
 #BUCKETIZED COLUMN
 #categorical column with vocabulary list
-#type_col = feature_column.categorical_column_with_vocabulary_list(
-#        'type', ['CorePro Deposit',
-#                 'CorePro Withdrawal',
-#                 'Internal CorePro Transfer',
-#                 'Interest Paid',
-#                 'CorePro Recurring Withdrawal',
-#                 'Manual Adjustment',
-#                 'Interest Adjustment'])
-#type_pos = feature_column.indicator_column(type_col)
-#type_pos_2 = feature_column.embedding_column(type_col, dimension = 8)
-#feature_columns_container.append(type_pos)
-#feature_columns_container.append(type_pos_2)
+type_col = feature_column.categorical_column_with_vocabulary_list(
+        'type', ['CorePro Deposit',
+                 'CorePro Withdrawal',
+                 'Internal CorePro Transfer',
+                 'Interest Paid',
+                 'CorePro Recurring Withdrawal',
+                 'Manual Adjustment',
+                 'Interest Adjustment'])
+type_pos = feature_column.indicator_column(type_col)
+type_pos_2 = feature_column.embedding_column(type_col, dimension = 8)
+feature_columns_container.append(type_pos)
+feature_columns_container.append(type_pos_2)
 
 #idea: words or fragments are a bucket and can be used to recognize recurring bills
-#friendly_desc = feature_column.categorical_column_with_hash_bucket(
-#        'friendlyDescription', hash_bucket_size = 2500)
-#fr_desc_pos = feature_column.embedding_column(friendly_desc, dimension = 250)
-#feature_columns_container.append(fr_desc_pos)
+friendly_desc = feature_column.categorical_column_with_hash_bucket(
+        'friendlyDescription', hash_bucket_size = 2500)
+fr_desc_pos = feature_column.embedding_column(friendly_desc, dimension = 250)
+feature_columns_container.append(fr_desc_pos)
 
 #created_date = feature_column.categorical_column_with_hash_bucket(
-#        'createdDate', hash_bucket_size = 365)
+        'createdDate', hash_bucket_size = 365)
 
 #set the indicator column
-#cr_d_pos = feature_column.indicator_column(created_date)
-#feature_columns_container.append(cr_d_pos)
+cr_d_pos = feature_column.indicator_column(created_date)
+feature_columns_container.append(cr_d_pos)
 
 
 #fee = feature_column.categorical_column_with_vocabulary_list('feeCode',
-#                                                             ['RGD',
-#                                                              'RTN',
-#                                                              'NSF'])
+                                                             ['RGD',
+                                                              'RTN',
+                                                              'NSF'])
 #set the embedding column
-#fee_pos = feature_column.embedding_column(fee, dimension = 3)
-#feature_columns_container.append(fee_pos)
+fee_pos = feature_column.embedding_column(fee, dimension = 3)
+feature_columns_container.append(fee_pos)
 
-#FICO 700 is the initial score and also the average in the US
-#The CS_FICO_num column is in this version converted to a bucketized column
-#instead of passing it to the feature_column_container
+FICO 700 is the initial score and also the average in the US
+The CS_FICO_num column is in this version converted to a bucketized column
+instead of passing it to the feature_column_container
 #columns remains bucketized without wrapping to embedded or indicator
-#fico_num = feature_column.bucketized_column(feature_column.numeric_column('CS_FICO_num'),
-#                                                boundaries = [300,
-#                                                              580,
-#                                                              670,
-#                                                              700,
-#                                                              740,
-#                                                              800,
-#                                                              850])
-#feature_columns_container.append(fico_num)
+fico_num = feature_column.bucketized_column(feature_column.numeric_column('CS_FICO_num'),
+                                                boundaries = [300,
+                                                              580,
+                                                              670,
+                                                              700,
+                                                              740,
+                                                              800,
+                                                              850])
+feature_columns_container.append(fico_num)
 
 
-#institutions = feature_column.categorical_column_with_vocabulary_list(
-#        'institutionName', [
-#            'Bank of America', 'Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
-#            'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
-#            'State Street Corporation', 'MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
-#            'New York Community Bank', 'CIT Group', 'Santander Bank',
-#            'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank'
-#            ])
-#institutions_pos = feature_column.indicator_column(institutions)
-#feature_columns_container.append(institutions_pos)
+institutions = feature_column.categorical_column_with_vocabulary_list(
+        'institutionName', [
+            'Bank of America', 'Toronto Dominion Bank', 'Citizens Bank', 'Webster Bank',
+            'CHASE Bank', 'Citigroup', 'Capital One', 'HSBC Bank USA',
+            'State Street Corporation', 'MUFG Union Bank', 'Wells Fargo & Co.', 'Barclays',
+            'New York Community Bank', 'CIT Group', 'Santander Bank',
+            'Royal Bank of Scotland', 'First Rand Bank', 'Budapest Bank'
+            ])
+institutions_pos = feature_column.indicator_column(institutions)
+feature_columns_container.append(institutions_pos)
 
-#crossed_feat = feature_column.crossed_column([age, fico_num], hash_bucket_size = 1000)
-#crossed_feat = feature_column.indicator_column(crossed_feat)
-#feature_columns_container.append(crossed_feat)
+crossed_feat = feature_column.crossed_column([age, fico_num], hash_bucket_size = 1000)
+crossed_feat = feature_column.indicator_column(crossed_feat)
+feature_columns_container.append(crossed_feat)
 
 ###########EXAMPLES#######
 #numeric column
