@@ -553,7 +553,7 @@ def split_data():
     #isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
     #np.corrcoef(np.array(isCredit_num), amounts)
 
-    return X_train, X_train_scaled, X_train_minmax, X_train_pca, X_test, X_test_scaled, X_test_minmax, X_test_pca, y_train, y_test
+    return [X_train, X_train_scaled, X_train_minmax, X_train_pca, X_test, X_test_scaled, X_test_minmax, X_test_pca, y_train, y_test]
 #%%
 @app.route('/pipeline_rfe')
 def pipeline_rfe():
@@ -1442,6 +1442,8 @@ feature_columns_container = []
 for feat in bank_df.columns.values:
     feature_columns_container.append(tf.feature_column.numeric_column(feat))
 
+#feature_columns_container.append(feature_column.numeric_column(bank_df['amount_mean_lag3']))
+
 #indicator columns
 # city = feature_column.numeric_column("city")
 # city_ind = feature_column.indicator_column(city)
@@ -1563,7 +1565,7 @@ for feat in bank_df.columns.values:
 #%%
 # A utility method to create a tf.data dataset from a Pandas Dataframe
 def df_to_dataset(dataframe, shuffle = True, batch_size = 250):
-    #dataframe = dataframe.copy()
+    dataframe = dataframe.copy()
     label = dataframe.pop('amount_mean_lag3')
     ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), label))
     if shuffle:
@@ -1610,6 +1612,41 @@ print("Accuracy:", accuracy)
 ##STEP 7
 # Infer labels on a batch
 predictions = model.predict(test_ds)
+#%%
+'''
+            Tensorflow Rework
+'''
+#pass all feature columns as list
+feature_names = [bank_df.columns.values]
+def my_input_fn(dataframe, perform_shuffle=False, repeat_count=1):
+    def set_labels():
+        bank_df = bank_df.copy()
+        label = bank_df.pop('amount_mean_lag3')
+        features = bank_df.columns.drop('amount_lag3')# Everything (but last element) are the features
+        d = dict(zip(feature_names, features)), label
+        return d
+
+    label = bank_df.pop('amount_mean_lag3')
+    dataset = tf.data.Dataset.from_tensor_slices(bank_df)
+    if perform_shuffle:
+        # Randomizes input using a window of 256 elements (read into memory)
+        dataset = dataset.shuffle(buffer_size=256)
+        # Repeats dataset this # times
+    dataset = dataset.repeat(repeat_count)
+    dataset = dataset.batch(32)  # Batch size to use
+    iterator = dataset.make_one_shot_iterator()
+    batch_features, batch_labels = iterator.get_next()
+
+    return batch_features, batch_labels
+#%%
+next_batch = my_input_fn(dataframe=bank_df, perform_shuffle=True) # Will return 32 random elements
+
+# Now let's try it out, retrieving and printing one batch of data.
+# Although this code looks strange, you don't need to understand
+# the details.
+with tf.Session() as sess:
+    first_batch = sess.run(next_batch)
+print(first_batch)
 #%%
 '''
 Application of an Unsupervised Learning Algorithms
