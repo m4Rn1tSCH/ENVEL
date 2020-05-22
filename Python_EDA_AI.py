@@ -1742,8 +1742,8 @@ batch_size = 50
 n_epochs = 100
 train_set_size = x_train.shape[0]
 test_set_size = x_test.shape[0]
-#tf.reset_default_graph()
-
+tf.reset_default_graph()
+tf.Graph().as_default()
 #this empty placeholder will allow initialization and feeding
 X = tf.compat.v1.placeholder(tf.float32, [None, n_steps, n_inputs])
 y = tf.compat.v1.placeholder(tf.float32, [None, n_outputs])
