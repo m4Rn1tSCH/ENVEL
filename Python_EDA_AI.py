@@ -53,7 +53,7 @@ from keras.layers.core import Dense, Dropout, Activation
 
 
 import tensorflow as tf
-tf.compat.v1.enable_eager_execution()
+#tf.compat.v1.enable_eager_execution()
 from tensorflow import feature_column
 from tensorflow.keras import layers
 
@@ -1719,7 +1719,7 @@ def load_data(stock, seq_len):
     x_test = data[train_set_size+valid_set_size:,:-1,:]
     y_test = data[train_set_size+valid_set_size:,-1,:]
     return [x_train, y_train, x_valid, y_valid, x_test, y_test]
-
+#%%
 x_train, y_train, x_valid, y_valid, x_test, y_test = load_data(df_test_norm, seq_len)
 print('x_train.shape = ',x_train.shape)
 print('y_train.shape = ', y_train.shape)
@@ -1736,15 +1736,17 @@ n_steps = seq_len-1
 n_inputs = 4
 n_neurons = 200
 n_outputs = 4
-n_layers = 2
+n_layers = 3
 learning_rate = 0.001
 batch_size = 50
 n_epochs = 100
 train_set_size = x_train.shape[0]
 test_set_size = x_test.shape[0]
-tf.reset_default_graph()
-X = tf.placeholder(tf.float32, [None, n_steps, n_inputs])
-y = tf.placeholder(tf.float32, [None, n_outputs])
+#tf.reset_default_graph()
+
+#this empty placeholder will allow initialization and feeding
+X = tf.compat.v1.placeholder(tf.float32, [None, n_steps, n_inputs])
+y = tf.compat.v1.placeholder(tf.float32, [None, n_outputs])
 
 # function to get the next batch
 index_in_epoch = 0;
@@ -1756,45 +1758,60 @@ def get_next_batch(batch_size):
     start = index_in_epoch
     index_in_epoch += batch_size
     if index_in_epoch > x_train.shape[0]:
-        np.random.shuffle(perm_array) # shuffle permutation array
-        start = 0 # start next epoch
+        # shuffle permutation array
+        np.random.shuffle(perm_array)
+        # start next epoch
+        start = 0
         index_in_epoch = batch_size
     end = index_in_epoch
     return x_train[perm_array[start:end]], y_train[perm_array[start:end]]
 
 #RNN
-layers = [tf.contrib.rnn.BasicRNNCell(num_units=n_neurons, activation=tf.nn.elu)
+#new version from Keras already
+layers = [tf.keras.layers.SimpleRNNCell(units=n_neurons, activation=tf.nn.elu)
          for layer in range(n_layers)]
 
+# tf.compat.v1.nn.rnn_cell.BasicRNNCell(
+#     num_units, activation=None, reuse=None, name=None, dtype=None, **kwargs
+# )
+
 # LSTM
-# layers = [tf.contrib.rnn.BasicLSTMCell(num_units=n_neurons, activation=tf.nn.elu)
+# layers = [tf.compat.v1.nn.rnn_cell.BasicLSTMCell(num_units=n_neurons, activation=tf.nn.elu)
 #         for layer in range(n_layers)]
 
-#LSTM with peephole connections
-# layers = [tf.contrib.rnn.LSTMCell(num_units=n_neurons,
-#                                   activation=tf.nn.leaky_relu, use_peepholes = True)
-#           for layer in range(n_layers)]
-
 #GRU
-# layers = [tf.contrib.rnn.GRUCell(num_units=n_neurons, activation=tf.nn.leaky_relu)
+# layers = [tf.compat.v1.nn.rnn_cell.GRUCell(num_units=n_neurons, activation=tf.nn.leaky_relu)
 #           for layer in range(n_layers)]
 
-multi_layer_cell = tf.contrib.rnn.MultiRNNCell(layers)
-rnn_outputs, states = tf.nn.dynamic_rnn(multi_layer_cell, X, dtype=tf.float32)
+# tf.compat.v1.nn.rnn_cell.GRUCell(
+#     num_units, activation=None, reuse=None, kernel_initializer=None,
+#     bias_initializer=None, name=None, dtype=None, **kwargs
+# )
+
+
+
+#multi_layer_cell = tf.compat.v1.nn.rnn_cell.MultiRNNCell(layers)
+rnn_outputs, states = tf.keras.layers.RNN(layers, X, dtype=tf.float32)
 stacked_rnn_outputs = tf.reshape(rnn_outputs, [-1, n_neurons])
-stacked_outputs = tf.layers.dense(stacked_rnn_outputs, n_outputs)
+stacked_outputs = tf.keras.layers.Dense(stacked_rnn_outputs, n_outputs)
 outputs = tf.reshape(stacked_outputs, [-1, n_steps, n_outputs])
 outputs = outputs[:,n_steps-1,:] # keep only last output of sequence
 
 # Cost function
 loss = tf.reduce_mean(tf.square(outputs - y))
 
-#optimizer
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+# optimizer
+optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=0.001,
+                                             beta1=0.9,
+                                             beta2=0.999,
+                                             epsilon=1e-08,
+                                             use_locking=False,
+                                             name='Adam')
+
 training_op = optimizer.minimize(loss)
 
 # Fitting the model
-with tf.Session() as sess:
+with tf.compat.v1.Session() as sess:
     sess.run(tf.global_variables_initializer())
     for iteration in range(int(n_epochs*train_set_size/batch_size)):
         x_batch, y_batch = get_next_batch(batch_size) # fetch the next training batch
