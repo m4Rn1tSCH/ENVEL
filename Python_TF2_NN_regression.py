@@ -19,8 +19,8 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 import tensorflow as tf
 tf.compat.v1.disable_eager_execution()
 from tensorflow import feature_column
-from tensorflow.keras import Model
-from tensorflow.keras.layers import Dense, Flatten, Conv2D
+from tensorflow.keras import Model, layers
+
 
 #imported custom function
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
@@ -507,24 +507,28 @@ dataset.head()
 dataset.tail()
 dataset.isna().sum()
 #%%
-train_dataset = dataset.sample(frac=0.5,random_state=0)
-test_dataset = dataset.drop(train_dataset.index)
-sns.pairplot(train_dataset[["amount", "description", "city", "account_score"]], diag_kind="kde")
-train_stats = train_dataset.describe()
-train_stats.pop("MPG")
-train_stats = train_stats.transpose()
-train_stats
-train_labels = train_dataset.pop('MPG')
-test_labels = test_dataset.pop('MPG')
-#more easily scalable and shorter
-def normalize_data(df):
-    min_max_scaler = MinMaxScaler()
-    for col in df.columns:
-        df[col] = min_max_scaler.fit_transform(df[col].values.reshape(-1,1))
-    return df
+#LABEL ALREADY SEPARATED WITH SPLIT_DATA FUNCTION; NO SPLIT/SCALING NEEDED ANYMORE
+
+# train_dataset = dataset.sample(frac=0.5,random_state=0)
+# test_dataset = dataset.drop(train_dataset.index)
+# sns.pairplot(train_dataset[["amount", "description", "city", "account_score"]], diag_kind="kde")
+# train_stats = train_dataset.describe()
+# train_stats.pop("MPG")
+# train_stats = train_stats.transpose()
+# train_stats
+# train_labels = train_dataset.pop('MPG')
+# test_labels = test_dataset.pop('MPG')
+# #more easily scalable and shorter
+# def normalize_data(df):
+#     min_max_scaler = MinMaxScaler()
+#     for col in df.columns:
+#         df[col] = min_max_scaler.fit_transform(df[col].values.reshape(-1,1))
+#     return df
 
 def build_model():
-    model = keras.Sequential([
+    # this is a tensorflow.keras model!
+    # mixing tensorflow.keras and pure keras wont work!
+    model = tf.keras.Sequential([
         layers.Dense(64, activation='relu', input_shape=[len(train_dataset.keys())]),
         layers.Dense(64, activation='relu'),
         layers.Dense(1)
@@ -535,14 +539,14 @@ def build_model():
     model.compile(loss='mse',
                   optimizer=optimizer,
                   metrics=['mae', 'mse'])
-return model
+    return model
 #%%
 model = build_model()
 model.summary()
 #%%
-example_batch = normed_train_data[:10]
+example_batch = X_train[:10]
 example_result = model.predict(example_batch)
-example_result
+print(example_result)
 #%%
 # train the model
 EPOCHS = 1000
