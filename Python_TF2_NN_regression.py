@@ -503,15 +503,15 @@ def split_data():
 '''
 column_names = [bank_df.columns.values]
 dataset = bank_df.copy()
-dataset.head()
-dataset.tail()
-dataset.isna().sum()
+print(dataset.head())
+print(dataset.tail())
+print(dataset.isna().sum())
 #%%
 #LABEL ALREADY SEPARATED WITH SPLIT_DATA FUNCTION; NO SPLIT/SCALING NEEDED ANYMORE
 
-# train_dataset = dataset.sample(frac=0.5,random_state=0)
-# test_dataset = dataset.drop(train_dataset.index)
-# sns.pairplot(train_dataset[["amount", "description", "city", "account_score"]], diag_kind="kde")
+train_dataset = dataset.sample(frac=0.5,random_state=0)
+test_dataset = dataset.drop(train_dataset.index)
+sns.pairplot(train_dataset[["amount", "description", "city", "account_score"]], diag_kind="kde")
 # train_stats = train_dataset.describe()
 # train_stats.pop("MPG")
 # train_stats = train_stats.transpose()
