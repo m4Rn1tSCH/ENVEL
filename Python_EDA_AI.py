@@ -53,9 +53,11 @@ from keras.layers.core import Dense, Dropout, Activation
 
 
 import tensorflow as tf
-#tf.compat.v1.enable_eager_execution()
+tf.compat.v1.disable_eager_execution()
 from tensorflow import feature_column
-from tensorflow.keras import layers
+from tensorflow.keras import Model
+from tensorflow.keras.layers import Dense, Flatten, Conv2D
+
 
 #imported custom function
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
@@ -1616,8 +1618,298 @@ predictions = model.predict(test_ds)
 '''
             Tensorflow Rework
 '''
+print("TensorFlow version: {}".format(tf.__version__))
+print("Eager execution: {}".format(tf.executing_eagerly()))
 
-#rework code here
+# split data in 80%/10%/10% train/validation/test sets
+valid_set_size_percentage = 10
+test_set_size_percentage = 10
+
+# load data
+def load_data(df, seq_len):
+    data_raw = df.values # convert to numpy array
+    data = []
+
+    # create all possible sequences of length seq_len
+    for index in range(len(data_raw) - seq_len):
+        data.append(data_raw[index: index + seq_len])
+
+    data = np.array(data);
+    valid_set_size = int(np.round(valid_set_size_percentage/100*data.shape[0]));
+    test_set_size = int(np.round(test_set_size_percentage/100*data.shape[0]));
+    train_set_size = data.shape[0] - (valid_set_size + test_set_size);
+
+    x_train = data[:train_set_size,:-1,:]
+    y_train = data[:train_set_size,-1,:]
+
+    x_valid = data[train_set_size:train_set_size+valid_set_size,:-1,:]
+    y_valid = data[train_set_size:train_set_size+valid_set_size,-1,:]
+
+    x_test = data[train_set_size+valid_set_size:,:-1,:]
+    y_test = data[train_set_size+valid_set_size:,-1,:]
+
+    return [x_train, y_train, x_valid, y_valid, x_test, y_test]
+#%%
+# create train, test data
+seq_len = 20 # choose sequence length
+X_train_NN, y_train_NN, X_valid_NN, y_valid_NN, X_test_NN, y_test_NN = load_data(bank_df, seq_len)
+print('x_train.shape = ',X_train.shape)
+print('y_train.shape = ', y_train.shape)
+print('x_valid.shape = ',X_valid.shape)
+print('y_valid.shape = ', y_valid.shape)
+print('x_test.shape = ', X_test.shape)
+print('y_test.shape = ',y_test.shape)
+
+## Basic Cell RNN in tensorflow
+index_in_epoch = 0;
+perm_array  = np.arange(X_train.shape[0])
+np.random.shuffle(perm_array)
+
+# function to get the next batch
+def get_next_batch(batch_size):
+    global index_in_epoch, X_train, perm_array
+    start = index_in_epoch
+    index_in_epoch += batch_size
+
+    if index_in_epoch > X_train.shape[0]:
+        # shuffle permutation array
+        np.random.shuffle(perm_array)
+        # start next epoch
+        start = 0
+        index_in_epoch = batch_size
+
+    end = index_in_epoch
+    return X_train[perm_array[start:end]], y_train[perm_array[start:end]]
+
+# parameters
+n_steps = seq_len-1
+n_inputs = len(bank_df.columns)
+n_neurons = 200
+n_outputs = len(bank_df.columns)
+n_layers = 2
+learning_rate = 0.001
+batch_size = 50
+n_epochs = 100
+train_set_size = X_train.shape[0]
+test_set_size = X_test.shape[0]
+
+#tf.reset_default_graph()
+tf.Graph().as_default()
+#Tensorflow has eager execution activate by default
+#this prevents usage of placeholders; eager exec needs to be disabled
+#this empty placeholder will allow initialization and feeding
+X = tf.compat.v1.placeholder(tf.float32, [None, n_steps, n_inputs])
+y = tf.compat.v1.placeholder(tf.float32, [None, n_outputs])
+#%%
+# use Basic RNN Cell
+# possibility to make values in layers float 64 automatically
+#tf.keras.backend.set_floatx('float64')
+layers = [tf.keras.layers.SimpleRNNCell(units=n_neurons, activation=tf.nn.elu)
+          for layer in range(n_layers)]
+# feed the inputs, and the layers to a RNN
+inputs = X_train
+rnn = tf.keras.layers.RNN(layers)
+# The output has shape `[32, 4]`
+output = rnn(inputs)
+
+
+# rnn = tf.keras.layers.RNN(
+#     tf.keras.layers.SimpleRNNCell(4),
+#     return_sequences=True,
+#     return_state=True)
+
+# whole_sequence_output has shape `[32, 10, 4]`.
+# final_state has shape `[32, 4]`.
+whole_sequence_output, final_state = rnn(inputs)
+#%%
+
+# use Basic LSTM Cell
+#layers = [tf.contrib.rnn.BasicLSTMCell(num_units=n_neurons, activation=tf.nn.elu)
+#          for layer in range(n_layers)]
+
+# use LSTM Cell with peephole connections
+#layers = [tf.contrib.rnn.LSTMCell(num_units=n_neurons,
+#                                  activation=tf.nn.leaky_relu, use_peepholes = True)
+#          for layer in range(n_layers)]
+
+# use GRU cell
+#layers = [tf.contrib.rnn.GRUCell(num_units=n_neurons, activation=tf.nn.leaky_relu)
+#          for layer in range(n_layers)]
+
+single_output = tf.reshape(output, [-1, n_neurons])
+#stacked_outputs = tf.keras.layers.Dense(32, n_outputs)
+reshaped_outputs = tf.reshape(single_output, [-1, n_steps, n_outputs])
+# keep only last output of sequence
+last_output = reshaped_outputs[:,n_steps-1,:]
+
+# Define optimizer and loss function; operation in order to minimize
+# loss function = mean squared error
+loss = tf.reduce_mean(tf.square(final_state - y))
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9,
+                                     beta_2=0.999, epsilon=1e-07,
+                                     amsgrad=False, name='Adam')
+
+training_op = optimizer.minimize(loss)
+#%%
+# run graph
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    for iteration in range(int(n_epochs*train_set_size/batch_size)):
+        x_batch, y_batch = get_next_batch(batch_size) # fetch the next training batch
+        sess.run(training_op, feed_dict={X: x_batch, y: y_batch})
+        if iteration % int(5*train_set_size/batch_size) == 0:
+            mse_train = loss.eval(feed_dict={X: x_train, y: y_train})
+            mse_valid = loss.eval(feed_dict={X: x_valid, y: y_valid})
+            print('%.2f epochs: MSE train/valid = %.6f/%.6f'%(
+                iteration*batch_size/train_set_size, mse_train, mse_valid))
+
+    y_train_pred = sess.run(outputs, feed_dict={X: x_train})
+    y_valid_pred = sess.run(outputs, feed_dict={X: x_valid})
+    y_test_pred = sess.run(outputs, feed_dict={X: x_test})
+#%%
+'''
+                Tensorflow v2 Tutorial
+'''
+import os
+import matplotlib.pyplot as plt
+
+import tensorflow as tf
+tf.compat.v1.enable_eager_execution()
+print("TensorFlow version: {}".format(tf.__version__))
+print("Eager execution: {}".format(tf.executing_eagerly()))
+
+
+train_dataset_url = "https://storage.googleapis.com/download.tensorflow.org/data/iris_training.csv"
+
+train_dataset_fp = tf.keras.utils.get_file(fname=os.path.basename(train_dataset_url),
+                                           origin=train_dataset_url)
+
+print("Local copy of the dataset file: {}".format(train_dataset_fp))
+
+# column order in CSV file
+column_names = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width', 'species']
+
+feature_names = column_names[:-1]
+label_name = column_names[-1]
+
+print("Features: {}".format(feature_names))
+print("Label: {}".format(label_name))
+
+batch_size = 32
+
+train_dataset = tf.data.experimental.make_csv_dataset(
+    train_dataset_fp,
+    batch_size,
+    column_names=column_names,
+    label_name=label_name,
+    num_epochs=1)
+
+features, labels = next(iter(train_dataset))
+
+print(features)
+
+plt.scatter(features['petal_length'],
+            features['sepal_length'],
+            c=labels,
+            cmap='viridis')
+
+plt.xlabel("Petal length")
+plt.ylabel("Sepal length")
+plt.show()
+
+def pack_features_vector(features, labels):
+  """Pack the features into a single array."""
+  features = tf.stack(list(features.values()), axis=1)
+  return features, labels
+
+train_dataset = train_dataset.map(pack_features_vector)
+
+features, labels = next(iter(train_dataset))
+
+print(features[:5])
+
+
+model = tf.keras.Sequential([
+  tf.keras.layers.Dense(10, activation=tf.nn.relu, input_shape=(4,)),  # input shape required
+  tf.keras.layers.Dense(10, activation=tf.nn.relu),
+  tf.keras.layers.Dense(3)
+])
+
+predictions = model(features)
+predictions[:5]
+tf.nn.softmax(predictions[:5])
+print("Prediction: {}".format(tf.argmax(predictions, axis=1)))
+print("    Labels: {}".format(labels))
+loss_object = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+def loss(model, x, y, training):
+  # training=training is needed only if there are layers with different
+  # behavior during training versus inference (e.g. Dropout).
+  y_ = model(x, training=training)
+
+  return loss_object(y_true=y, y_pred=y_)
+
+
+l = loss(model, features, labels, training=False)
+print("Loss test: {}".format(l))
+def grad(model, inputs, targets):
+  with tf.GradientTape() as tape:
+    loss_value = loss(model, inputs, targets, training=True)
+  return loss_value, tape.gradient(loss_value, model.trainable_variables)
+optimizer = tf.keras.optimizers.SGD(learning_rate=0.01)
+loss_value, grads = grad(model, features, labels)
+
+print("Step: {}, Initial Loss: {}".format(optimizer.iterations.numpy(),
+                                          loss_value.numpy()))
+
+optimizer.apply_gradients(zip(grads, model.trainable_variables))
+
+print("Step: {},         Loss: {}".format(optimizer.iterations.numpy(),
+                                          loss(model, features, labels, training=True).numpy()))
+
+## Note: Rerunning this cell uses the same model variables
+
+# Keep results for plotting
+train_loss_results = []
+train_accuracy_results = []
+
+num_epochs = 201
+
+for epoch in range(num_epochs):
+  epoch_loss_avg = tf.keras.metrics.Mean()
+  epoch_accuracy = tf.keras.metrics.SparseCategoricalAccuracy()
+
+  # Training loop - using batches of 32
+  for x, y in train_dataset:
+    # Optimize the model
+    loss_value, grads = grad(model, x, y)
+    optimizer.apply_gradients(zip(grads, model.trainable_variables))
+
+    # Track progress
+    epoch_loss_avg.update_state(loss_value)  # Add current batch loss
+    # Compare predicted label to actual label
+    # training=True is needed only if there are layers with different
+    # behavior during training versus inference (e.g. Dropout).
+    epoch_accuracy.update_state(y, model(x, training=True))
+
+  # End epoch
+  train_loss_results.append(epoch_loss_avg.result())
+  train_accuracy_results.append(epoch_accuracy.result())
+
+  if epoch % 50 == 0:
+    print("Epoch {:03d}: Loss: {:.3f}, Accuracy: {:.3%}".format(epoch,
+                                                                epoch_loss_avg.result(),
+                                                                epoch_accuracy.result()))
+
+fig, axes = plt.subplots(2, sharex=True, figsize=(12, 8))
+fig.suptitle('Training Metrics')
+
+axes[0].set_ylabel("Loss", fontsize=14)
+axes[0].plot(train_loss_results)
+
+axes[1].set_ylabel("Accuracy", fontsize=14)
+axes[1].set_xlabel("Epoch", fontsize=14)
+axes[1].plot(train_accuracy_results)
+plt.show()
 #%%
 '''
 Application of an Unsupervised Learning Algorithms
