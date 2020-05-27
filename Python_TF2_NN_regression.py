@@ -528,24 +528,9 @@ for feat, targ in dataset.take(5):
 
 train_dataset = dataset.shuffle(len(bank_df)).batch(2)
 #test_dataset = dataset.drop(train_dataset.index)
-#%%
-# def df_to_dataset(shuffle = True, batch_size = 150):
-#     # features and labels
-#     features = X_train
-#     labels = y_train
-#     #ds = dataframe.copy()
-#     # Both the features and the labels tensors can be converted
-#     # to a Dataset object separately and combined after.
-#     features_dataset = tf.data.Dataset.from_tensor_slices(features)
-#     labels_dataset = tf.data.Dataset.from_tensor_slices(labels)
-#     ds = Dataset.zip((features_dataset, labels_dataset))
-#     #if shuffle:
-#         #buffer size is read into memory!
-#         #ds = ds.shuffle(buffer_size = 512)
-#         #ds = ds.batch(batch_size)
-#         # make it an array at the very last step
-#     return ds
 
+#%%
+# if numpy arrays are given the first layers needs to be layers.Flatten and specify the quadratic input shape
 def get_compiled_model():
   model = tf.keras.Sequential([
     tf.keras.layers.Dense(10, activation='relu'),
