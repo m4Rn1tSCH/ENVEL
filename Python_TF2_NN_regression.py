@@ -504,119 +504,59 @@ def split_data_tf():
                 Tensorflow v2 Tutorial
 '''
 column_names = [bank_df.columns.values]
-dataset = bank_df.copy()
+df_copy = bank_df.copy()
 print(dataset.head())
 print(dataset.tail())
 print(dataset.isna().sum())
 #%%
-#LABEL ALREADY SEPARATED WITH SPLIT_DATA FUNCTION; NO SPLIT/SCALING NEEDED ANYMORE
-train_dataset = dataset.sample(frac=0.5,random_state=0)
-test_dataset = dataset.drop(train_dataset.index)
-sns.pairplot(train_dataset[["amount", "description", "city", "account_score"]], diag_kind="kde")
-# train_stats = train_dataset.describe()
-# train_stats.pop("MPG")
-# train_stats = train_stats.transpose()
-# train_stats
-# train_labels = train_dataset.pop('MPG')
-# test_labels = test_dataset.pop('MPG')
-# #more easily scalable and shorter
-# def normalize_data(df):
-#     min_max_scaler = MinMaxScaler()
-#     for col in df.columns:
-#         df[col] = min_max_scaler.fit_transform(df[col].values.reshape(-1,1))
-#     return df
+#sns.pairplot(train_dataset[["amount", "description", "city", "account_score"]], diag_kind="kde")
 
-def df_to_dataset(shuffle = True, batch_size = 150):
-    # features and labels
-    features = X_train
-    labels = y_train
-    #ds = dataframe.copy()
-    # Both the features and the labels tensors can be converted
-    # to a Dataset object separately and combined after.
-    features_dataset = tf.data.Dataset.from_tensor_slices(features)
-    labels_dataset = tf.data.Dataset.from_tensor_slices(labels)
-    ds = Dataset.zip((features_dataset, labels_dataset))
-    #if shuffle:
-        #buffer size is read into memory!
-        #ds = ds.shuffle(buffer_size = 512)
-        #ds = ds.batch(batch_size)
-        # make it an array at the very last step
-    return ds
-
-def build_model():
-    # this is a tensorflow.keras model!
-    # mixing tensorflow.keras and pure keras wont work!
-    model = tf.keras.Sequential([
-        layers.Dense(64, activation='relu', input_shape=[len(train_dataset.keys())]),
-        layers.Dense(64, activation='relu'),
-        layers.Dense(1)
-        ])
-
-    optimizer = tf.keras.optimizers.RMSprop(0.001)
-
-    model.compile(loss='mse',
-                  optimizer=optimizer,
-                  metrics=['mae', 'mse'])
-    return model
-#%%
-model = build_model()
-model.summary()
-#%%
 # temp version
-model_features = bank_df
+#model_features = bank_df
 model_label = bank_df.pop('amount_mean_lag7')
-feat_ds = tf.data.Dataset.from_tensor_slices(model_features)
-label_ds = tf.data.Dataset.from_tensor_slices(model_label)
-dataset = tf.data.Dataset.zip((feat_ds, label_ds))
+model_label.astype('int64')
+#feat_ds = tf.data.Dataset.from_tensor_slices(model_features)
+#label_ds = tf.data.Dataset.from_tensor_slices(model_label)
+#feat_ds = feat_ds.reshape(1, -1)
+#label_ds = label_ds.reshape(1, -1)
+#dataset = tf.data.Dataset.zip((feat_ds, label_ds))
 
-#dataset = tf.data.Dataset.from_tensor_slices((model_features.values, model_label.values))
-#df_tensor = df_to_dataset()
+# EAGER EXECUTION NEEDS TO BE ENABLED HERE
+dataset = tf.data.Dataset.from_tensor_slices((bank_df.values, model_label.values))
 for feat, targ in dataset.take(5):
   print ('Features: {}, Target: {}'.format(feat, targ))
-for i in dataset:
-    example_result = model.predict(*(dataset))
-print(example_result)
+
+train_dataset = dataset.shuffle(len(bank_df)).batch(2)
+#test_dataset = dataset.drop(train_dataset.index)
 #%%
-# train the model
-EPOCHS = 1000
+# def df_to_dataset(shuffle = True, batch_size = 150):
+#     # features and labels
+#     features = X_train
+#     labels = y_train
+#     #ds = dataframe.copy()
+#     # Both the features and the labels tensors can be converted
+#     # to a Dataset object separately and combined after.
+#     features_dataset = tf.data.Dataset.from_tensor_slices(features)
+#     labels_dataset = tf.data.Dataset.from_tensor_slices(labels)
+#     ds = Dataset.zip((features_dataset, labels_dataset))
+#     #if shuffle:
+#         #buffer size is read into memory!
+#         #ds = ds.shuffle(buffer_size = 512)
+#         #ds = ds.batch(batch_size)
+#         # make it an array at the very last step
+#     return ds
 
-history = model.fit(
-    normed_train_data, train_labels,
-    epochs=EPOCHS, validation_split = 0.2, verbose=0,
-    callbacks=[tfdocs.modeling.EpochDots()])
+def get_compiled_model():
+  model = tf.keras.Sequential([
+    tf.keras.layers.Dense(10, activation='relu'),
+    tf.keras.layers.Dense(10, activation='relu'),
+    tf.keras.layers.Dense(1)
+  ])
 
-plotter = tfdocs.plots.HistoryPlotter(smoothing_std=2)
-plotter.plot({'Basic': history}, metric = "mae")
-plt.ylim([0, 10])
-plt.ylabel('MAE [MPG]')
+  model.compile(optimizer='adam',
+                loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+                metrics=['accuracy'])
+  return model
 #%%
-model = build_model()
-
-# The patience parameter is the amount of epochs to check for improvement
-early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
-
-early_history = model.fit(normed_train_data, train_labels,
-                    epochs=EPOCHS, validation_split = 0.2, verbose=0,
-                    callbacks=[early_stop, tfdocs.modeling.EpochDots()])
-plotter.plot({'Early Stopping': early_history}, metric = "mae")
-plt.ylim([0, 10])
-plt.ylabel('MAE [MPG]')
-loss, mae, mse = model.evaluate(normed_test_data, test_labels, verbose=2)
-
-print("Testing set Mean Abs Error: {:5.2f} MPG".format(mae))
-#%%
-test_predictions = model.predict(normed_test_data).flatten()
-
-a = plt.axes(aspect='equal')
-plt.scatter(test_labels, test_predictions)
-plt.xlabel('True Values [MPG]')
-plt.ylabel('Predictions [MPG]')
-lims = [0, 50]
-plt.xlim(lims)
-plt.ylim(lims)
-_ = plt.plot(lims, lims)
-#%%
-error = test_predictions - test_labels
-plt.hist(error, bins = 25)
-plt.xlabel("Prediction Error [MPG]")
-_ = plt.ylabel("Count")
+model = get_compiled_model()
+model.fit(train_dataset, epochs=15)
