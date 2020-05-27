@@ -522,7 +522,7 @@ for feat, targ in dataset.take(5):
 train_dataset = dataset.shuffle(len(bank_df)).batch(2)
 #%%
 ##########################################
-# Alternative to feed features to the model as dictionary consisiting of df keys
+# ALTERNATIVE TO FEED FEATURES TO THE MODEL AS DICTIONARY CONSISITING OF DF KEYS
 inputs = {key: tf.keras.layers.Input(shape=(), name=key) for key in df.keys()}
 x = tf.stack(list(inputs.values()), axis=-1)
 
@@ -558,4 +558,29 @@ def get_compiled_model():
 #%%
 model = get_compiled_model()
 model.fit(train_dataset, epochs=15)
+#%%
+# model training is finished
+# Include the epoch in the file name (uses `str.format`)
+checkpoint_dir = os.getcwd()
+
+# Create a callback that saves the model's weights every 5 epochs
+cp_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_dir,
+    verbose=1,
+    save_weights_only=True,
+    period=5)
+
+# Create a new model instance
+model = get_compiled_model()
+
+# Save the weights using the `checkpoint_path` format
+model.save_weights(checkpoint_dir.format(epoch=5))
+
+# Train the model with the new callback
+model.fit(train_images,
+          train_labels,
+          epochs=50,
+          callbacks=[cp_callback],
+          validation_data=(test_images,test_labels),
+          verbose=0)
 
