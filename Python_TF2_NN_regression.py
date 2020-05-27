@@ -501,7 +501,7 @@ def split_data_tf():
     return [X_train, X_train_scaled, X_train_minmax, X_train_pca, X_test, X_test_scaled, X_test_minmax, X_test_pca, y_train, y_test]
 #%%
 '''
-                Tensorflow v2 Tutorial
+                Tensorflow Regression
 '''
 column_names = [bank_df.columns.values]
 df_copy = bank_df.copy()
@@ -509,39 +509,53 @@ print(dataset.head())
 print(dataset.tail())
 print(dataset.isna().sum())
 #%%
-#sns.pairplot(train_dataset[["amount", "description", "city", "account_score"]], diag_kind="kde")
-
-# temp version
-#model_features = bank_df
+# setting label and features (the df itself here)
 model_label = bank_df.pop('amount_mean_lag7')
 model_label.astype('int64')
-#feat_ds = tf.data.Dataset.from_tensor_slices(model_features)
-#label_ds = tf.data.Dataset.from_tensor_slices(model_label)
-#feat_ds = feat_ds.reshape(1, -1)
-#label_ds = label_ds.reshape(1, -1)
-#dataset = tf.data.Dataset.zip((feat_ds, label_ds))
 
 # EAGER EXECUTION NEEDS TO BE ENABLED HERE
+# features and model labels passed as tuple
 dataset = tf.data.Dataset.from_tensor_slices((bank_df.values, model_label.values))
 for feat, targ in dataset.take(5):
-  print ('Features: {}, Target: {}'.format(feat, targ))
+    print('Features: {}, Target: {}'.format(feat, targ))
 
 train_dataset = dataset.shuffle(len(bank_df)).batch(2)
-#test_dataset = dataset.drop(train_dataset.index)
+#%%
+##########################################
+# Alternative to feed features to the model as dictionary consisiting of df keys
+inputs = {key: tf.keras.layers.Input(shape=(), name=key) for key in df.keys()}
+x = tf.stack(list(inputs.values()), axis=-1)
 
+x = tf.keras.layers.Dense(10, activation='relu')(x)
+output = tf.keras.layers.Dense(1)(x)
+
+model_func = tf.keras.Model(inputs=inputs, outputs=output)
+
+model_func.compile(optimizer='adam',
+                   loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+                   metrics=['accuracy'])
+
+dict_slices = tf.data.Dataset.from_tensor_slices((df.to_dict('list'), target.values)).batch(16)
+for dict_slice in dict_slices.take(1):
+  print (dict_slice)
+model_func.fit(dict_slices, epochs=15)
+###########################################
 #%%
 # if numpy arrays are given the first layers needs to be layers.Flatten and specify the quadratic input shape
 def get_compiled_model():
-  model = tf.keras.Sequential([
-    tf.keras.layers.Dense(10, activation='relu'),
-    tf.keras.layers.Dense(10, activation='relu'),
+    model = tf.keras.Sequential([
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(32, activation='relu'),
+    tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(1)
-  ])
+    ])
 
-  model.compile(optimizer='adam',
-                loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-                metrics=['accuracy'])
-  return model
+    model.compile(optimizer='adam',
+                  loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+                  metrics=['accuracy'])
+    return model
 #%%
 model = get_compiled_model()
 model.fit(train_dataset, epochs=15)
+
