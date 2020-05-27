@@ -15,7 +15,11 @@ import matplotlib.pyplot as plt
 from collections import Counter
 import seaborn as sns
 
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+
 import tensorflow as tf
 tf.compat.v1.disable_eager_execution()
 from tensorflow import feature_column
@@ -508,7 +512,6 @@ print(dataset.tail())
 print(dataset.isna().sum())
 #%%
 #LABEL ALREADY SEPARATED WITH SPLIT_DATA FUNCTION; NO SPLIT/SCALING NEEDED ANYMORE
-
 train_dataset = dataset.sample(frac=0.5,random_state=0)
 test_dataset = dataset.drop(train_dataset.index)
 sns.pairplot(train_dataset[["amount", "description", "city", "account_score"]], diag_kind="kde")
@@ -524,6 +527,18 @@ sns.pairplot(train_dataset[["amount", "description", "city", "account_score"]], 
 #     for col in df.columns:
 #         df[col] = min_max_scaler.fit_transform(df[col].values.reshape(-1,1))
 #     return df
+
+def df_to_dataset(dataframe, shuffle = True, batch_size = 150):
+    ds = dataframe.copy()
+    ds = ds.sample(frac=0.1)
+    ds = np.array(X_train).reshape(21, -1)
+    #if shuffle:
+        #buffer size is read into memory!
+        #ds = ds.shuffle(buffer_size = 512)
+        #ds = ds.batch(batch_size)
+        # make it an array at the very last step
+
+    return ds
 
 def build_model():
     # this is a tensorflow.keras model!
@@ -544,6 +559,7 @@ def build_model():
 model = build_model()
 model.summary()
 #%%
+X_train = df_to_dataset(dataframe=X_train)
 example_batch = X_train[:10]
 example_result = model.predict(example_batch)
 print(example_result)
