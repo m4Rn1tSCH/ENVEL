@@ -21,7 +21,7 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 
 import tensorflow as tf
-tf.compat.v1.disable_eager_execution()
+tf.compat.v1.enable_eager_execution()
 from tensorflow import feature_column, data
 from tensorflow.keras import Model, layers
 
@@ -415,22 +415,19 @@ def df_encoder(rng = 4):
                             'unique_bank_transaction_id'], axis = 1)
     return bank_df
     #%%
-def split_data():
-    ###################SPLITTING UP THE DATA###########################
-    #drop target variable in feature df
-    ####
-    model_features = bank_df.drop(['amount_mean_lag7'], axis = 1)
-    #On some occasions the label needs to be a 1d array;
-    #then the double square brackets (slicing it as a new dataframe) break the pipeline
-    model_label = bank_df['amount_mean_lag7']
-    ####
+def split_data_tf():
+
+
+    # for tensorflow; the target column remains in the dataframe and is not removed
+    model_features = bank_df
+    model_label = bank_df.pop('amount_mean_lag7')
+
     if model_label.dtype == 'float32':
         model_label = model_label.astype('int32')
     elif model_label.dtype == 'float64':
         model_label = model_label.astype('int64')
     else:
         print("model label has unsuitable data type!")
-
 
     #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
     X_train, X_test, y_train, y_test = train_test_split(model_features,
@@ -566,10 +563,18 @@ model = build_model()
 model.summary()
 #%%
 # temp version
-dataset = tf.data.Dataset.from_tensor_slices((X_train.values, y_train.values))
+model_features = bank_df
+model_label = bank_df.pop('amount_mean_lag7')
+feat_ds = tf.data.Dataset.from_tensor_slices(model_features)
+label_ds = tf.data.Dataset.from_tensor_slices(model_label)
+dataset = tf.data.Dataset.zip((feat_ds, label_ds))
+
+#dataset = tf.data.Dataset.from_tensor_slices((model_features.values, model_label.values))
 #df_tensor = df_to_dataset()
-example_batch = bank_df[:10]
-example_result = model.predict(dataset)
+for feat, targ in dataset.take(5):
+  print ('Features: {}, Target: {}'.format(feat, targ))
+for i in dataset:
+    example_result = model.predict(*(dataset))
 print(example_result)
 #%%
 # train the model
