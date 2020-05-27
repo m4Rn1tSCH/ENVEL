@@ -22,8 +22,9 @@ from sklearn.cluster import KMeans
 
 import tensorflow as tf
 tf.compat.v1.disable_eager_execution()
-from tensorflow import feature_column
+from tensorflow import feature_column, data
 from tensorflow.keras import Model, layers
+
 
 
 #imported custom function
@@ -528,16 +529,21 @@ sns.pairplot(train_dataset[["amount", "description", "city", "account_score"]], 
 #         df[col] = min_max_scaler.fit_transform(df[col].values.reshape(-1,1))
 #     return df
 
-def df_to_dataset(dataframe, shuffle = True, batch_size = 150):
-    ds = dataframe.copy()
-    ds = ds.sample(frac=0.1)
-    ds = np.array(X_train).reshape(21, -1)
+def df_to_dataset(shuffle = True, batch_size = 150):
+    # features and labels
+    features = X_train
+    labels = y_train
+    #ds = dataframe.copy()
+    # Both the features and the labels tensors can be converted
+    # to a Dataset object separately and combined after.
+    features_dataset = tf.data.Dataset.from_tensor_slices(features)
+    labels_dataset = tf.data.Dataset.from_tensor_slices(labels)
+    ds = Dataset.zip((features_dataset, labels_dataset))
     #if shuffle:
         #buffer size is read into memory!
         #ds = ds.shuffle(buffer_size = 512)
         #ds = ds.batch(batch_size)
         # make it an array at the very last step
-
     return ds
 
 def build_model():
@@ -559,9 +565,11 @@ def build_model():
 model = build_model()
 model.summary()
 #%%
-X_train = df_to_dataset(dataframe=X_train)
-example_batch = X_train[:10]
-example_result = model.predict(example_batch)
+# temp version
+dataset = tf.data.Dataset.from_tensor_slices((X_train.values, y_train.values))
+#df_tensor = df_to_dataset()
+example_batch = bank_df[:10]
+example_result = model.predict(dataset)
 print(example_result)
 #%%
 # train the model
