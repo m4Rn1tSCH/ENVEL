@@ -504,22 +504,22 @@ def split_data_tf():
                 Tensorflow Regression
 '''
 column_names = [bank_df.columns.values]
-df_copy = bank_df.copy()
+dataset = bank_df.copy()
 print(dataset.head())
 print(dataset.tail())
 print(dataset.isna().sum())
 #%%
 # setting label and features (the df itself here)
-model_label = bank_df.pop('amount_mean_lag7')
+model_label = dataset.pop('amount_mean_lag7')
 model_label.astype('int64')
 
 # EAGER EXECUTION NEEDS TO BE ENABLED HERE
 # features and model labels passed as tuple
-dataset = tf.data.Dataset.from_tensor_slices((bank_df.values, model_label.values))
-for feat, targ in dataset.take(5):
+tensor_ds = tf.data.Dataset.from_tensor_slices((dataset.values, model_label.values))
+for feat, targ in tensor_ds.take(5):
     print('Features: {}, Target: {}'.format(feat, targ))
 
-train_dataset = dataset.shuffle(len(bank_df)).batch(2)
+train_dataset = tensor_ds.shuffle(len(bank_df)).batch(2)
 #%%
 ##########################################
 # ALTERNATIVE TO FEED FEATURES TO THE MODEL AS DICTIONARY CONSISITING OF DF KEYS
@@ -542,22 +542,34 @@ model_func.fit(dict_slices, epochs=15)
 ###########################################
 #%%
 # if numpy arrays are given the first layers needs to be layers.Flatten and specify the quadratic input shape
-def get_compiled_model():
+# Dropout layers sets variables to zero in randomized patterns
+def compile_model():
     model = tf.keras.Sequential([
-    tf.keras.layers.Dense(64, activation='relu'),
+    # initial layer is input layers
+    tf.keras.layers.Dense(32, activation='relu'),
     tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(32, activation='relu'),
     tf.keras.layers.Dropout(0.2),
+    # final layers is output layers
     tf.keras.layers.Dense(1)
     ])
-
-    model.compile(optimizer='adam',
-                  loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-                  metrics=['accuracy'])
+    # gradients / running average; optimizes stochastic gradient descent
+    optimizer = tf.keras.optimizers.RMSprop(0.001)
+    model.compile(optimizer=optimizer,
+                  loss='mse',
+                  metrics=['mse', 'mae'])
     return model
 #%%
-model = get_compiled_model()
-model.fit(train_dataset, epochs=15)
+model = compile_model
+#model.fit(train_dataset, epochs=15)
+
+EPOCHS = 1000
+
+history = model.fit(
+    train_dataset, model_label,
+    epochs=EPOCHS, validation_split = 0.2, verbose=0,
+    callbacks=[tfdocs.modeling.EpochDots()])
+
 #%%
 # model training is finished
 # Include the epoch in the file name (uses `str.format`)
