@@ -706,14 +706,19 @@ def build_model(allow_cudnn_kernel=True):
         lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, input_dim))
     else:
         # Wrapping an LSTMCell in an RNN layer will not use CuDNN.
-        rnn_model = tf.keras.models.Sequential([
-        tf.keras.layers.RNN(tf.keras.layers.LSTMCell(units),
-                            input_shape=(None, input_dim)),
+        # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
+        lstm_layer = tf.keras.layers.RNN(
+            tf.keras.layers.LSTMCell(units),
+            input_shape=(None, input_dim))
+    
+    model = tf.keras.models.Sequential([
+        lstm_layer,
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.Dense(output_size)])
-    return rnn_model
+
+    return model
 #%%
-model = build_model(allow_cudnn_kernel=True)
+model = build_model(allow_cudnn_kernel=False)
 
 model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True), 
               optimizer='sgd',
