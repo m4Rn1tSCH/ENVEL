@@ -413,425 +413,239 @@ def df_encoder(rng = 4):
                             'unique_bank_account_id',
                             'unique_bank_transaction_id'], axis = 1)
     return df
-    #%%
-def split_data_tf():
-
-
-    # for tensorflow; the target column remains in the dataframe and is not removed
-    model_features = bank_df
-    model_label = bank_df.pop('amount_mean_lag7')
-
-    if model_label.dtype == 'float32':
-        model_label = model_label.astype('int32')
-    elif model_label.dtype == 'float64':
-        model_label = model_label.astype('int64')
-    else:
-        print("model label has unsuitable data type!")
-
-    #stratify needs to be applied when the labels are imbalanced and mainly just one/two permutation
-    X_train, X_test, y_train, y_test = train_test_split(model_features,
-                                                        model_label,
-                                                        random_state = 7,
-                                                        shuffle = True,
-                                                        test_size = 0.4)
-
-    #create a validation set from the training set
-    print(f"Shape of the split training data set X_train:{X_train.shape}")
-    print(f"Shape of the split training data set X_test: {X_test.shape}")
-    print(f"Shape of the split training data set y_train: {y_train.shape}")
-    print(f"Shape of the split training data set y_test: {y_test.shape}")
-
-    #STD SCALING - does not work yet
-    #fit the scaler to the training data first
-    #standard scaler works only with maximum 2 dimensions
-    scaler = StandardScaler(copy = True, with_mean = True, with_std = True).fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
-
-    #transform test data with the object learned from the training data
-    X_test_scaled = scaler.transform(X_test)
-    scaler_mean = scaler.mean_
-    stadard_scale = scaler.scale_
-
-    #MINMAX SCALING - works with Select K Best
-    min_max_scaler = MinMaxScaler()
-    X_train_minmax = min_max_scaler.fit_transform(X_train)
-
-    X_test_minmax = min_max_scaler.transform(X_test)
-    minmax_scale = min_max_scaler.scale_
-    min_max_minimum = min_max_scaler.min_
-
-    #Principal Component Reduction
-    #first scale
-    #then reduce
-    #keep the most important features of the data
-    pca = PCA(n_components = int(len(bank_df.columns) / 2))
-    #fit PCA model to breast cancer data
-    pca.fit(X_train_scaled)
-    #transform data onto the first two principal components
-    X_train_pca = pca.transform(X_train_scaled)
-    X_test_pca = pca.transform(X_test_scaled)
-    print("Original shape: {}".format(str(X_train_scaled.shape)))
-    print("Reduced shape: {}".format(str(X_train_pca.shape)))
-
-    '''
-                Plotting of PCA/ Cluster Pairs
-    '''
-    #Kmeans clusters to categorize groups WITH SCALED DATA
-    #determine number of groups needed or desired for
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    train_clusters = kmeans.fit(X_train_scaled)
-
-    kmeans = KMeans(n_clusters = 10, random_state = 10)
-    test_clusters = kmeans.fit(X_test_scaled)
-    #Creating the plot
-    fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
-    #styles for title: normal; italic; oblique
-    ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
-    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
-    ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
-    ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
-    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
-    ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
-    #principal components of bank panel has better results than card panel with clearer borders
-
-    #isCredit_num = [1 if x == 'Y' else 0 for x in isCredits]
-    #np.corrcoef(np.array(isCredit_num), amounts)
-
-    return [X_train, X_train_scaled, X_train_minmax, X_train_pca, X_test, X_test_scaled, X_test_minmax, X_test_pca, y_train, y_test]
 #%%
 '''
                 Tensorflow Regression
 '''
+app = Flask(__name__)
 
-bank_df = df_encoder(rng=4)
-column_names = [bank_df.columns.values]
-dataset = bank_df.copy()
-print(dataset.head())
-print(dataset.tail())
-print(dataset.isna().sum())
-#%%
-# setting label and features (the df itself here)
-model_label = dataset.pop('amount_mean_lag7')
-model_label.astype('int64')
+@app.route('/tf_regression')
+def tf_regression():
+    bank_df = df_encoder(rng=4)
+    column_names = [bank_df.columns.values]
+    dataset = bank_df.copy()
+    print(dataset.head())
+    print(dataset.tail())
+    print(dataset.isna().sum())
+    sns.pairplot(bank_df[['amount', 'amount_mean_lag7', 'amount_std_lag7']])
+    #%%
+    # setting label and features (the df itself here)
+    model_label = dataset.pop('amount_mean_lag7')
+    model_label.astype('int64')
 
-# EAGER EXECUTION NEEDS TO BE ENABLED HERE
-# features and model labels passed as tuple
-tensor_ds = tf.data.Dataset.from_tensor_slices((dataset.values, model_label.values))
-for feat, targ in tensor_ds.take(5):
-    print('Features: {}, Target: {}'.format(feat, targ))
+    # EAGER EXECUTION NEEDS TO BE ENABLED HERE
+    # features and model labels passed as tuple
+    tensor_ds = tf.data.Dataset.from_tensor_slices((dataset.values, model_label.values))
+    for feat, targ in tensor_ds.take(5):
+        print('Features: {}, Target: {}'.format(feat, targ))
 
-train_dataset = tensor_ds.shuffle(len(bank_df)).batch(2)
-#%%
-#OPTIONAL WAY TO FEED DATA
-##########################################
-# ALTERNATIVE TO FEED FEATURES TO THE MODEL AS DICTIONARY CONSISITING OF DF KEYS
-inputs = {key: tf.keras.layers.Input(shape=(), name=key) for key in df.keys()}
-x = tf.stack(list(inputs.values()), axis=-1)
+    train_dataset = tensor_ds.shuffle(len(bank_df)).batch(2)
+    #%%
+    #OPTIONAL WAY TO FEED DATA
+    ##########################################
+    # ALTERNATIVE TO FEED FEATURES TO THE MODEL AS DICTIONARY CONSISITING OF DF KEYS
+    # inputs = {key: tf.keras.layers.Input(shape=(), name=key) for key in df.keys()}
+    # x = tf.stack(list(inputs.values()), axis=-1)
 
-x = tf.keras.layers.Dense(10, activation='relu')(x)
-output = tf.keras.layers.Dense(1)(x)
+    # x = tf.keras.layers.Dense(10, activation='relu')(x)
+    # output = tf.keras.layers.Dense(1)(x)
 
-model_func = tf.keras.Model(inputs=inputs, outputs=output)
+    # model_func = tf.keras.Model(inputs=inputs, outputs=output)
 
-model_func.compile(optimizer='adam',
-                    loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-                    metrics=['accuracy'])
+    # model_func.compile(optimizer='adam',
+    #                     loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+    #                     metrics=['mse', 'mae'])
 
-dict_slices = tf.data.Dataset.from_tensor_slices((df.to_dict('list'), target.values)).batch(16)
-for dict_slice in dict_slices.take(1):
-  print (dict_slice)
-model_func.fit(dict_slices, epochs=15)
-###########################################
-#%%
-# if numpy arrays are given the first layers needs to be layers.Flatten and specify the quadratic input shape
-# REGULARIZATION: add dropout or regularizers in each layer
-# combined reg + dropout produces best results
-# Dropout layers sets variables to zero in randomized patterns
-# when adding weight relugarizer - monitor bin cross entropy directly
-def compile_model():
-    model = tf.keras.Sequential([
-    # initial layer is input layers
-    tf.keras.layers.Dense(32, activation='relu',
-                          kernel_regularizer=regularizers.l2(0.001)),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(32, activation='relu',
-                          kernel_regularizer=regularizers.l2(0.001)),
-    tf.keras.layers.Dropout(0.2),
-    # final layers is output layers
-    tf.keras.layers.Dense(1)
-    ])
-    # gradients / running average; optimizes stochastic gradient descent
-    optimizer = tf.keras.optimizers.RMSprop(0.001)
-    model.compile(optimizer=optimizer,
-                  loss='mse',
-                  metrics=['mse', 'mae'])
+    # dict_slices = tf.data.Dataset.from_tensor_slices((df.to_dict('list'), target.values)).batch(16)
+    # for dict_slice in dict_slices.take(1):
+    #   print (dict_slice)
+    # model_func.fit(dict_slices, epochs=15)
+    ###########################################
+    #%%
+    # if numpy arrays are given the first layers needs to be layers.Flatten and specify the quadratic input shape
+    # REGULARIZATION: add dropout or regularizers in each layer
+    # combined reg + dropout produces best results
+    # Dropout layers sets variables to zero in randomized patterns
+    # when adding weight relugarizer - monitor bin cross entropy directly
+    def compile_model():
+        model = tf.keras.Sequential([
+        # initial layer is input layers
+        tf.keras.layers.Dense(32, activation='relu',
+                              kernel_regularizer=regularizers.l2(0.001)),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Dense(32, activation='relu',
+                              kernel_regularizer=regularizers.l2(0.001)),
+        tf.keras.layers.Dropout(0.2),
+        # final layers is output layers
+        tf.keras.layers.Dense(1)
+        ])
+        # gradients / running average; optimizes stochastic gradient descent
+        optimizer = tf.keras.optimizers.RMSprop(0.001)
+        model.compile(optimizer=optimizer,
+                      loss='mse',
+                      metrics=['mse', 'mae'])
+        return model
+    #%%
+    model = compile_model()
+    #model.fit(train_dataset, epochs=15)
+
+    EPOCHS = 50
+    # when dataset given; only ds needed (no y needed)
+    # when separate tensors given; arg x and y needed
+    history = model.fit(train_dataset, epochs=EPOCHS, verbose=2)
+
+    # regularizer_histories['reg_and_dropout'] = compile_model(combined_model, "regularizers/combined")
+    # plt.plot(history)
+
+    #%%
+    # model training is finished
+    # Include the epoch in the file name (uses `str.format`)
+    checkpoint_dir = os.getcwd()
+
+    # Create a callback that saves the model's weights every 5 epochs
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=checkpoint_dir,
+        verbose=1,
+        save_weights_only=True,
+        period=5)
+
+    # Create a new model instance
+    model = get_compiled_model()
+
+    # Save the weights using the `checkpoint_path` format
+    model.save_weights(checkpoint_dir.format(epoch=5))
+
+    # Train the model with the new callback
+    model.fit(train_images,
+              train_labels,
+              epochs=50,
+              callbacks=[cp_callback],
+              validation_data=(test_images,test_labels),
+              verbose=0)
+
+    # Test of a RNN
+
+    model = tf.keras.Sequential()
+    # Add an Embedding layer expecting input vocab of size 1000, and
+    # output embedding dimension of size 64.
+    model.add(layers.Embedding(input_dim=1000, output_dim=64))
+
+    # Add a LSTM layer with 128 internal units.
+    model.add(layers.LSTM(128))
+
+    # Add a Dense layer with 10 units.
+    model.add(layers.Dense(10))
+
+    model.summary()
+
+
+    model = tf.keras.Sequential()
+    model.add(layers.Embedding(input_dim=1000, output_dim=64))
+
+    # The output of GRU will be a 3D tensor of shape (batch_size, timesteps, 256)
+    model.add(layers.GRU(256, return_sequences=True))
+
+    # The output of SimpleRNN will be a 2D tensor of shape (batch_size, 128)
+    model.add(layers.SimpleRNN(128))
+
+    model.add(layers.Dense(10))
+
+    model.summary()
+
+    encoder_vocab = 1000
+    decoder_vocab = 2000
+
+    encoder_input = layers.Input(shape=(None, ))
+    encoder_embedded = layers.Embedding(input_dim=encoder_vocab, output_dim=64)(encoder_input)
+
+    # Return states in addition to output
+    output, state_h, state_c = layers.LSTM(
+        64, return_state=True, name='encoder')(encoder_embedded)
+    encoder_state = [state_h, state_c]
+
+    decoder_input = layers.Input(shape=(None, ))
+    decoder_embedded = layers.Embedding(input_dim=decoder_vocab, output_dim=64)(decoder_input)
+
+    # Pass the 2 states to a new LSTM layer, as initial state
+    decoder_output = layers.LSTM(
+        64, name='decoder')(decoder_embedded, initial_state=encoder_state)
+    output = layers.Dense(10)(decoder_output)
+
+    model = tf.keras.Model([encoder_input, decoder_input], output)
+    model.summary()
+
+    lstm_layer = layers.LSTM(64, stateful=True)
+    for s in sub_sequences:
+      output = lstm_layer(s)
+    #%%
+    # Model resets weights of layers
+    paragraph1 = np.random.random((20, 10, 50)).astype(np.float32)
+    paragraph2 = np.random.random((20, 10, 50)).astype(np.float32)
+    paragraph3 = np.random.random((20, 10, 50)).astype(np.float32)
+
+    lstm_layer = layers.LSTM(64, stateful=True)
+    output = lstm_layer(paragraph1)
+    output = lstm_layer(paragraph2)
+    output = lstm_layer(paragraph3)
+
+    # reset_states() will reset the cached state to the original initial_state.
+    # If no initial_state was provided, zero-states will be used by default.
+    lstm_layer.reset_states()
+    #%%
+    # Model reuses states/ weights
+    paragraph1 = np.random.random((20, 10, 50)).astype(np.float32)
+    paragraph2 = np.random.random((20, 10, 50)).astype(np.float32)
+    paragraph3 = np.random.random((20, 10, 50)).astype(np.float32)
+
+    lstm_layer = layers.LSTM(64, stateful=True)
+    output = lstm_layer(paragraph1)
+    output = lstm_layer(paragraph2)
+
+    existing_state = lstm_layer.states
+
+    new_lstm_layer = layers.LSTM(64)
+    new_output = new_lstm_layer(paragraph3, initial_state=existing_state)
+    #%%
+    batch_size = 64
+    # Each data batch is a tensor of shape (batch_size, num_feat, num_feat)
+    #                                       (batch_size, 21, 21)
+    # Each input sequence will be of size (21, 21) (height is treated like time).
+    input_dim = 21
+
+    units = 64
+    output_size = 10  # labels are from 0 to 9
+
+    # Build the RNN model
+    def build_model(allow_cudnn_kernel=True):
+        # CuDNN is only available at the layer level, and not at the cell level.
+        # This means `LSTM(units)` will use the CuDNN kernel,
+        # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
+        if allow_cudnn_kernel:
+        # The LSTM layer with default options uses CuDNN.
+            lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, input_dim))
+        else:
+            # Wrapping an LSTMCell in an RNN layer will not use CuDNN.
+            # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
+            lstm_layer = tf.keras.layers.RNN(
+                tf.keras.layers.LSTMCell(units),
+                input_shape=(None, input_dim))
+
+        model = tf.keras.models.Sequential([
+            lstm_layer,
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Dense(output_size)])
+
+        return model
+    #%%
+    model = build_model(allow_cudnn_kernel=False)
+
+    model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                  optimizer='sgd',
+                  metrics=['accuracy'])
+
+    model.fit(dataset,
+              batch_size=batch_size,
+              epochs=5,
+              verbose=2)
     return model
-#%%
-model = compile_model()
-#model.fit(train_dataset, epochs=15)
 
-EPOCHS = 50
-# when dataset given; only ds needed (no y needed)
-# when separate tensors given; arg x and y needed
-history = model.fit(train_dataset, epochs=EPOCHS, verbose=2)
-
-# regularizer_histories['reg_and_dropout'] = compile_model(combined_model, "regularizers/combined")
-# plt.plot(history)
-
-#%%
-# model training is finished
-# Include the epoch in the file name (uses `str.format`)
-checkpoint_dir = os.getcwd()
-
-# Create a callback that saves the model's weights every 5 epochs
-cp_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath=checkpoint_dir,
-    verbose=1,
-    save_weights_only=True,
-    period=5)
-
-# Create a new model instance
-model = get_compiled_model()
-
-# Save the weights using the `checkpoint_path` format
-model.save_weights(checkpoint_dir.format(epoch=5))
-
-# Train the model with the new callback
-model.fit(train_images,
-          train_labels,
-          epochs=50,
-          callbacks=[cp_callback],
-          validation_data=(test_images,test_labels),
-          verbose=0)
-#%%
-# Test of a RNN
-
-model = tf.keras.Sequential()
-# Add an Embedding layer expecting input vocab of size 1000, and
-# output embedding dimension of size 64.
-model.add(layers.Embedding(input_dim=1000, output_dim=64))
-
-# Add a LSTM layer with 128 internal units.
-model.add(layers.LSTM(128))
-
-# Add a Dense layer with 10 units.
-model.add(layers.Dense(10))
-
-model.summary()
-
-
-model = tf.keras.Sequential()
-model.add(layers.Embedding(input_dim=1000, output_dim=64))
-
-# The output of GRU will be a 3D tensor of shape (batch_size, timesteps, 256)
-model.add(layers.GRU(256, return_sequences=True))
-
-# The output of SimpleRNN will be a 2D tensor of shape (batch_size, 128)
-model.add(layers.SimpleRNN(128))
-
-model.add(layers.Dense(10))
-
-model.summary()
-
-encoder_vocab = 1000
-decoder_vocab = 2000
-
-encoder_input = layers.Input(shape=(None, ))
-encoder_embedded = layers.Embedding(input_dim=encoder_vocab, output_dim=64)(encoder_input)
-
-# Return states in addition to output
-output, state_h, state_c = layers.LSTM(
-    64, return_state=True, name='encoder')(encoder_embedded)
-encoder_state = [state_h, state_c]
-
-decoder_input = layers.Input(shape=(None, ))
-decoder_embedded = layers.Embedding(input_dim=decoder_vocab, output_dim=64)(decoder_input)
-
-# Pass the 2 states to a new LSTM layer, as initial state
-decoder_output = layers.LSTM(
-    64, name='decoder')(decoder_embedded, initial_state=encoder_state)
-output = layers.Dense(10)(decoder_output)
-
-model = tf.keras.Model([encoder_input, decoder_input], output)
-model.summary()
-
-lstm_layer = layers.LSTM(64, stateful=True)
-for s in sub_sequences:
-  output = lstm_layer(s)
-#%%
-# Model resets weights of layers
-paragraph1 = np.random.random((20, 10, 50)).astype(np.float32)
-paragraph2 = np.random.random((20, 10, 50)).astype(np.float32)
-paragraph3 = np.random.random((20, 10, 50)).astype(np.float32)
-
-lstm_layer = layers.LSTM(64, stateful=True)
-output = lstm_layer(paragraph1)
-output = lstm_layer(paragraph2)
-output = lstm_layer(paragraph3)
-
-# reset_states() will reset the cached state to the original initial_state.
-# If no initial_state was provided, zero-states will be used by default.
-lstm_layer.reset_states()
-#%%
-# Model reuses states/ weights
-paragraph1 = np.random.random((20, 10, 50)).astype(np.float32)
-paragraph2 = np.random.random((20, 10, 50)).astype(np.float32)
-paragraph3 = np.random.random((20, 10, 50)).astype(np.float32)
-
-lstm_layer = layers.LSTM(64, stateful=True)
-output = lstm_layer(paragraph1)
-output = lstm_layer(paragraph2)
-
-existing_state = lstm_layer.states
-
-new_lstm_layer = layers.LSTM(64)
-new_output = new_lstm_layer(paragraph3, initial_state=existing_state)
-#%%
-batch_size = 64
-# Each data batch is a tensor of shape (batch_size, num_feat, num_feat)
-#                                       (batch_size, 21, 21)
-# Each input sequence will be of size (21, 21) (height is treated like time).
-input_dim = 21
-
-units = 64
-output_size = 10  # labels are from 0 to 9
-
-# Build the RNN model
-def build_model(allow_cudnn_kernel=True):
-    # CuDNN is only available at the layer level, and not at the cell level.
-    # This means `LSTM(units)` will use the CuDNN kernel,
-    # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
-    if allow_cudnn_kernel:
-    # The LSTM layer with default options uses CuDNN.
-        lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, input_dim))
-    else:
-        # Wrapping an LSTMCell in an RNN layer will not use CuDNN.
-        # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
-        lstm_layer = tf.keras.layers.RNN(
-            tf.keras.layers.LSTMCell(units),
-            input_shape=(None, input_dim))
-
-    model = tf.keras.models.Sequential([
-        lstm_layer,
-        tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.Dense(output_size)])
-
-    return model
-#%%
-model = build_model(allow_cudnn_kernel=False)
-
-model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-              optimizer='sgd',
-              metrics=['accuracy'])
-
-model.fit(dataset,
-          batch_size=batch_size,
-          epochs=5,
-          verbose=2)
-#%%
-##################################################
-'''
-            Multivariate Regression
-'''
-# picking features
-features = bank_df
-target = bank_df.copy().pop('amount_mean_lag7')
-features.index = bank_df.index
-features.head()
-features[['amount', 'amount_std_lag7']].plot(subplots=True)
-# split and normalize data
-dataset = features.values
-TRAIN_SPLIT = 250
-# normalize
-data_mean = dataset[:TRAIN_SPLIT].mean(axis=0)
-data_std = dataset[:TRAIN_SPLIT].std(axis=0)
-dataset = (dataset-data_mean)/data_std
-
-#%%
-def multivariate_data(dataset, target, start_index, end_index, history_size,
-                      target_size, step, single_step=False):
-  data = []
-  labels = []
-
-  start_index = start_index + history_size
-  if end_index is None:
-    end_index = len(dataset) - target_size
-
-  for i in range(start_index, end_index):
-    indices = range(i-history_size, i, step)
-    data.append(dataset[indices])
-
-    if single_step:
-      labels.append(target[i+target_size])
-    else:
-      labels.append(target[i:i+target_size])
-
-  return np.array(data), np.array(labels)
-#%%
-
-past_history = 100
-future_target = 50
-STEP = 6
-BATCH_SIZE = 150
-BUFFER_SIZE = 256
-# whole dataset is taken as features; amont_mean_lag7 as target
-X_train_single, y_train_single = multivariate_data(dataset, dataset[:, 1], 0,
-                                                   TRAIN_SPLIT, past_history,
-                                                   future_target, STEP,
-                                                   single_step=True)
-X_val_single, y_val_single = multivariate_data(dataset, dataset[:, 1],
-                                               TRAIN_SPLIT, None, past_history,
-                                               future_target, STEP,
-                                               single_step=True)
-
-# tensor created from separate variablesp assed as tuple
-train_data_single = tf.data.Dataset.from_tensor_slices((X_train_single, y_train_single))
-train_data_single = train_data_single.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
-
-val_data_single = tf.data.Dataset.from_tensor_slices((X_val_single, y_val_single))
-val_data_single = val_data_single.batch(BATCH_SIZE).repeat()
-
-
-single_step_model = tf.keras.models.Sequential()
-single_step_model.add(tf.keras.layers.LSTM(32,
-                                           input_shape=X_train_single.shape[-2:]))
-single_step_model.add(tf.keras.layers.Dense(1))
-
-single_step_model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
-                          loss='mse')
-
-
-for x, y in val_data_single.take(1):
-  print(single_step_model.predict(x).shape)
-
-EPOCHS = 150
-EVALUATION_INTERVAL = 200
-
-single_step_history = single_step_model.fit(train_data_single, epochs=EPOCHS,
-                                            steps_per_epoch=EVALUATION_INTERVAL,
-                                            validation_data=val_data_single,
-                                            validation_steps=50)
-
-def plot_train_history(history, title):
-    loss = history.history[['mae', 'mse']]
-    val_loss = history.history['val_loss']
-
-    epochs = range(len(loss))
-
-    plt.figure()
-
-    plt.plot(epochs, loss, 'b', label='Training loss')
-    plt.plot(epochs, val_loss, 'r', label='Validation loss')
-    plt.title(title)
-    plt.legend()
-
-    plt.show()
-
-plot_train_history(single_step_history,
-                   'Single Step Training and validation loss')
-
-for x, y in val_data_single.take(3):
-  plot = show_plot([x[0][:, 1].numpy(), y[0].numpy(),
-                    single_step_model.predict(x)[0]], 12,
-                   'Single Step Prediction')
-  plot.show()
