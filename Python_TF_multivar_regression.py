@@ -88,7 +88,8 @@ single_step_model.add(tf.keras.layers.LSTM(32,
 single_step_model.add(tf.keras.layers.Dense(1))
 
 single_step_model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
-                          loss='mse')
+                          loss='mse',
+                          metrics = )
 
 
 for x, y in val_data_single.take(1):

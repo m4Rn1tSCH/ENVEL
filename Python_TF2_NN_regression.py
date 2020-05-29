@@ -36,9 +36,10 @@ import PostgreSQL_credentials as acc
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
 #%%
-def df_encoder(rng = 4):
-    '''
 
+def df_encoder(rng = 4):
+
+    '''
     Parameters
     ----------
     rng : TYPE, optional
@@ -98,43 +99,7 @@ def df_encoder(rng = 4):
     except OperationalError as e:
             print(f"The error '{e}' occurred")
             connection.rollback
-    #csv_export(df=df, file_name='bank_dataframe')
-
-    #Plot template
-    # fig, ax = plt.subplots(2, 1, figsize = (25, 25))
-    # ax[0].plot(df.index.values, df['x'], color = 'green', lw = 4, ls = '-.', marker = 'o', label = 'line_1')
-    # ax[1].plot(df.index.values, df['y'], color = 'orange', lw = 0, marker = 'o', label = 'line_2')
-    # ax[0].legend(loc = 'upper right')
-    # ax[1].legend(loc = 'lower center')
-
-    #Pie chart template
-    # labels, values = zip(*tx_types.items())
-    # # Pie chart, where the slices will be ordered and plotted counter-clockwise:
-    # fig1, ax1 = plt.subplots()
-    # ax1.pie(values, labels=labels, autopct='%1.1f%%',
-    #         shadow=True, startangle=90)
-    # ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    # plt.show()
-
-    # #Pie chart States
-    # state_ct = Counter(list(df['state']))
-    # #asterisk look up, what is that?
-    # labels, values = zip(*state_ct.items())
-    # #Pie chart, where the slices will be ordered and plotted counter-clockwise:
-    # fig1, ax1 = plt.subplots()
-    # ax1.pie(values, labels = labels, autopct = '%1.1f%%',
-    #         shadow = True, startangle = 90)
-    # #Equal aspect ratio ensures that pie is drawn as a circle.
-    # ax1.axis('equal')
-    # plt.show()
-
-    #Boxplot template
-    # cat_var = ["type", "check", "institutionName", "feeDescription", "Student", "isCredit", "CS_FICO_str"]
-    # quant_var = ["Age", "amount"]
-    # for c_var in cat_var:
-    #     for q_var in quant_var:
-    #         df.boxplot(column=q_var, by=c_var)
-    #         plt.xticks([])
+    csv_export(df=df, file_name='bank_dataframe')
 
     '''
     Plotting of various relations
@@ -169,12 +134,12 @@ def df_encoder(rng = 4):
     ax.legend(loc = 'center right')
     plt.show()
 
-    #seaborn plots
-    # ax_desc = df['description'].astype('int64', errors='ignore')
-    # ax_amount = df['amount'].astype('int64',errors='ignore')
-    # sns.pairplot(df)
-    # sns.boxplot(x=ax_desc, y=ax_amount)
-    # sns.heatmap(df)
+    # seaborn plots
+    ax_desc = df['description'].astype('int64', errors='ignore')
+    ax_amount = df['amount'].astype('int64',errors='ignore')
+    sns.pairplot(df)
+    sns.boxplot(x=ax_desc, y=ax_amount)
+    sns.heatmap(df)
 
     '''
     Generate a spending report of the unaltered dataframe
@@ -203,7 +168,7 @@ def df_encoder(rng = 4):
     Thu: 3
     Fri: 4
     '''
-    #spending_report(df = df.copy())
+    spending_report(df = df.copy())
 
     '''
     After successfully loading the data, columns that are of no importance have been removed and missing values replaced
@@ -421,6 +386,8 @@ app = Flask(__name__)
 
 @app.route('/tf_regression')
 def tf_regression():
+
+    print("tensorflow regression running...")
     bank_df = df_encoder(rng=4)
     column_names = [bank_df.columns.values]
     dataset = bank_df.copy()
@@ -647,5 +614,6 @@ def tf_regression():
               batch_size=batch_size,
               epochs=5,
               verbose=2)
+    print("Tensorflow regression finished...")
     return model
 
