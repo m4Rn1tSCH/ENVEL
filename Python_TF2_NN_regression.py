@@ -385,7 +385,7 @@ def df_encoder(rng = 4):
 '''
                 Tensorflow Regression
 '''
-@app.route('nn_regression')
+@app.route('/nn_regression')
 def nn_regression():
 
     print("tensorflow regression running...")
@@ -465,7 +465,7 @@ def nn_regression():
     # plt.plot(history)
     return history
 
-@app.route('nn_pipeline')
+@app.route('/nn_pipeline')
 @nn_regression
 def nn_pipeline():
     return 'Neural network pipeline has finished'
