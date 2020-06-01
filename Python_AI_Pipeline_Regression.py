@@ -175,12 +175,6 @@ def df_encoder(rng = 4):
     ax.legend(loc = 'center right')
     plt.show()
 
-    #seaborn plots
-    # ax_desc = bank_df['description'].astype('int64', errors='ignore')
-    # ax_amount = bank_df['amount'].astype('int64',errors='ignore')
-    # sns.pairplot(bank_df)
-    # sns.boxplot(x=ax_desc, y=ax_amount)
-    # sns.heatmap(bank_df)
 
     '''
     Generate a spending report of the unaltered dataframe
@@ -419,6 +413,13 @@ def df_encoder(rng = 4):
                             'unique_bank_account_id',
                             'unique_bank_transaction_id'], axis = 1)
     #csv_export(df=bank_df, file_name='encoded_bank_dataframe')
+
+    # seaborn plots
+    #ax_desc = bank_df['description'].astype('int64', errors='ignore')
+    #ax_amount = bank_df['amount'].astype('int64',errors='ignore')
+    #sns.pairplot(bank_df)
+    #sns.boxplot(x=ax_desc, y=ax_amount)
+    #sns.heatmap(bank_df)
 
     return bank_df
 
