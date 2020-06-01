@@ -36,8 +36,8 @@ import PostgreSQL_credentials as acc
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
 #%%
-app = Flask('df_encoder')
-@app.route('/df_encoder')
+#app = Flask('df_conversion')
+#@app.route('/df_encoder')
 def df_encoder(rng = 4):
 
     '''
@@ -386,7 +386,7 @@ def df_encoder(rng = 4):
                 Tensorflow Regression
 '''
 app = Flask('nn_reg')
-@app.route('/nn_regression')
+@app.route('/nn_tf')
 # python automatically passes self to a function; can be cause for 1 arg given even though function takes 0 arguments
 def nn_regression(self):
 
