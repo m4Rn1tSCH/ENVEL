@@ -36,33 +36,36 @@ import PostgreSQL_credentials as acc
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
 
-    # model training is finished
-    # Include the epoch in the file name (uses `str.format`)
-    checkpoint_dir = os.getcwd()
+# # model training is finished
+# # Include the epoch in the file name (uses `str.format`)
+# checkpoint_dir = os.getcwd()
 
-    # Create a callback that saves the model's weights every 5 epochs
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(
-        filepath=checkpoint_dir,
-        verbose=1,
-        save_weights_only=True,
-        period=5)
+# # Create a callback that saves the model's weights every 5 epochs
+# cp_callback = tf.keras.callbacks.ModelCheckpoint(
+#     filepath=checkpoint_dir,
+#     verbose=1,
+#     save_weights_only=True,
+#     period=5)
 
-    # Create a new model instance
-    model = get_compiled_model()
+# # Create a new model instance
+# model = get_compiled_model()
 
-    # Save the weights using the `checkpoint_path` format
-    model.save_weights(checkpoint_dir.format(epoch=5))
+# # Save the weights using the `checkpoint_path` format
+# model.save_weights(checkpoint_dir.format(epoch=5))
 
-    # Train the model with the new callback
-    model.fit(train_images,
-              train_labels,
-              epochs=50,
-              callbacks=[cp_callback],
-              validation_data=(test_images,test_labels),
-              verbose=0)
+# # Train the model with the new callback
+# model.fit(train_images,
+#           train_labels,
+#           epochs=50,
+#           callbacks=[cp_callback],
+#           validation_data=(test_images,test_labels),
+#           verbose=0)
 
+'''
+                Recurring Neural Network
+-LSTM cell in sequential network
+'''
     # Test of a RNN
-
     model = tf.keras.Sequential()
     # Add an Embedding layer expecting input vocab of size 1000, and
     # output embedding dimension of size 64.
@@ -73,10 +76,9 @@ from Python_CSV_export_function import csv_export
 
     # Add a Dense layer with 10 units.
     model.add(layers.Dense(10))
-
     model.summary()
 
-
+# Simple RNN
     model = tf.keras.Sequential()
     model.add(layers.Embedding(input_dim=1000, output_dim=64))
 

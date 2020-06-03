@@ -22,6 +22,7 @@ from Python_CSV_export_function import csv_export
 #%%
 '''
             Multivariate Regression
+-multivariate regression with Long Short-Term Memory cells
 '''
 # picking features
 features = bank_df
