@@ -28,19 +28,19 @@ from tensorflow.keras import Model, layers, regularizers
 
 #IMPORTED CUSTOM FUNCTION
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
-#from Python_spending_report_csv_function import spending_report
+from Python_spending_report_csv_function import spending_report
 #contains the connection script
-#from Python_SQL_connection import execute_read_query, create_connection, close_connection
+from Python_SQL_connection import execute_read_query, create_connection, close_connection
 #contains all credentials
 import PostgreSQL_credentials as acc
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
-
+#%%
 '''
                     RNN Regression
 single-step and multi-step model for a recurrent neural network
 '''
-def df_encoder(rng = 4):
+def df_encoder(rng = 4, seaborn_plots=False):
 
 
     '''
@@ -430,152 +430,201 @@ def df_encoder(rng = 4):
         sns.heatmap(df)
 
     return df
-
+#%%
 print("tensorflow regression running...")
 bank_df = df_encoder(rng=4)
 dataset = bank_df.copy()
 print(dataset.head())
-print(dataset.tail())
-print(dataset.isna().sum())
 sns.pairplot(bank_df[['amount', 'amount_mean_lag7', 'amount_std_lag7']])
-#%%
+
+# NO SPLIT UP FOR RNN HERE
 # setting label and features (the df itself here)
-model_label = dataset.pop('amount_mean_lag7')
-model_label.astype('int64')
+#model_label = dataset.pop('amount_mean_lag7')
+#model_label.astype('int64')
 
-# EAGER EXECUTION NEEDS TO BE ENABLED HERE
-# features and model labels passed as tuple
-tensor_ds = tf.data.Dataset.from_tensor_slices((dataset.values, model_label.values))
-for feat, targ in tensor_ds.take(5):
-    print('Features: {}, Target: {}'.format(feat, targ))
+TRAIN_SPLIT = round(0.6 * len(dataset))
+# normalize the training set; but not yet split up
+train_dataset = dataset[:TRAIN_SPLIT]
+dataset_norm = tf.keras.utils.normalize(train_dataset)
+#%%
+# feed the whole dataset into the function; split into targets/features happens there
+def multivariate_data(dataset, target, start_index, end_index, history_size,
+                      target_size, step, single_step=False):
+  data = []
+  labels = []
 
-train_dataset = tensor_ds.shuffle(len(bank_df)).batch(2)
+  start_index = start_index + history_size
+  if end_index is None:
+    end_index = len(dataset) - target_size
 
+  for i in range(start_index, end_index):
+    indices = range(i-history_size, i, step)
+    data.append(dataset[indices])
+
+    if single_step:
+      labels.append(target[i+target_size])
+    else:
+      labels.append(target[i:i+target_size])
+
+  return np.array(data), np.array(labels)
+#%%
+
+past_history = 64
+future_target = 32
+STEP = 1
+# set up the variables for a single step model
+# from first row till train_split
+x_train_single, y_train_single = multivariate_data(train_dataset,
+                                                   train_dataset.iloc[:, 17],
+                                                   0, TRAIN_SPLIT, past_history,
+                                                   future_target, STEP,
+                                                   single_step=True)
+# from train_split through end
+x_val_single, y_val_single = multivariate_data(train_dataset,
+                                               dataset.iloc[:, 17],
+                                               TRAIN_SPLIT, None, past_history,
+                                               future_target, STEP,
+                                               single_step=True)
+
+print ('Single window of past history : {}'.format(x_train_single[0].shape))
+
+# pass as tuples to convert to tensor slices
+train_data_single = tf.data.Dataset.from_tensor_slices((x_train_single, y_train_single))
+train_data_single = train_data_single.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
+
+val_data_single = tf.data.Dataset.from_tensor_slices((x_val_single, y_val_single))
+val_data_single = val_data_single.batch(BATCH_SIZE).repeat()
+
+
+#%%
 '''
                 Recurring Neural Network
 -LSTM cell in sequential network
 '''
-    # Test of a RNN
-    model = tf.keras.Sequential()
-    # Add an Embedding layer expecting input vocab of size 1000, and
-    # output embedding dimension of size 64.
-    model.add(layers.Embedding(input_dim=1000, output_dim=64))
+# Test of a RNN
+model = tf.keras.Sequential()
+# Add an Embedding layer expecting input vocab of size 1000, and
+# output embedding dimension of size 64.
+model.add(layers.Embedding(input_dim=1000, output_dim=64))
 
-    # Add a LSTM layer with 128 internal units.
-    model.add(layers.LSTM(128))
+# Add a LSTM layer with 128 internal units.
+model.add(layers.LSTM(128))
 
-    # Add a Dense layer with 10 units.
-    model.add(layers.Dense(10))
-    model.summary()
+# Add a Dense layer with 10 units.
+model.add(layers.Dense(10))
+model.summary()
 
 # Simple RNN
-    model = tf.keras.Sequential()
-    model.add(layers.Embedding(input_dim=1000, output_dim=64))
+model = tf.keras.Sequential()
+model.add(layers.Embedding(input_dim=1000, output_dim=64))
 
-    # The output of GRU will be a 3D tensor of shape (batch_size, timesteps, 256)
-    model.add(layers.GRU(256, return_sequences=True))
+# The output of GRU will be a 3D tensor of shape (batch_size, timesteps, 256)
+model.add(layers.GRU(256, return_sequences=True))
 
-    # The output of SimpleRNN will be a 2D tensor of shape (batch_size, 128)
-    model.add(layers.SimpleRNN(128))
+# The output of SimpleRNN will be a 2D tensor of shape (batch_size, 128)
+model.add(layers.SimpleRNN(128))
 
-    model.add(layers.Dense(10))
+model.add(layers.Dense(10))
 
-    model.summary()
+model.summary()
 
-    encoder_vocab = 1000
-    decoder_vocab = 2000
+encoder_vocab = 1000
+decoder_vocab = 2000
 
-    encoder_input = layers.Input(shape=(None, ))
-    encoder_embedded = layers.Embedding(input_dim=encoder_vocab, output_dim=64)(encoder_input)
+encoder_input = layers.Input(shape=(None, ))
+encoder_embedded = layers.Embedding(input_dim=encoder_vocab, output_dim=64)(encoder_input)
 
-    # Return states in addition to output
-    output, state_h, state_c = layers.LSTM(
-        64, return_state=True, name='encoder')(encoder_embedded)
-    encoder_state = [state_h, state_c]
+# Return states in addition to output
+output, state_h, state_c = layers.LSTM(64,
+                                       return_state=True,
+                                       name='encoder')(encoder_embedded)
+encoder_state = [state_h, state_c]
 
-    decoder_input = layers.Input(shape=(None, ))
-    decoder_embedded = layers.Embedding(input_dim=decoder_vocab, output_dim=64)(decoder_input)
+decoder_input = layers.Input(shape=(None, ))
+decoder_embedded = layers.Embedding(input_dim=decoder_vocab,
+                                    output_dim=64)(decoder_input)
 
-    # Pass the 2 states to a new LSTM layer, as initial state
-    decoder_output = layers.LSTM(
-        64, name='decoder')(decoder_embedded, initial_state=encoder_state)
-    output = layers.Dense(10)(decoder_output)
+# Pass the 2 states to a new LSTM layer, as initial state
+decoder_output = layers.LSTM(64,
+                             name='decoder')(decoder_embedded,
+                                             initial_state=encoder_state)
+output = layers.Dense(10)(decoder_output)
 
-    model = tf.keras.Model([encoder_input, decoder_input], output)
-    model.summary()
+model = tf.keras.Model([encoder_input, decoder_input], output)
+model.summary()
 
-    lstm_layer = layers.LSTM(64, stateful=True)
-    for s in sub_sequences:
-      output = lstm_layer(s)
-    #%%
-    # Model resets weights of layers
-    paragraph1 = np.random.random((20, 10, 50)).astype(np.float32)
-    paragraph2 = np.random.random((20, 10, 50)).astype(np.float32)
-    paragraph3 = np.random.random((20, 10, 50)).astype(np.float32)
+lstm_layer = layers.LSTM(64, stateful=True)
 
-    lstm_layer = layers.LSTM(64, stateful=True)
-    output = lstm_layer(paragraph1)
-    output = lstm_layer(paragraph2)
-    output = lstm_layer(paragraph3)
+for s in sub_sequences:
+    output = lstm_layer(s)
+#%%
+# Model resets weights of layers
+paragraph1 = np.random.random((20, 10, 50)).astype(np.float32)
+paragraph2 = np.random.random((20, 10, 50)).astype(np.float32)
+paragraph3 = np.random.random((20, 10, 50)).astype(np.float32)
 
-    # reset_states() will reset the cached state to the original initial_state.
-    # If no initial_state was provided, zero-states will be used by default.
-    lstm_layer.reset_states()
-    #%%
-    # Model reuses states/ weights
-    paragraph1 = np.random.random((20, 10, 50)).astype(np.float32)
-    paragraph2 = np.random.random((20, 10, 50)).astype(np.float32)
-    paragraph3 = np.random.random((20, 10, 50)).astype(np.float32)
+lstm_layer = layers.LSTM(64, stateful=True)
+output = lstm_layer(paragraph1)
+output = lstm_layer(paragraph2)
+output = lstm_layer(paragraph3)
 
-    lstm_layer = layers.LSTM(64, stateful=True)
-    output = lstm_layer(paragraph1)
-    output = lstm_layer(paragraph2)
+# reset_states() will reset the cached state to the original initial_state.
+# If no initial_state was provided, zero-states will be used by default.
+lstm_layer.reset_states()
+#%%
+# Model reuses states/ weights
+paragraph1 = np.random.random((20, 10, 50)).astype(np.float32)
+paragraph2 = np.random.random((20, 10, 50)).astype(np.float32)
+paragraph3 = np.random.random((20, 10, 50)).astype(np.float32)
 
-    existing_state = lstm_layer.states
+lstm_layer = layers.LSTM(64, stateful=True)
+output = lstm_layer(paragraph1)
+output = lstm_layer(paragraph2)
 
-    new_lstm_layer = layers.LSTM(64)
-    new_output = new_lstm_layer(paragraph3, initial_state=existing_state)
-    #%%
-    batch_size = 64
-    # Each data batch is a tensor of shape (batch_size, num_feat, num_feat)
-    #                                       (batch_size, 21, 21)
-    # Each input sequence will be of size (21, 21) (height is treated like time).
-    input_dim = 21
+existing_state = lstm_layer.states
 
-    units = 64
-    output_size = 10  # labels are from 0 to 9
+new_lstm_layer = layers.LSTM(64)
+new_output = new_lstm_layer(paragraph3, initial_state=existing_state)
+#%%
+batch_size = 64
+# Each data batch is a tensor of shape (batch_size, num_feat, num_feat)
+#                                       (batch_size, 21, 21)
+# Each input sequence will be of size (21, 21) (height is treated like time).
+input_dim = 21
 
-    # Build the RNN model
-    def build_model(allow_cudnn_kernel=True):
-        # CuDNN is only available at the layer level, and not at the cell level.
-        # This means `LSTM(units)` will use the CuDNN kernel,
-        # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
-        if allow_cudnn_kernel:
-        # The LSTM layer with default options uses CuDNN.
-            lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, input_dim))
-        else:
-            # Wrapping an LSTMCell in an RNN layer will not use CuDNN.
-            # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
-            lstm_layer = tf.keras.layers.RNN(
-                tf.keras.layers.LSTMCell(units),
-                input_shape=(None, input_dim))
+units = 64
+output_size = 10  # labels are from 0 to 9
 
-        model = tf.keras.models.Sequential([
-            lstm_layer,
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Dense(output_size)])
+# Build the RNN model
+def build_model(allow_cudnn_kernel=True):
+    # CuDNN is only available at the layer level, and not at the cell level.
+    # This means `LSTM(units)` will use the CuDNN kernel,
+    # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
+    if allow_cudnn_kernel:
+    # The LSTM layer with default options uses CuDNN.
+        lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, input_dim))
+    else:
+        # Wrapping an LSTMCell in an RNN layer will not use CuDNN.
+        # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
+        lstm_layer = tf.keras.layers.RNN(
+            tf.keras.layers.LSTMCell(units),
+            input_shape=(None, input_dim))
 
-        return model
-    #%%
-    model = build_model(allow_cudnn_kernel=False)
+    model = tf.keras.models.Sequential([
+        lstm_layer,
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dense(output_size)])
 
-    model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                  optimizer='sgd',
-                  metrics=['accuracy'])
-
-    model.fit(dataset,
-              batch_size=batch_size,
-              epochs=5,
-              verbose=2)
-    print("Tensorflow regression finished...")
     return model
+#%%
+model = build_model(allow_cudnn_kernel=False)
+
+model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              optimizer='sgd',
+              metrics=['accuracy'])
+
+model.fit(dataset,
+          batch_size=batch_size,
+          epochs=5,
+          verbose=2)
+print("Tensorflow regression finished...")
