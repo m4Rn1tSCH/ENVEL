@@ -497,30 +497,51 @@ def multivariate_data(dataset, target, start_index, end_index, history_size,
     return np.array(data), np.array(labels)
 #%%
 
-past_history = 64
-future_target = 32
-STEP = 1
-# set up the variables for a single step model
-# from first row till train_split
-x_train_single, y_train_single = multivariate_data(train_dataset,
-                                                   train_dataset.iloc[:, 17],
-                                                   0, TRAIN_SPLIT, past_history,
-                                                   future_target, STEP,
-                                                   single_step=True)
-# from train_split through end
-x_val_single, y_val_single = multivariate_data(train_dataset,
-                                               dataset.iloc[:, 17],
-                                               TRAIN_SPLIT, None, past_history,
-                                               future_target, STEP,
-                                               single_step=True)
+# past_history = 64
+# future_target = 32
+# STEP = 1
+# # set up the variables for a single step model
+# # from first row till train_split
+# x_train_single, y_train_single = multivariate_data(train_dataset,
+#                                                    train_dataset.iloc[:, 17],
+#                                                    0, TRAIN_SPLIT, past_history,
+#                                                    future_target, STEP,
+#                                                    single_step=True)
+# # from train_split through end
+# x_val_single, y_val_single = multivariate_data(train_dataset,
+#                                                dataset.iloc[:, 17],
+#                                                TRAIN_SPLIT, None, past_history,
+#                                                future_target, STEP,
+#                                                single_step=True)
 
-print ('Single window of past history : {}'.format(x_train_single[0].shape))
+# print ('Single window of past history : {}'.format(x_train_single[0].shape))
+
+
+# setting label and features (the df itself here)
+TRAIN_SPLIT = round(0.6 * len(dataset))
+# normalize the training set
+train_dataset = dataset[:TRAIN_SPLIT]
+dataset_norm = tf.keras.utils.normalize(train_dataset)
+
+ds_label = dataset_norm.pop('amount_mean_lag7')
+
+# train dataset is already shortened and normalized
+y_train_single = ds_label[:TRAIN_SPLIT]
+X_train_single = dataset_norm[:TRAIN_SPLIT]
+# referring to previous dataset; second slice becomes validation data until end of the data
+y_val_single = dataset.pop('amount_mean_lag7').iloc[TRAIN_SPLIT:]
+X_val_single = dataset.iloc[TRAIN_SPLIT:]
+
+print("Shape y_train:", y_train_single.shape)
+print("Shape X_train:", X_train_single.shape)
+print("Shape y_val:", y_val_single.shape)
+print("Shape X_train:", X_val_single.shape)
 
 # pass as tuples to convert to tensor slices
-train_data_single = tf.data.Dataset.from_tensor_slices((x_train_single, y_train_single))
+train_data_single = tf.data.Dataset.from_tensor_slices((X_train_single, y_train_single))
 train_data_single = train_data_single.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
 
-val_data_single = tf.data.Dataset.from_tensor_slices((x_val_single, y_val_single))
+val_data_single = tf.data.Dataset.from_tensor_slices((X_val_single, y_val_single))
 val_data_single = val_data_single.batch(BATCH_SIZE).repeat()
 
 
