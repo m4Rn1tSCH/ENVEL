@@ -82,6 +82,8 @@ app = Flask(__name__)
 @app.route('/encode')
 
 def df_encoder(rng = 4):
+
+
     '''
 
     Parameters
@@ -306,8 +308,8 @@ def df_encoder(rng = 4):
     The columns PRIMARY_MERCHANT_NAME; CITY, STATE, DESCRIPTION, TRANSACTION_CATEGORY_NAME, CURRENCY
     are encoded manually and cleared of empty values
     '''
-    #WORKS
-    #encoding merchants
+    # WORKS
+    # encoding merchants
     UNKNOWN_TOKEN = '<unknown>'
     merchants = bank_df['primary_merchant_name'].unique().astype('str').tolist()
     #a = pd.Series(['A', 'B', 'C', 'D', 'A'], dtype=str).unique().tolist()
@@ -316,13 +318,13 @@ def df_encoder(rng = 4):
     le.fit_transform(merchants)
     embedding_map_merchants = dict(zip(le.classes_, le.transform(le.classes_)))
 
-    #APPLICATION TO OUR DATASET
+    # APPLICATION TO OUR DATASET
     bank_df['primary_merchant_name'] = bank_df['primary_merchant_name'].apply(lambda x:
                                                                               x if x in embedding_map_merchants else UNKNOWN_TOKEN)
     bank_df['primary_merchant_name'] = bank_df['primary_merchant_name'].map(lambda x:
                                                                             le.transform([x])[0] if type(x)==str else x)
 
-    #encoding cities
+    # encoding cities
     UNKNOWN_TOKEN = '<unknown>'
     cities = bank_df['city'].unique().astype('str').tolist()
     cities.append(UNKNOWN_TOKEN)
@@ -330,59 +332,59 @@ def df_encoder(rng = 4):
     le_2.fit_transform(cities)
     embedding_map_cities = dict(zip(le_2.classes_, le_2.transform(le_2.classes_)))
 
-    #APPLICATION TO OUR DATASET
+    # APPLICATION TO OUR DATASET
     bank_df['city'] = bank_df['city'].apply(lambda x: x if x in embedding_map_cities else UNKNOWN_TOKEN)
     bank_df['city'] = bank_df['city'].map(lambda x: le_2.transform([x])[0] if type(x)==str else x)
 
-    #encoding states
+    # encoding states
     states = bank_df['state'].unique().astype('str').tolist()
     states.append(UNKNOWN_TOKEN)
     le_3 = LabelEncoder()
     le_3.fit_transform(states)
     embedding_map_states = dict(zip(le_3.classes_, le_3.transform(le_3.classes_)))
 
-    #APPLICATION TO OUR DATASET
+    # APPLICATION TO OUR DATASET
     bank_df['state'] = bank_df['state'].apply(lambda x: x if x in embedding_map_states else UNKNOWN_TOKEN)
     bank_df['state'] = bank_df['state'].map(lambda x: le_3.transform([x])[0] if type(x)==str else x)
 
-    #encoding descriptions
+    # encoding descriptions
     desc = bank_df['description'].unique().astype('str').tolist()
     desc.append(UNKNOWN_TOKEN)
     le_4 = LabelEncoder()
     le_4.fit_transform(desc)
     embedding_map_desc = dict(zip(le_4.classes_, le_4.transform(le_4.classes_)))
 
-    #APPLICATION TO OUR DATASET
+    # APPLICATION TO OUR DATASET
     bank_df['description'] = bank_df['description'].apply(lambda x: x if x in embedding_map_desc else UNKNOWN_TOKEN)
     bank_df['description'] = bank_df['description'].map(lambda x: le_4.transform([x])[0] if type(x)==str else x)
 
-    #encoding descriptions
+    # encoding descriptions
     desc = bank_df['transaction_category_name'].unique().astype('str').tolist()
     desc.append(UNKNOWN_TOKEN)
     le_5 = LabelEncoder()
     le_5.fit_transform(desc)
     embedding_map_tcat = dict(zip(le_5.classes_, le_5.transform(le_5.classes_)))
 
-    #APPLICATION TO OUR DATASET
+    # APPLICATION TO OUR DATASET
     bank_df['transaction_category_name'] = bank_df['transaction_category_name'].apply(lambda x:
                                                                                       x if x in embedding_map_tcat else UNKNOWN_TOKEN)
     bank_df['transaction_category_name'] = bank_df['transaction_category_name'].map(lambda x:
                                                                                     le_5.transform([x])[0] if type(x)==str else x)
 
-    #encoding transaction origin
+    # encoding transaction origin
     desc = bank_df['transaction_origin'].unique().astype('str').tolist()
     desc.append(UNKNOWN_TOKEN)
     le_6 = LabelEncoder()
     le_6.fit_transform(desc)
     embedding_map_tori = dict(zip(le_6.classes_, le_6.transform(le_6.classes_)))
 
-    #APPLICATION TO OUR DATASET
+    # APPLICATION TO OUR DATASET
     bank_df['transaction_origin'] = bank_df['transaction_origin'].apply(lambda x:
                                                                         x if x in embedding_map_tori else UNKNOWN_TOKEN)
     bank_df['transaction_origin'] = bank_df['transaction_origin'].map(lambda x:
                                                                       le_6.transform([x])[0] if type(x)==str else x)
 
-    #encoding currency if there is more than one in use
+    # encoding currency if there is more than one in use
     try:
         if len(bank_df['currency'].value_counts()) == 1:
             bank_df = bank_df.drop(columns = ['currency'], axis = 1)
@@ -1360,8 +1362,8 @@ def open_pickle(model_file):
 works as of 5/20/2020; mean sq error is nugged that model can be evaluated wihtout
 accuracy currently not suitable
 '''
-#features: X
-#target: Y
+# features: X
+# target: Y
 
 features = np.array(X_train)
 targets = np.array(y_train)
@@ -1380,20 +1382,23 @@ model.add(Dropout(.1))
 model.add(Dense(1))
 
 #compiling the model
-model.compile(loss = 'mse', optimizer='adam', metrics=['mse']) #mse: mean_square_error
+model.compile(loss = 'mse',
+              optimizer='adam',
+              # mse: mean_square_error
+              metrics=['mse'])
 model.summary()
 #%%
-#training of the model
+# training of the model
 epochs_total = 1000
 epochs_step = 250
 epochs_ratio = int(epochs_total / epochs_step)
 hist = np.array([])
 #######
-#building the epochs
+# building the epochs
 for i in range(epochs_ratio):
     history = model.fit(features, targets, epochs=epochs_step, batch_size=100, verbose=0)
 
-    #evaluating the model on the training and testing set
+    # evaluating the model on the training and testing set
     print("Step : " , i * epochs_step, "/", epochs_total)
     score = model.evaluate(features, targets)
     print("Training MSE:", score[1])
@@ -1402,7 +1407,7 @@ for i in range(epochs_ratio):
     #hist = np.concatenate((hist, np.array(history.history['mean_squared_error'])), axis = 0)
 #%%
 
-#plot metrics
+# plot metrics
 plt.plot(hist)
 plt.show()
 
@@ -1424,10 +1429,10 @@ print(len(train), 'train examples')
 print(len(val), 'validation examples')
 print(len(test), 'test examples')
 #%%
-#create tuples for lists to organize the columns conversion
-##Tuple (or list) for the bank list to refer to the length
+# create tuples for lists to organize the columns conversion
+# Tuple (or list) for the bank list to refer to the length
 
-##STEP 1
+##  STEP 1
 '''
 #setting up various columns to be features and encode them to be ready for a NN
 layer
