@@ -28,38 +28,38 @@ from tensorflow.keras import Model, layers, regularizers
 
 #IMPORTED CUSTOM FUNCTION
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
-from Python_spending_report_csv_function import spending_report
+#from Python_spending_report_csv_function import spending_report
 #contains the connection script
-from Python_SQL_connection import execute_read_query, create_connection, close_connection
+#from Python_SQL_connection import execute_read_query, create_connection, close_connection
 #contains all credentials
 import PostgreSQL_credentials as acc
 #csv export with optional append-mode
 from Python_CSV_export_function import csv_export
+from Python_eda_ai import df_encoder
 
-# # model training is finished
-# # Include the epoch in the file name (uses `str.format`)
-# checkpoint_dir = os.getcwd()
+'''
+                    RNN Regression
+single-step and multi-step model for a recurrent neural network
+'''
+print("tensorflow regression running...")
+bank_df = df_encoder(rng=4)
+dataset = bank_df.copy()
+print(dataset.head())
+print(dataset.tail())
+print(dataset.isna().sum())
+sns.pairplot(bank_df[['amount', 'amount_mean_lag7', 'amount_std_lag7']])
+#%%
+# setting label and features (the df itself here)
+model_label = dataset.pop('amount_mean_lag7')
+model_label.astype('int64')
 
-# # Create a callback that saves the model's weights every 5 epochs
-# cp_callback = tf.keras.callbacks.ModelCheckpoint(
-#     filepath=checkpoint_dir,
-#     verbose=1,
-#     save_weights_only=True,
-#     period=5)
+# EAGER EXECUTION NEEDS TO BE ENABLED HERE
+# features and model labels passed as tuple
+tensor_ds = tf.data.Dataset.from_tensor_slices((dataset.values, model_label.values))
+for feat, targ in tensor_ds.take(5):
+    print('Features: {}, Target: {}'.format(feat, targ))
 
-# # Create a new model instance
-# model = get_compiled_model()
-
-# # Save the weights using the `checkpoint_path` format
-# model.save_weights(checkpoint_dir.format(epoch=5))
-
-# # Train the model with the new callback
-# model.fit(train_images,
-#           train_labels,
-#           epochs=50,
-#           callbacks=[cp_callback],
-#           validation_data=(test_images,test_labels),
-#           verbose=0)
+train_dataset = tensor_ds.shuffle(len(bank_df)).batch(2)
 
 '''
                 Recurring Neural Network

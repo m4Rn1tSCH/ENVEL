@@ -59,26 +59,26 @@ from tensorflow.keras import Model
 from tensorflow.keras.layers import Dense, Flatten, Conv2D
 
 
-#imported custom function
-#generates a CSV for daily/weekly/monthly account throughput; expenses and income
+# imported custom function
+# generates a CSV for daily/weekly/monthly account throughput; expenses and income
 from Python_spending_report_csv_function import spending_report
-#contains the connection script
+# contains the connection script
 from Python_SQL_connection import execute_read_query, create_connection, close_connection
-#contains all credentials
+# contains all credentials
 import PostgreSQL_credentials as acc
-#loads flask into the environment variables
+# loads flask into the environment variables
 from flask import Flask
-#csv export with optional append-mode
+# csv export with optional append-mode
 from Python_CSV_export_function import csv_export
 #%%
-#set up flask first as environment variable and start with the command console
+# set up flask first as environment variable and start with the command console
     #CONNECTION TO FLASK/SQL
 app = Flask(__name__)
 
-##put address here
-#function can be bound to the script by adding a new URL
-#e.g. route('/start') would then start the entire function that follows
-#same can be split up
+## put address here
+# function can be bound to the script by adding a new URL
+# e.g. route('/start') would then start the entire function that follows
+# same can be split up
 @app.route('/encode')
 
 def df_encoder(rng = 4):
@@ -101,15 +101,15 @@ def df_encoder(rng = 4):
                                    db_host = acc.YDB_host,
                                    db_port = acc.YDB_port)
 
-    #establish connection to get user IDs
+    # establish connection to get user IDs
     filter_query = f"SELECT unique_mem_id, state, city, zip_code, income_class, file_created_date FROM user_demographic WHERE state = 'MA'"
     transaction_query = execute_read_query(connection, filter_query)
     query_df = pd.DataFrame(transaction_query,
                             columns = ['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
 
-    #dateframe to gather MA bank data from one randomly chosen user
-    #test user 1= 4
-    #test user 2= 8
+    # dateframe to gather MA bank data from one randomly chosen user
+    # test user 1= 4
+    # test user 2= 8
     rng = 4
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n = 1, random_state = rng):
@@ -145,7 +145,7 @@ def df_encoder(rng = 4):
             connection.rollback
     #csv_export(df=bank_df, file_name='bank_dataframe')
 
-    #Plot template
+    # Plot template
     # fig, ax = plt.subplots(2, 1, figsize = (25, 25))
     # ax[0].plot(df.index.values, df['x'], color = 'green', lw = 4, ls = '-.', marker = 'o', label = 'line_1')
     # ax[1].plot(df.index.values, df['y'], color = 'orange', lw = 0, marker = 'o', label = 'line_2')
@@ -173,7 +173,7 @@ def df_encoder(rng = 4):
     # ax1.axis('equal')
     # plt.show()
 
-    #Boxplot template
+    # Boxplot template
     # cat_var = ["type", "check", "institutionName", "feeDescription", "Student", "isCredit", "CS_FICO_str"]
     # quant_var = ["Age", "amount"]
     # for c_var in cat_var:
@@ -186,43 +186,36 @@ def df_encoder(rng = 4):
     The Counter object keeps track of permutations in a dictionary which can then be read and
     used as labels
     '''
-    #Pie chart States - works
+    # Pie chart States - works
     state_ct = Counter(list(bank_df['state']))
-    #The * operator can be used in conjunction with zip() to unzip the list.
+    # The * operator can be used in conjunction with zip() to unzip the list.
     labels, values = zip(*state_ct.items())
-    #Pie chart, where the slices will be ordered and plotted counter-clockwise:
+    # Pie chart, where the slices will be ordered and plotted counter-clockwise:
     fig1, ax = plt.subplots(figsize = (20, 12))
     ax.pie(values, labels = labels, autopct = '%1.1f%%',
             shadow = True, startangle = 90)
-    #Equal aspect ratio ensures that pie is drawn as a circle.
+    # Equal aspect ratio ensures that pie is drawn as a circle.
     ax.axis('equal')
     #ax.title('Transaction locations of user {bank_df[unique_mem_id][0]}')
     ax.legend(loc = 'center right')
     plt.show()
 
-    #Pie chart transaction type -works
+    # Pie chart transaction type -works
     trans_ct = Counter(list(bank_df['transaction_category_name']))
-    #The * operator can be used in conjunction with zip() to unzip the list.
+    # The * operator can be used in conjunction with zip() to unzip the list.
     labels_2, values_2 = zip(*trans_ct.items())
     #Pie chart, where the slices will be ordered and plotted counter-clockwise:
     fig1, ax = plt.subplots(figsize = (20, 12))
     ax.pie(values_2, labels = labels_2, autopct = '%1.1f%%',
             shadow = True, startangle = 90)
-    #Equal aspect ratio ensures that pie is drawn as a circle.
+    # Equal aspect ratio ensures that pie is drawn as a circle.
     ax.axis('equal')
     #ax.title('Transaction categories of user {bank_df[unique_mem_id][0]}')
     ax.legend(loc = 'center right')
     plt.show()
 
-    #seaborn plots
-    # ax_desc = bank_df['description'].astype('int64', errors='ignore')
-    # ax_amount = bank_df['amount'].astype('int64',errors='ignore')
-    # sns.pairplot(bank_df)
-    # sns.boxplot(x=ax_desc, y=ax_amount)
-    # sns.heatmap(bank_df)
-
-#BUGGED
-    #Boxplot template
+    # BUGGED
+    # Boxplot template
     # cat_var = ["unique_mem_id", "primary_merchant_name"]
     # quant_var = ["amount"]
     # for c_var in cat_var:
@@ -236,19 +229,19 @@ def df_encoder(rng = 4):
     This report measures either the sum or mean of transactions happening
     on various days of the week/or wihtin a week or a month  over the course of the year
     '''
-    #convert all date col from date to datetime objects
-    #date objects will block Select K Best if not converted
-    #first conversion from date to datetime objects; then conversion to unix
+    # convert all date col from date to datetime objects
+    # date objects will block Select K Best if not converted
+    # first conversion from date to datetime objects; then conversion to unix
     bank_df['post_date'] = pd.to_datetime(bank_df['post_date'])
     bank_df['transaction_date'] = pd.to_datetime(bank_df['transaction_date'])
     bank_df['optimized_transaction_date'] = pd.to_datetime(bank_df['optimized_transaction_date'])
     bank_df['file_created_date'] = pd.to_datetime(bank_df['file_created_date'])
     bank_df['panel_file_created_date'] = pd.to_datetime(bank_df['panel_file_created_date'])
 
-    #set optimized transaction_date as index for later
+    # set optimized transaction_date as index for later
     bank_df.set_index('optimized_transaction_date', drop = False, inplace=True)
-    #generate the spending report with a randomly picked user ID
-    #when datetime columns are still datetime objects the spending report works
+    # generate the spending report with a randomly picked user ID
+    # when datetime columns are still datetime objects the spending report works
     '''
     Weekday legend
     Mon: 0
@@ -273,9 +266,9 @@ def df_encoder(rng = 4):
         print("Problem with conversion:")
         print(e)
 
-#attempt to convert date objects if they have no missing values; otherwise they are being dropped
+    # attempt to convert date objects if they have no missing values; otherwise they are being dropped
     try:
-        #conversion of dates to unix timestamps as numeric value (fl64)
+        # conversion of dates to unix timestamps as numeric value (fl64)
         if bank_df['post_date'].isnull().sum() == 0:
             bank_df['post_date'] = bank_df['post_date'].apply(lambda x: dt.timestamp(x))
         else:
@@ -466,6 +459,14 @@ def df_encoder(rng = 4):
     bank_df = bank_df.drop(['unique_mem_id',
                             'unique_bank_account_id',
                             'unique_bank_transaction_id'], axis = 1)
+
+    # seaborn plots
+    ax_desc = bank_df['description'].astype('int64', errors='ignore')
+    ax_amount = bank_df['amount'].astype('int64',errors='ignore')
+    sns.pairplot(bank_df)
+    sns.boxplot(x=ax_desc, y=ax_amount)
+    sns.heatmap(bank_df)
+
     return bank_df
     #%%
 @app.route('/split')
