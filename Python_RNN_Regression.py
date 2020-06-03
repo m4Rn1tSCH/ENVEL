@@ -450,23 +450,51 @@ dataset_norm = tf.keras.utils.normalize(train_dataset)
 # feed the whole dataset into the function; split into targets/features happens there
 def multivariate_data(dataset, target, start_index, end_index, history_size,
                       target_size, step, single_step=False):
-  data = []
-  labels = []
 
-  start_index = start_index + history_size
-  if end_index is None:
-    end_index = len(dataset) - target_size
+    '''
 
-  for i in range(start_index, end_index):
-    indices = range(i-history_size, i, step)
-    data.append(dataset[indices])
+    Parameters
+    ----------
+    dataset : pandas dataframe
+        Standard pandas dataframe.
+    target : slice, series or array
+        pass a slice, series or array as label.
+    start_index : int
+        DESCRIPTION.
+    end_index : int
+        DESCRIPTION.
+    history_size : int
+        DESCRIPTION.
+    target_size : int
+        DESCRIPTION.
+    step : int
+        DESCRIPTION.
+    single_step : bool, optional
+        specify the size of each data batch. The default is False.
+
+    Returns
+    -------
+    Array - features; Array - label.
+
+    '''
+
+    data = []
+    labels = []
+
+    start_index = start_index + history_size
+    if end_index is None:
+        end_index = len(dataset) - target_size
+
+    for i in range(start_index, end_index):
+        indices = range(i-history_size, i, step)
+        data.append(dataset[indices])
 
     if single_step:
-      labels.append(target[i+target_size])
+        labels.append(target[i+target_size])
     else:
-      labels.append(target[i:i+target_size])
+        labels.append(target[i:i+target_size])
 
-  return np.array(data), np.array(labels)
+    return np.array(data), np.array(labels)
 #%%
 
 past_history = 64
