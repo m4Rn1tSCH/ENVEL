@@ -543,8 +543,6 @@ train_data_single = train_data_single.cache().shuffle(BUFFER_SIZE).batch(BATCH_S
 
 val_data_single = tf.data.Dataset.from_tensor_slices((X_val_single, y_val_single))
 val_data_single = val_data_single.batch(BATCH_SIZE).repeat()
-
-
 #%%
 '''
                 Recurring Neural Network
@@ -562,7 +560,7 @@ model.add(layers.LSTM(128))
 # Add a Dense layer with 10 units.
 model.add(layers.Dense(10))
 model.summary()
-
+#%%
 # Simple RNN
 model = tf.keras.Sequential()
 model.add(layers.Embedding(input_dim=1000, output_dim=64))
@@ -577,6 +575,7 @@ model.add(layers.Dense(10))
 
 model.summary()
 
+#%%
 encoder_vocab = 1000
 decoder_vocab = 2000
 
