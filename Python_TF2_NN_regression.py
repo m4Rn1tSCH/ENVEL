@@ -451,8 +451,10 @@ def compile_model():
     # gradients / running average; optimizes stochastic gradient descent
     optimizer = tf.keras.optimizers.RMSprop(0.001)
     model.compile(optimizer=optimizer,
+                  # mse is a for a loss function in regressions
                   loss='mse',
-                  metrics=['mse', 'mae'])
+                  # mae is an evaluation metric for regression problems
+                  metrics=['mae'])
     return model
 #%%
 model = compile_model()

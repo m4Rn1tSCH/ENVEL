@@ -432,6 +432,7 @@ def df_encoder(rng = 4, seaborn_plots=False):
     return df
 #%%
 print("tensorflow regression running...")
+print(tf.__version__)
 bank_df = df_encoder(rng=4)
 dataset = bank_df.copy()
 print(dataset.head())
@@ -496,70 +497,88 @@ def multivariate_data(dataset, target, start_index, end_index, history_size,
 
     return np.array(data), np.array(labels)
 #%%
-
-# past_history = 64
-# future_target = 32
-# STEP = 1
-# # set up the variables for a single step model
-# # from first row till train_split
-# x_train_single, y_train_single = multivariate_data(train_dataset,
-#                                                    train_dataset.iloc[:, 17],
-#                                                    0, TRAIN_SPLIT, past_history,
-#                                                    future_target, STEP,
-#                                                    single_step=True)
-# # from train_split through end
-# x_val_single, y_val_single = multivariate_data(train_dataset,
-#                                                dataset.iloc[:, 17],
-#                                                TRAIN_SPLIT, None, past_history,
-#                                                future_target, STEP,
-#                                                single_step=True)
-
-# print ('Single window of past history : {}'.format(x_train_single[0].shape))
-
-
-# setting label and features (the df itself here)
-TRAIN_SPLIT = round(0.6 * len(dataset))
-# normalize the training set
-train_dataset = dataset[:TRAIN_SPLIT]
-dataset_norm = tf.keras.utils.normalize(train_dataset)
-
 ds_label = dataset_norm.pop('amount_mean_lag7')
 
 # train dataset is already shortened and normalized
-y_train_single = ds_label[:TRAIN_SPLIT]
-X_train_single = dataset_norm[:TRAIN_SPLIT]
+y_train_multi = ds_label
+X_train_multi = dataset_norm[:TRAIN_SPLIT]
 # referring to previous dataset; second slice becomes validation data until end of the data
-y_val_single = dataset.pop('amount_mean_lag7').iloc[TRAIN_SPLIT:]
-X_val_single = dataset.iloc[TRAIN_SPLIT:]
+y_val_multi = dataset.pop('amount_mean_lag7').iloc[TRAIN_SPLIT:]
+X_val_multi = dataset.iloc[TRAIN_SPLIT:]
 
-print("Shape y_train:", y_train_single.shape)
-print("Shape X_train:", X_train_single.shape)
-print("Shape y_val:", y_val_single.shape)
-print("Shape X_train:", X_val_single.shape)
+print("Shape y_train:", y_train_multi.shape)
+print("Shape X_train:", X_train_multi.shape)
+print("Shape y_val:", y_val_multi.shape)
+print("Shape X_train:", X_val_multi.shape)
 
 # pass as tuples to convert to tensor slices
-train_data_single = tf.data.Dataset.from_tensor_slices((X_train_single, y_train_single))
-train_data_single = train_data_single.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
+# buffer_size can be equivalent to the entire length of the df; that way all of it is being shuffled
+BUFFER_SIZE = len(train_dataset)
 
-val_data_single = tf.data.Dataset.from_tensor_slices((X_val_single, y_val_single))
-val_data_single = val_data_single.batch(BATCH_SIZE).repeat()
-#%%
+# Batch refers to the chunk of the dataset that is used for validating the predicitions
+BATCH_SIZE = len(X_val_multi)
+
+# training dataframe
+train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi.values, y_train_multi.values))
+train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
+# validation dataframe
+val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi.values, y_val_multi.values))
+val_data_multi = val_data_multi.batch(BATCH_SIZE).repeat()
 '''
                 Recurring Neural Network
 -LSTM cell in sequential network
 '''
-# Test of a RNN
-model = tf.keras.Sequential()
-# Add an Embedding layer expecting input vocab of size 1000, and
-# output embedding dimension of size 64.
-model.add(layers.Embedding(input_dim=1000, output_dim=64))
+# Test of a RNN multi-step
+multi_step_model = tf.keras.models.Sequential()
+multi_step_model.add(tf.keras.layers.LSTM(32,
+                                          return_sequences=True,
+                                          input_shape=X_train_multi.shape[-2:]))
+multi_step_model.add(tf.keras.layers.LSTM(16, activation='relu'))
+# in our example we want to predict one single weekly expense average
+multi_step_model.add(tf.keras.layers.Dense(1))
 
-# Add a LSTM layer with 128 internal units.
-model.add(layers.LSTM(128))
+optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.001,
+                                        clipvalue=1.0,
+                                        name='RMSprop')
 
-# Add a Dense layer with 10 units.
-model.add(layers.Dense(10))
-model.summary()
+multi_step_model.compile(optimizer=optimizer,
+                         loss='mse',
+                         # needs to be a list (also with 1 arg)
+                         metrics=['mae'])
+
+print("Training data shape")
+for x, y in train_data_multi.take(1):
+    print (multi_step_model.predict(x).shape)
+
+
+EPOCHS = 250
+# steps within one epoch to validate with val_data
+EVALUATION_INTERVAL = 200
+multi_step_history = multi_step_model.fit(train_data_multi,
+                                          epochs=EPOCHS,
+                                          steps_per_epoch=EVALUATION_INTERVAL,
+                                          validation_data=val_data_multi,
+                                          validation_steps=50,
+                                          verbose=2)
+
+def plot_train_history(history, title):
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    epochs = range(len(loss))
+
+    plt.figure()
+
+    plt.plot(epochs, loss, 'b', label='Training loss')
+    plt.plot(epochs, val_loss, 'r', label='Validation loss')
+    plt.title(title)
+    plt.legend()
+
+    plt.show()
+
+
+plot_train_history(multi_step_history, 'Multi-Step Training and validation loss')
+
 #%%
 # Simple RNN
 model = tf.keras.Sequential()
@@ -672,7 +691,7 @@ model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=Tru
               metrics=['accuracy'])
 
 model.fit(dataset,
-          batch_size=batch_size,
+          batch_size=BATCH_SIZE,
           epochs=5,
           verbose=2)
 print("Tensorflow regression finished...")
