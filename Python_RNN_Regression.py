@@ -533,6 +533,7 @@ val_data_multi = val_data_multi.batch(BATCH_SIZE).repeat()
 train_data_3d = np.reshape(X_train_multi, (timestep, BATCH_SIZE, X_train_multi.shape[1]))
 val_data_3d = np.reshape(X_val_multi, (timestep, BATCH_SIZE, X_val_multi.shape[1]))
 #######
+#%%
 '''
                 Recurring Neural Network
 -LSTM cell in sequential network
@@ -541,10 +542,10 @@ val_data_3d = np.reshape(X_val_multi, (timestep, BATCH_SIZE, X_val_multi.shape[1
 multi_step_model = tf.keras.models.Sequential()
 multi_step_model.add(tf.keras.layers.LSTM(32,
                                           return_sequences=True,
-                                          input_shape=X_train_multi.shape[-2:]))
+                                          input_shape=X_train_multi.shape[-3:]))
 multi_step_model.add(tf.keras.layers.LSTM(16, activation='relu'))
 # we want to predict one single weekly average; dimensionality will be reduced
-multi_step_model.add(Flatten())
+multi_step_model.add(tf.keras.layers.Flatten())
 multi_step_model.add(tf.keras.layers.Dense(1))
 
 optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.001,
@@ -570,6 +571,9 @@ multi_step_history = multi_step_model.fit(train_data_multi,
                                           validation_data=val_data_multi,
                                           validation_steps=50,
                                           verbose=2)
+# retrieve weights and variables
+#model.weights
+#model.variables
 
 def plot_train_history(history, title):
     loss = history.history['loss']

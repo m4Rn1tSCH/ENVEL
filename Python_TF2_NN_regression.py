@@ -453,7 +453,7 @@ def compile_model():
     model.compile(optimizer=optimizer,
                   # mse is a for a loss function in regressions
                   loss='mse',
-                  # mae is an evaluation metric for regression problems
+                  # mae is an evaluation metric for regression problems (needs list)
                   metrics=['mae'])
     return model
 #%%
