@@ -416,7 +416,7 @@ def df_encoder(rng = 4, seaborn_plots=False):
 
     df.set_index(date_index, drop = False, inplace=True)
     df = df.dropna()
-    #drop user IDs to avoid overfitting with useless information
+    # drop user IDs to avoid overfitting with useless information
     df = df.drop(['unique_mem_id',
                             'unique_bank_account_id',
                             'unique_bank_transaction_id'], axis = 1)
@@ -431,8 +431,8 @@ def df_encoder(rng = 4, seaborn_plots=False):
 
     return df
 #%%
-print("tensorflow regression running...")
-print(tf.__version__)
+print("Tensorflow regression:")
+print("TF-version:", tf.__version__)
 bank_df = df_encoder(rng=4)
 dataset = bank_df.copy()
 print(dataset.head())
@@ -506,10 +506,7 @@ X_train_multi = dataset_norm[:TRAIN_SPLIT]
 y_val_multi = dataset.pop('amount_mean_lag7').iloc[TRAIN_SPLIT:]
 X_val_multi = dataset.iloc[TRAIN_SPLIT:]
 
-#######
-X_train = np.reshape(X_train_multi, (X_train_multi.shape[0], 1, X_train_multi.shape[1]))
-X_test = np.reshape(X_val_multi, (X_val_multi.shape[0], 1, X_val_multi.shape[1]))
-#######
+
 print("Shape y_train:", y_train_multi.shape)
 print("Shape X_train:", X_train_multi.shape)
 print("Shape y_val:", y_val_multi.shape)
@@ -518,9 +515,10 @@ print("Shape X_train:", X_val_multi.shape)
 # pass as tuples to convert to tensor slices
 # buffer_size can be equivalent to the entire length of the df; that way all of it is being shuffled
 BUFFER_SIZE = len(train_dataset)
-
 # Batch refers to the chunk of the dataset that is used for validating the predicitions
-BATCH_SIZE = len(X_val_multi)
+BATCH_SIZE = 64
+# size of data chunk that is fed per time period
+timestep = 1
 
 # training dataframe
 train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi.values, y_train_multi.values))
@@ -528,6 +526,13 @@ train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZ
 # validation dataframe
 val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi.values, y_val_multi.values))
 val_data_multi = val_data_multi.batch(BATCH_SIZE).repeat()
+
+#######
+# dimension required for a correct batch
+# format shape (X= time steps, Y=Batch size(no. of examples, Z=Features))
+train_data_3d = np.reshape(X_train_multi, (timestep, BATCH_SIZE, X_train_multi.shape[1]))
+val_data_3d = np.reshape(X_val_multi, (timestep, BATCH_SIZE, X_val_multi.shape[1]))
+#######
 '''
                 Recurring Neural Network
 -LSTM cell in sequential network
