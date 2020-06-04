@@ -506,6 +506,10 @@ X_train_multi = dataset_norm[:TRAIN_SPLIT]
 y_val_multi = dataset.pop('amount_mean_lag7').iloc[TRAIN_SPLIT:]
 X_val_multi = dataset.iloc[TRAIN_SPLIT:]
 
+#######
+X_train = np.reshape(X_train_multi, (X_train_multi.shape[0], 1, X_train_multi.shape[1]))
+X_test = np.reshape(X_val_multi, (X_val_multi.shape[0], 1, X_val_multi.shape[1]))
+#######
 print("Shape y_train:", y_train_multi.shape)
 print("Shape X_train:", X_train_multi.shape)
 print("Shape y_val:", y_val_multi.shape)
@@ -534,7 +538,8 @@ multi_step_model.add(tf.keras.layers.LSTM(32,
                                           return_sequences=True,
                                           input_shape=X_train_multi.shape[-2:]))
 multi_step_model.add(tf.keras.layers.LSTM(16, activation='relu'))
-# in our example we want to predict one single weekly expense average
+# we want to predict one single weekly average; dimensionality will be reduced
+multi_step_model.add(Flatten())
 multi_step_model.add(tf.keras.layers.Dense(1))
 
 optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.001,
