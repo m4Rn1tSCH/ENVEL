@@ -530,8 +530,8 @@ val_data_multi = val_data_multi.batch(BATCH_SIZE).repeat()
 #######
 # dimension required for a correct batch
 # format shape (X= time steps, Y=Batch size(no. of examples, Z=Features))
-train_data_3d = np.reshape(X_train_multi, (timestep, BATCH_SIZE, X_train_multi.shape[1]))
-val_data_3d = np.reshape(X_val_multi, (timestep, BATCH_SIZE, X_val_multi.shape[1]))
+#train_data_3d = np.reshape(X_train_multi, (timestep, BATCH_SIZE, X_train_multi.shape[1]))
+#val_data_3d = np.reshape(X_val_multi, (timestep, BATCH_SIZE, X_val_multi.shape[1]))
 #######
 #%%
 '''
@@ -592,9 +592,11 @@ def plot_train_history(history, title):
 
 
 plot_train_history(multi_step_history, 'Multi-Step Training and validation loss')
-
 #%%
-# Simple RNN
+'''
+        SIMPLE RNN
+'''
+
 model = tf.keras.Sequential()
 model.add(layers.Embedding(input_dim=1000, output_dim=64))
 
@@ -607,6 +609,16 @@ model.add(layers.SimpleRNN(128))
 model.add(layers.Dense(10))
 
 model.summary()
+
+model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              optimizer='sgd',
+              metrics=['accuracy'])
+
+model.fit(dataset,
+          batch_size=BATCH_SIZE,
+          epochs=5,
+          verbose=2)
+print("Tensorflow regression finished...")
 
 #%%
 encoder_vocab = 1000
