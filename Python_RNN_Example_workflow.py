@@ -452,6 +452,21 @@ TRAIN_SPLIT = round(0.6 * len(dataset))
 # normalize the training set; but not yet split up
 train_dataset = dataset[:TRAIN_SPLIT]
 dataset_norm = tf.keras.utils.normalize(train_dataset)
+
+ds_label = dataset_norm.pop('amount_mean_lag7')
+
+# train dataset is already shortened and normalized
+y_train_multi = ds_label
+X_train_multi = dataset_norm[:TRAIN_SPLIT]
+# referring to previous dataset; second slice becomes validation data until end of the data
+y_val_multi = dataset.pop('amount_mean_lag7').iloc[TRAIN_SPLIT:]
+X_val_multi = dataset.iloc[TRAIN_SPLIT:]
+
+
+print("Shape y_train:", y_train_multi.shape)
+print("Shape X_train:", X_train_multi.shape)
+print("Shape y_val:", y_val_multi.shape)
+print("Shape X_train:", X_val_multi.shape)
 #%%
 batch_size = 64
 # Each MNIST image batch is a tensor of shape (batch_size, 28, 28).
@@ -463,34 +478,35 @@ output_size = 10  # labels are from 0 to 9
 
 # Build the RNN model
 def build_model(allow_cudnn_kernel=True):
-  # CuDNN is only available at the layer level, and not at the cell level.
-  # This means `LSTM(units)` will use the CuDNN kernel,
-  # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
-  if allow_cudnn_kernel:
+    # CuDNN is only available at the layer level, and not at the cell level.
+    # This means `LSTM(units)` will use the CuDNN kernel,
+    # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
+    if allow_cudnn_kernel:
     # The LSTM layer with default options uses CuDNN.
-    lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, input_dim))
-  else:
-    # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
-    lstm_layer = tf.keras.layers.RNN(
+        lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, input_dim))
+    else:
+        # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
+        lstm_layer = tf.keras.layers.RNN(
         tf.keras.layers.LSTMCell(units),
         input_shape=(None, input_dim))
-  model = tf.keras.models.Sequential([
-      lstm_layer,
-      tf.keras.layers.BatchNormalization(),
-      tf.keras.layers.Dense(output_size)]
-  )
-  return model
+
+    model = tf.keras.models.Sequential([
+        lstm_layer,
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dense(output_size)]
+        )
+    return model
 #%%
 model = build_model(allow_cudnn_kernel=True)
 
 model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True), 
               optimizer='sgd',
-              metrics=['accuracy'])
+              metrics=['mae'])
 
-model.fit(x_train, y_train,
-          validation_data=(x_test, y_test),
+model.fit(X_train_multi, y_train_multi,
+          validation_data=(X_val_multi, y_val_multi),
           batch_size=batch_size,
-          epochs=5)
+          epochs=10)
 
 
 
