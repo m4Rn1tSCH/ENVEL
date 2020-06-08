@@ -25,6 +25,7 @@ from Python_CSV_export_function import csv_export
 -multivariate regression with Long Short-Term Memory cells
 '''
 # picking features
+bank_df = df_encoder(rng=4)
 features = bank_df
 target = bank_df.copy().pop('amount_mean_lag7')
 features.index = bank_df.index
@@ -90,7 +91,7 @@ single_step_model.add(tf.keras.layers.Dense(1))
 
 single_step_model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
                           loss='mse',
-                          metrics = )
+                          metrics=['mae'])
 
 
 for x, y in val_data_single.take(1):
