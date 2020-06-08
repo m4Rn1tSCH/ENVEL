@@ -452,3 +452,46 @@ TRAIN_SPLIT = round(0.6 * len(dataset))
 # normalize the training set; but not yet split up
 train_dataset = dataset[:TRAIN_SPLIT]
 dataset_norm = tf.keras.utils.normalize(train_dataset)
+#%%
+batch_size = 64
+# Each MNIST image batch is a tensor of shape (batch_size, 28, 28).
+# Each input sequence will be of size (28, 28) (height is treated like time).
+input_dim = 28
+
+units = 64
+output_size = 10  # labels are from 0 to 9
+
+# Build the RNN model
+def build_model(allow_cudnn_kernel=True):
+  # CuDNN is only available at the layer level, and not at the cell level.
+  # This means `LSTM(units)` will use the CuDNN kernel,
+  # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
+  if allow_cudnn_kernel:
+    # The LSTM layer with default options uses CuDNN.
+    lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, input_dim))
+  else:
+    # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
+    lstm_layer = tf.keras.layers.RNN(
+        tf.keras.layers.LSTMCell(units),
+        input_shape=(None, input_dim))
+  model = tf.keras.models.Sequential([
+      lstm_layer,
+      tf.keras.layers.BatchNormalization(),
+      tf.keras.layers.Dense(output_size)]
+  )
+  return model
+#%%
+model = build_model(allow_cudnn_kernel=True)
+
+model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True), 
+              optimizer='sgd',
+              metrics=['accuracy'])
+
+model.fit(x_train, y_train,
+          validation_data=(x_test, y_test),
+          batch_size=batch_size,
+          epochs=5)
+
+
+
+
