@@ -467,8 +467,28 @@ print("Shape y_train:", y_train_multi.shape)
 print("Shape X_train:", X_train_multi.shape)
 print("Shape y_val:", y_val_multi.shape)
 print("Shape X_train:", X_val_multi.shape)
+
+# pass as tuples to convert to tensor slices
+# buffer_size can be equivalent to the entire length of the df; that way all of it is being shuffled
+BUFFER_SIZE = len(train_dataset)
+# Batch refers to the chunk of the dataset that is used for validating the predicitions
+BATCH_SIZE = 32
+# size of data chunk that is fed per time period
+timestep = 8
+
+#######
+# dimension required for a correct batch
+# format shape (X= Timesteps, Y=Batch size(no. of examples), Z=Features)
+
+# training dataframe
+train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi.values, y_train_multi.values))
+train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
+# validation dataframe
+val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi.values, y_val_multi.values))
+val_data_multi = val_data_multi.batch(BATCH_SIZE).repeat()
 #%%
-batch_size = 64
+# validate of infer batch_size
+#batch_size = 64
 # Each MNIST image batch is a tensor of shape (batch_size, 28, 28).
 # Each input sequence will be of size (28, 28) (height is treated like time).
 input_dim = 28
@@ -503,8 +523,8 @@ model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=Tru
               optimizer='sgd',
               metrics=['mae'])
 
-model.fit(X_train_multi, y_train_multi,
-          validation_data=(X_val_multi, y_val_multi),
+model.fit(train_data_multi,
+          validation_data=val_data_multi,
           batch_size=batch_size,
           epochs=10)
 
