@@ -524,7 +524,8 @@ model.compile(loss='mse',
 #           validation_data=(X_val_multi, y_val_multi),
 #           epochs=250,
 #           # evaluation steps need to consume all samples without remainder
-#           steps_per_epoch=125)
+#           steps_per_epoch=125,
+#           validation_steps=250)
 
 model.fit(train_data_multi, epochs=250,
           steps_per_epoch=125,
