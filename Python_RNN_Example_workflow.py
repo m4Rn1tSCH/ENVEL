@@ -45,7 +45,7 @@ from Python_CSV_export_function import csv_export
                     RNN Regression
 single-step and multi-step model for a recurrent neural network
 '''
-def df_encoder(rng = 4, seaborn_plots=False):
+def df_encoder(rng = 4, plots=False):
 
 
     '''
@@ -147,47 +147,6 @@ def df_encoder(rng = 4, seaborn_plots=False):
     #         df.boxplot(column=q_var, by=c_var)
     #         plt.xticks([])
 
-    '''
-    Plotting of various relations
-    The Counter object keeps track of permutations in a dictionary which can then be read and
-    used as labels
-    '''
-    # Pie chart States - works
-    state_ct = Counter(list(df['state']))
-    # The * operator can be used in conjunction with zip() to unzip the list.
-    labels, values = zip(*state_ct.items())
-    # Pie chart, where the slices will be ordered and plotted counter-clockwise:
-    fig1, ax = plt.subplots(figsize = (20, 12))
-    ax.pie(values, labels = labels, autopct = '%1.1f%%',
-            shadow = True, startangle = 90)
-    # Equal aspect ratio ensures that pie is drawn as a circle.
-    ax.axis('equal')
-    #ax.title('Transaction locations of user {df[unique_mem_id][0]}')
-    ax.legend(loc = 'center right')
-    plt.show()
-
-    # Pie chart transaction type -works
-    trans_ct = Counter(list(df['transaction_category_name']))
-    # The * operator can be used in conjunction with zip() to unzip the list.
-    labels_2, values_2 = zip(*trans_ct.items())
-    #Pie chart, where the slices will be ordered and plotted counter-clockwise:
-    fig1, ax = plt.subplots(figsize = (20, 12))
-    ax.pie(values_2, labels = labels_2, autopct = '%1.1f%%',
-            shadow = True, startangle = 90)
-    # Equal aspect ratio ensures that pie is drawn as a circle.
-    ax.axis('equal')
-    #ax.title('Transaction categories of user {df[unique_mem_id][0]}')
-    ax.legend(loc = 'center right')
-    plt.show()
-
-    # BUGGED
-    # Boxplot template
-    # cat_var = ["unique_mem_id", "primary_merchant_name"]
-    # quant_var = ["amount"]
-    # for c_var in cat_var:
-    #     for q_var in quant_var:
-    #         df.boxplot(column=q_var, by=c_var)
-    #         plt.xticks([])
 
     '''
     Generate a spending report of the unaltered dataframe
@@ -427,7 +386,41 @@ def df_encoder(rng = 4, seaborn_plots=False):
                             'unique_bank_transaction_id'], axis = 1)
 
     # seaborn plots
-    if seaborn_plots:
+    if plots:
+
+        '''
+        Plotting of various relations
+        The Counter object keeps track of permutations in a dictionary which can then be read and
+        used as labels
+        '''
+        # Pie chart States - works
+        state_ct = Counter(list(df['state']))
+        # The * operator can be used in conjunction with zip() to unzip the list.
+        labels, values = zip(*state_ct.items())
+        # Pie chart, where the slices will be ordered and plotted counter-clockwise:
+        fig1, ax = plt.subplots(figsize = (20, 12))
+        ax.pie(values, labels = labels, autopct = '%1.1f%%',
+                shadow = True, startangle = 90)
+        # Equal aspect ratio ensures that pie is drawn as a circle.
+        ax.axis('equal')
+        #ax.title('Transaction locations of user {df[unique_mem_id][0]}')
+        ax.legend(loc = 'center right')
+        plt.show()
+
+        # Pie chart transaction type -works
+        trans_ct = Counter(list(df['transaction_category_name']))
+        # The * operator can be used in conjunction with zip() to unzip the list.
+        labels_2, values_2 = zip(*trans_ct.items())
+        #Pie chart, where the slices will be ordered and plotted counter-clockwise:
+        fig1, ax = plt.subplots(figsize = (20, 12))
+        ax.pie(values_2, labels = labels_2, autopct = '%1.1f%%',
+                shadow = True, startangle = 90)
+        # Equal aspect ratio ensures that pie is drawn as a circle.
+        ax.axis('equal')
+        #ax.title('Transaction categories of user {df[unique_mem_id][0]}')
+        ax.legend(loc = 'center right')
+        plt.show()
+
         ax_desc = df['description'].astype('int64', errors='ignore')
         ax_amount = df['amount'].astype('int64',errors='ignore')
         sns.pairplot(df)
@@ -441,56 +434,60 @@ print("TF-version:", tf.__version__)
 bank_df = df_encoder(rng=4)
 dataset = bank_df.copy()
 print(dataset.head())
-sns.pairplot(bank_df[['amount', 'amount_mean_lag7', 'amount_std_lag7']])
+# sns.pairplot(bank_df[['amount', 'amount_mean_lag7', 'amount_std_lag7']])
 
-# NO SPLIT UP FOR RNN HERE
-# setting label and features (the df itself here)
-#model_label = dataset.pop('amount_mean_lag7')
-#model_label.astype('int64')
+TRAIN_SPLIT = 750
 
-TRAIN_SPLIT = round(0.6 * len(dataset))
 # normalize the training set; but not yet split up
 train_dataset = dataset[:TRAIN_SPLIT]
 dataset_norm = tf.keras.utils.normalize(train_dataset)
 
-ds_label = dataset_norm.pop('amount_mean_lag7')
-
 # train dataset is already shortened and normalized
-y_train_multi = ds_label
+y_train_multi = dataset_norm.pop('amount_mean_lag7')
 X_train_multi = dataset_norm[:TRAIN_SPLIT]
 # referring to previous dataset; second slice becomes validation data until end of the data
 y_val_multi = dataset.pop('amount_mean_lag7').iloc[TRAIN_SPLIT:]
 X_val_multi = dataset.iloc[TRAIN_SPLIT:]
-
 
 print("Shape y_train:", y_train_multi.shape)
 print("Shape X_train:", X_train_multi.shape)
 print("Shape y_val:", y_val_multi.shape)
 print("Shape X_train:", X_val_multi.shape)
 
-# pass as tuples to convert to tensor slices
 # buffer_size can be equivalent to the entire length of the df; that way all of it is being shuffled
 BUFFER_SIZE = len(train_dataset)
 # Batch refers to the chunk of the dataset that is used for validating the predicitions
-BATCH_SIZE = 32
+BATCH_SIZE = 21
 # size of data chunk that is fed per time period
-timestep = 1
+# weekly expenses are the label; one week's sexpenses are fed to the layer
+timestep = 7
 
 #######
 # dimension required for a correct batch
-# format shape (X= Timesteps, Y=Batch size(no. of examples), Z=Features)
+# format shape
+#%%
+# pass as tuples to convert to tensor slices
+#   if pandas dfs fed --> .values to retain rectangular shape and avoid ragged tensors
+#   if 2 separate df slices (X/y) fed --> no .values and reshaping needed
 
-# training dataframe (.values to retain rectangular shape and avoid ragged tensors)
-train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi.values, y_train_multi.values))
+# training dataframe
+X_train_multi = np.array(X_train_multi)
+X_train_multi = np.reshape(X_train_multi, (X_train_multi.shape[0], 1, X_train_multi.shape[1]))
+train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi, y_train_multi))
+
 train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
+
+
 # validation dataframe
-val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi.values, y_val_multi.values))
+X_val_multi = np.array(X_val_multi)
+X_val_multi = np.reshape(X_val_multi, (X_val_multi.shape[0], 1, X_val_multi.shape[1]))
+val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi, y_val_multi))
+
 val_data_multi = val_data_multi.batch(BATCH_SIZE).repeat()
 #%%
-X_train_multi = np.array(X_train_multi)
-X_val_multi = np.array(X_val_multi)
-X_train_multi = np.reshape(X_train_multi, (X_train_multi.shape[0], 1, X_train_multi.shape[1]))
-X_val_multi = np.reshape(X_val_multi, (X_val_multi.shape[0], 1, X_val_multi.shape[1]))
+# turn the variables into arrays; convert to:
+# (X= batch_size(examples), Y=timesteps, Z=features)
+
 #%%
 batch_size = 32
 # Each MNIST image batch is a tensor of shape (batch_size, 28, 28).
@@ -531,6 +528,7 @@ model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=Tru
 model.fit(X_train_multi,y_train_multi,
           validation_data=(X_val_multi, y_val_multi),
           epochs=10,
+          # evaluation steps need to consume all samples without remainder
           steps_per_epoch=100)
 
 
