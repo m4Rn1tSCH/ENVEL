@@ -516,15 +516,21 @@ def build_model(allow_cudnn_kernel=True):
 #%%
 model = build_model(allow_cudnn_kernel=True)
 
-model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-              optimizer='sgd',
+model.compile(loss='mse',
+              optimizer=tf.keras.optimizers.RMSprop(0.001),
               metrics=['mae'])
 # fix divisibility problem (sample size to steps per epoch)
-model.fit(X_train_multi,y_train_multi,
-          validation_data=(X_val_multi, y_val_multi),
-          epochs=10,
+# model.fit(X_train_multi,y_train_multi,
+#           validation_data=(X_val_multi, y_val_multi),
+#           epochs=250,
+#           # evaluation steps need to consume all samples without remainder
+#           steps_per_epoch=125)
+
+model.fit(train_data_multi, epochs=250,
+          steps_per_epoch=125,
           # evaluation steps need to consume all samples without remainder
-          steps_per_epoch=125)
+          validation_data=val_data_multi,
+          validation_steps=125)
 
 
 
