@@ -488,6 +488,7 @@ val_data_multi = val_data_multi.batch(BATCH_SIZE, drop_remainder=False).repeat()
 #%%
 # Each MNIST image batch is a tensor of shape (batch_size, 28, 28).
 # Each input sequence will be of size (None, 1, 21) (height is treated like time).
+# stateful=True to reuse weights of one step
 input_dim = 28
 
 units = 128
@@ -500,11 +501,11 @@ def build_model(allow_cudnn_kernel=True):
     # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
     if allow_cudnn_kernel:
         # The LSTM layer with default options uses CuDNN.
-        lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, X_train_multi.shape[2]))
+        lstm_layer = tf.keras.layers.LSTM(units, stateful=True, input_shape=(None, X_train_multi.shape[2]))
     else:
         # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
         lstm_layer = tf.keras.layers.RNN(
-        tf.keras.layers.LSTMCell(units),
+        tf.keras.layers.LSTMCell(units, stateful=True),
         input_shape=(None, input_dim))
 
     model = tf.keras.models.Sequential([
