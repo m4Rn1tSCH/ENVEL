@@ -440,19 +440,20 @@ TRAIN_SPLIT = 750
 
 # normalize the training set; but not yet split up
 train_dataset = dataset[:TRAIN_SPLIT]
-dataset_norm = tf.keras.utils.normalize(train_dataset)
+train_ds_norm = tf.keras.utils.normalize(train_dataset)
+val_ds_norm = tf.keras.utils.normalize(dataset[TRAIN_SPLIT:])
 
 # train dataset is already shortened and normalized
-y_train_multi = dataset_norm.pop('amount_mean_lag7')
-X_train_multi = dataset_norm[:TRAIN_SPLIT]
+y_train_multi = train_ds_norm.pop('amount_mean_lag7')
+X_train_multi = train_ds_norm[:TRAIN_SPLIT]
 # referring to previous dataset; second slice becomes validation data until end of the data
-y_val_multi = dataset.pop('amount_mean_lag7').iloc[TRAIN_SPLIT:]
-X_val_multi = dataset.iloc[TRAIN_SPLIT:]
+y_val_multi = val_ds_norm.pop('amount_mean_lag7').iloc[TRAIN_SPLIT:]
+X_val_multi = val_ds_norm.iloc[TRAIN_SPLIT:]
 
-print("Shape y_train:", y_train_multi.shape)
-print("Shape X_train:", X_train_multi.shape)
-print("Shape y_val:", y_val_multi.shape)
-print("Shape X_train:", X_val_multi.shape)
+print("Shape y_training:", y_train_multi.shape)
+print("Shape X_training:", X_train_multi.shape)
+print("Shape y_validation:", y_val_multi.shape)
+print("Shape X_validation:", X_val_multi.shape)
 
 # buffer_size can be equivalent to the entire length of the df; that way all of it is being shuffled
 BUFFER_SIZE = len(train_dataset)
@@ -476,7 +477,7 @@ X_train_multi = np.array(X_train_multi)
 X_train_multi = np.reshape(X_train_multi, (X_train_multi.shape[0], 1, X_train_multi.shape[1]))
 train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi, y_train_multi))
 # generation of batches
-train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
+train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE, drop_remainder=False).repeat()
 
 
 # validation dataframe
@@ -484,7 +485,7 @@ X_val_multi = np.array(X_val_multi)
 X_val_multi = np.reshape(X_val_multi, (X_val_multi.shape[0], 1, X_val_multi.shape[1]))
 val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi, y_val_multi))
 # generation of batches
-val_data_multi = val_data_multi.batch(BATCH_SIZE).repeat()
+val_data_multi = val_data_multi.batch(BATCH_SIZE, drop_remainder=False).repeat()
 #%%
 batch_size = 32
 # Each MNIST image batch is a tensor of shape (batch_size, 28, 28).
@@ -492,29 +493,28 @@ batch_size = 32
 input_dim = 28
 
 units = 128
-output_size = 10  # labels are from 0 to 9
+output_size = 1
 
 # Build the RNN model
 def build_model(allow_cudnn_kernel=True):
-  # CuDNN is only available at the layer level, and not at the cell level.
-  # This means `LSTM(units)` will use the CuDNN kernel,
-  # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
-  if allow_cudnn_kernel:
-    # The LSTM layer with default options uses CuDNN.
-    lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, X_train_multi.shape[1]))
-  else:
-    # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
-    lstm_layer = tf.keras.layers.RNN(
+    # CuDNN is only available at the layer level, and not at the cell level.
+    # This means `LSTM(units)` will use the CuDNN kernel,
+    # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
+    if allow_cudnn_kernel:
+        # The LSTM layer with default options uses CuDNN.
+        lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, X_train_multi.shape[2]))
+    else:
+        # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
+        lstm_layer = tf.keras.layers.RNN(
         tf.keras.layers.LSTMCell(units),
         input_shape=(None, input_dim))
-  model = tf.keras.models.Sequential([
-      lstm_layer,
-      tf.keras.layers.BatchNormalization(),
-      tf.keras.layers.Dense(output_size)]
-  )
-  return model
 
-
+    model = tf.keras.models.Sequential([
+        lstm_layer,
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dense(output_size)
+        ])
+    return model
 #%%
 model = build_model(allow_cudnn_kernel=True)
 
@@ -526,7 +526,7 @@ model.fit(X_train_multi,y_train_multi,
           validation_data=(X_val_multi, y_val_multi),
           epochs=10,
           # evaluation steps need to consume all samples without remainder
-          steps_per_epoch=100)
+          steps_per_epoch=125)
 
 
 
