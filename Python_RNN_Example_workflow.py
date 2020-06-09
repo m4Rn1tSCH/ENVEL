@@ -456,25 +456,26 @@ print("Shape X_train:", X_val_multi.shape)
 
 # buffer_size can be equivalent to the entire length of the df; that way all of it is being shuffled
 BUFFER_SIZE = len(train_dataset)
+
 # Batch refers to the chunk of the dataset that is used for validating the predicitions
 BATCH_SIZE = 21
+
 # size of data chunk that is fed per time period
 # weekly expenses are the label; one week's sexpenses are fed to the layer
 timestep = 7
 
-#######
-# dimension required for a correct batch
-# format shape
-#%%
 # pass as tuples to convert to tensor slices
 #   if pandas dfs fed --> .values to retain rectangular shape and avoid ragged tensors
 #   if 2 separate df slices (X/y) fed --> no .values and reshaping needed
+
+# turn the variables into arrays; convert to:
+# (X= batch_size(examples), Y=timesteps, Z=features)
 
 # training dataframe
 X_train_multi = np.array(X_train_multi)
 X_train_multi = np.reshape(X_train_multi, (X_train_multi.shape[0], 1, X_train_multi.shape[1]))
 train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi, y_train_multi))
-
+# generation of batches
 train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
 
 
@@ -482,12 +483,8 @@ train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZ
 X_val_multi = np.array(X_val_multi)
 X_val_multi = np.reshape(X_val_multi, (X_val_multi.shape[0], 1, X_val_multi.shape[1]))
 val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi, y_val_multi))
-
+# generation of batches
 val_data_multi = val_data_multi.batch(BATCH_SIZE).repeat()
-#%%
-# turn the variables into arrays; convert to:
-# (X= batch_size(examples), Y=timesteps, Z=features)
-
 #%%
 batch_size = 32
 # Each MNIST image batch is a tensor of shape (batch_size, 28, 28).
