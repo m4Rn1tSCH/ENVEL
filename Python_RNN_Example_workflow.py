@@ -487,12 +487,17 @@ train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZ
 val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi.values, y_val_multi.values))
 val_data_multi = val_data_multi.batch(BATCH_SIZE).repeat()
 #%%
+X_train_multi = np.array(X_train_multi)
+X_val_multi = np.array(X_val_multi)
+X_train_multi = np.reshape(X_train_multi, (X_train_multi.shape[0], 1, X_train_multi.shape[1]))
+X_val_multi = np.reshape(X_val_multi, (X_val_multi.shape[0], 1, X_val_multi.shape[1]))
+#%%
 batch_size = 32
 # Each MNIST image batch is a tensor of shape (batch_size, 28, 28).
 # Each input sequence will be of size (28, 28) (height is treated like time).
 input_dim = 28
 
-units = 64
+units = 128
 output_size = 10  # labels are from 0 to 9
 
 # Build the RNN model
@@ -502,7 +507,7 @@ def build_model(allow_cudnn_kernel=True):
   # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
   if allow_cudnn_kernel:
     # The LSTM layer with default options uses CuDNN.
-    lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, ))
+    lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, X_train_multi.shape[1]))
   else:
     # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
     lstm_layer = tf.keras.layers.RNN(
@@ -522,11 +527,11 @@ model = build_model(allow_cudnn_kernel=True)
 model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               optimizer='sgd',
               metrics=['mae'])
-
-model.fit(train_data_multi,
-          validation_data=val_data_multi,
+# fix divisibility problem (sample size to steps per epoch)
+model.fit(X_train_multi,y_train_multi,
+          validation_data=(X_val_multi, y_val_multi),
           epochs=10,
-          steps_per_epoch=15)
+          steps_per_epoch=100)
 
 
 
