@@ -474,21 +474,20 @@ BUFFER_SIZE = len(train_dataset)
 # Batch refers to the chunk of the dataset that is used for validating the predicitions
 BATCH_SIZE = 32
 # size of data chunk that is fed per time period
-timestep = 8
+timestep = 1
 
 #######
 # dimension required for a correct batch
 # format shape (X= Timesteps, Y=Batch size(no. of examples), Z=Features)
 
-# training dataframe
+# training dataframe (.values to retain rectangular shape and avoid ragged tensors)
 train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi.values, y_train_multi.values))
 train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
 # validation dataframe
 val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi.values, y_val_multi.values))
 val_data_multi = val_data_multi.batch(BATCH_SIZE).repeat()
 #%%
-# validate of infer batch_size
-#batch_size = 64
+batch_size = 32
 # Each MNIST image batch is a tensor of shape (batch_size, 28, 28).
 # Each input sequence will be of size (28, 28) (height is treated like time).
 input_dim = 28
@@ -498,35 +497,36 @@ output_size = 10  # labels are from 0 to 9
 
 # Build the RNN model
 def build_model(allow_cudnn_kernel=True):
-    # CuDNN is only available at the layer level, and not at the cell level.
-    # This means `LSTM(units)` will use the CuDNN kernel,
-    # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
-    if allow_cudnn_kernel:
+  # CuDNN is only available at the layer level, and not at the cell level.
+  # This means `LSTM(units)` will use the CuDNN kernel,
+  # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
+  if allow_cudnn_kernel:
     # The LSTM layer with default options uses CuDNN.
-        lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, input_dim))
-    else:
-        # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
-        lstm_layer = tf.keras.layers.RNN(
+    lstm_layer = tf.keras.layers.LSTM(units, input_shape=(None, ))
+  else:
+    # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
+    lstm_layer = tf.keras.layers.RNN(
         tf.keras.layers.LSTMCell(units),
         input_shape=(None, input_dim))
+  model = tf.keras.models.Sequential([
+      lstm_layer,
+      tf.keras.layers.BatchNormalization(),
+      tf.keras.layers.Dense(output_size)]
+  )
+  return model
 
-    model = tf.keras.models.Sequential([
-        lstm_layer,
-        tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.Dense(output_size)]
-        )
-    return model
+
 #%%
 model = build_model(allow_cudnn_kernel=True)
 
-model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True), 
+model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               optimizer='sgd',
               metrics=['mae'])
 
 model.fit(train_data_multi,
           validation_data=val_data_multi,
-          batch_size=batch_size,
-          epochs=10)
+          epochs=10,
+          steps_per_epoch=15)
 
 
 
