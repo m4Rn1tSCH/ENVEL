@@ -447,8 +447,8 @@ val_ds_norm = tf.keras.utils.normalize(dataset[TRAIN_SPLIT:])
 y_train_multi = train_ds_norm.pop('amount_mean_lag7')
 X_train_multi = train_ds_norm[:TRAIN_SPLIT]
 # referring to previous dataset; second slice becomes validation data until end of the data
-y_val_multi = val_ds_norm.pop('amount_mean_lag7').iloc[TRAIN_SPLIT:]
-X_val_multi = val_ds_norm.iloc[TRAIN_SPLIT:]
+y_val_multi = val_ds_norm.pop('amount_mean_lag7')
+X_val_multi = val_ds_norm
 
 print("Shape y_training:", y_train_multi.shape)
 print("Shape X_training:", X_train_multi.shape)
@@ -479,7 +479,6 @@ train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi, y_train_mu
 # generation of batches
 train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE, drop_remainder=False).repeat()
 
-
 # validation dataframe
 X_val_multi = np.array(X_val_multi)
 X_val_multi = np.reshape(X_val_multi, (X_val_multi.shape[0], 1, X_val_multi.shape[1]))
@@ -487,9 +486,8 @@ val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi, y_val_multi))
 # generation of batches
 val_data_multi = val_data_multi.batch(BATCH_SIZE, drop_remainder=False).repeat()
 #%%
-batch_size = 32
 # Each MNIST image batch is a tensor of shape (batch_size, 28, 28).
-# Each input sequence will be of size (28, 28) (height is treated like time).
+# Each input sequence will be of size (None, 1, 21) (height is treated like time).
 input_dim = 28
 
 units = 128
