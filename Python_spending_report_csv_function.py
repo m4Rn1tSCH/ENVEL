@@ -6,7 +6,7 @@ Created on Thu Apr  2 17:21:10 2020
 """
 
 '''
-This module conducts calculations if fed with a dataframe from Yodlee
+This module conducts calculations if fed with a dataframe
 determines:
     daily spending (mean/std)
     weekly spending (mean/std)
