@@ -373,7 +373,7 @@ def df_encoder(rng = 4, plots=False):
 '''
 print("Tensorflow regression:")
 print("TF-version:", tf.__version__)
-bank_df = df_encoder(rng=4)
+bank_df = df_encoder(rng=4, plots=False)
 dataset = bank_df.copy()
 print(dataset.head())
 # sns.pairplot(bank_df[['amount', 'amount_mean_lag7', 'amount_std_lag7']])
@@ -414,21 +414,28 @@ timestep = 7
 # turn the variables into arrays; convert to:
 # (X= batch_size(examples), Y=timesteps, Z=features)
 
-# training dataframe
-X_train_raw = np.array(X_train_raw)
-y_train_raw = np.array(y_train_raw)
-X_train_multi = np.reshape(X_train_raw, (X_train_raw.shape[0], 1, X_train_raw.shape[1]))
-train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi, y_train_multi))
-# generation of batches
-train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE, drop_remainder=False).repeat()
-
+train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_raw.values, y_train_raw.values))
+train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
 # validation dataframe
-X_val_raw = np.array(X_val_raw)
-y_val_raw = np.array(y_val_raw)
-X_val_multi = np.reshape(X_val_raw, (X_val_raw.shape[0], 1, X_val_raw.shape[1]))
-val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi, y_val_multi))
-# generation of batches
-val_data_multi = val_data_multi.batch(BATCH_SIZE, drop_remainder=False).repeat()
+val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_raw.values, y_val_raw.values))
+val_data_multi = val_data_multi.batch(BATCH_SIZE).repeat()
+
+
+# training dataframe
+# X_train_raw = np.array(X_train_raw)
+# y_train_raw = np.array(y_train_raw)
+# X_train_multi = np.reshape(X_train_raw, (X_train_raw.shape[0], 1, X_train_raw.shape[1]))
+# train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi, y_train_multi))
+# # generation of batches
+# train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE, drop_remainder=False).repeat()
+
+# # validation dataframe
+# X_val_raw = np.array(X_val_raw)
+# y_val_raw = np.array(y_val_raw)
+# X_val_multi = np.reshape(X_val_raw, (X_val_raw.shape[0], 1, X_val_raw.shape[1]))
+# val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi, y_val_multi))
+# # generation of batches
+# val_data_multi = val_data_multi.batch(BATCH_SIZE, drop_remainder=False).repeat()
 #%%
 '''
                     Build the model
@@ -461,7 +468,7 @@ model.compile(loss='mse',
               optimizer=tf.keras.optimizers.RMSprop(0.001),
               metrics=['mae'])
 
-model.fit(train_data_multi, epochs=250,
+model.fit(train_data_multi, epochs=5,
           steps_per_epoch=125,
           # evaluation steps need to consume all samples without remainder
           validation_data=val_data_multi,

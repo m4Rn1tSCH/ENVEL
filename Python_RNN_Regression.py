@@ -527,12 +527,6 @@ train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZ
 val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi.values, y_val_multi.values))
 val_data_multi = val_data_multi.batch(BATCH_SIZE).repeat()
 
-#######
-# dimension required for a correct batch
-# format shape (X= time steps, Y=Batch size(no. of examples, Z=Features))
-#train_data_3d = np.reshape(X_train_multi, (timestep, BATCH_SIZE, X_train_multi.shape[1]))
-#val_data_3d = np.reshape(X_val_multi, (timestep, BATCH_SIZE, X_val_multi.shape[1]))
-#######
 #%%
 '''
                 Recurring Neural Network
