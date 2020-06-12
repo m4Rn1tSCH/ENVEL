@@ -5,13 +5,17 @@ Created on Fri May 29 11:51:58 2020
 @author: bill-
 """
 
+import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.preprocessing import LabelEncoder
 
 import tensorflow as tf
 tf.compat.v1.enable_eager_execution()
 from tensorflow import feature_column, data
 from tensorflow.keras import Model, layers, regularizers
+
 
 #IMPORTED CUSTOM FUNCTION
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
@@ -371,63 +375,58 @@ print("Tensorflow regression:")
 print("TF-version:", tf.__version__)
 bank_df = df_encoder(rng=4)
 dataset = bank_df.copy()
-print(dataset.head(3))
+print(dataset.head())
+# sns.pairplot(bank_df[['amount', 'amount_mean_lag7', 'amount_std_lag7']])
 
+TRAIN_SPLIT = 750
 
-# split and normalize data
-TRAIN_SPLIT = 250
-data_mean = dataset[:TRAIN_SPLIT].mean(axis=0)
-data_std = dataset[:TRAIN_SPLIT].std(axis=0)
-dataset_norm = (dataset-data_mean)/data_std
-#%%
-def multivariate_data(dataset, target, start_index, end_index, history_size,
-                      target_size, step, single_step=False):
-    data = []
-    labels = []
+# normalize the training set; but not yet split up
+train_dataset = dataset[:TRAIN_SPLIT]
+train_ds_norm = tf.keras.utils.normalize(train_dataset)
+val_ds_norm = tf.keras.utils.normalize(dataset[TRAIN_SPLIT:])
 
-    start_index = start_index + history_size
-    if end_index is None:
-        end_index = len(dataset) - target_size
+# train dataset is already shortened and normalized
+y_train_multi = train_ds_norm.pop('amount_mean_lag7')
+X_train_multi = train_ds_norm[:TRAIN_SPLIT]
+# referring to previous dataset; second slice becomes validation data until end of the data
+y_val_multi = val_ds_norm.pop('amount_mean_lag7')
+X_val_multi = val_ds_norm
 
-    for i in range(start_index, end_index):
-        indices = range(i-history_size, i, step)
-        data.append(dataset[indices])
+print("Shape y_training:", y_train_multi.shape)
+print("Shape X_training:", X_train_multi.shape)
+print("Shape y_validation:", y_val_multi.shape)
+print("Shape X_validation:", X_val_multi.shape)
 
-    if single_step:
-        labels.append(target[i+target_size])
-    else:
-        labels.append(target[i:i+target_size])
+# buffer_size can be equivalent to the entire length of the df; that way all of it is being shuffled
+BUFFER_SIZE = len(train_dataset)
 
-    return np.array(data), np.array(labels)
-#%%
-# shuffle data and create batches to be fed per intervall
-# DF NEEDS TO BE ARRAY HERE
-# slicing df .iloc[:, 17]
-# slicing array [:, 17]
+# Batch refers to the chunk of the dataset that is used for validating the predicitions
+BATCH_SIZE = 21
 
-BUFFER_SIZE = len(dataset)
-past_history = 42
-future_target = 7
-STEP = 1
+# size of data chunk that is fed per time period
+# weekly expenses are the label; one week's sexpenses are fed to the layer
+timestep = 7
 
-X_train_single, y_train_single = multivariate_data(np.array(dataset), np.array(dataset)[:, 17],
-                                                   0, TRAIN_SPLIT,
-                                                   past_history, future_target,
-                                                   STEP,
-                                                   single_step=True)
-X_val_single, y_val_single = multivariate_data(np.array(dataset), np.array(dataset)[:, 17],
-                                               TRAIN_SPLIT, None,
-                                               past_history, future_target,
-                                               STEP,
-                                               single_step=True)
+# pass as tuples to convert to tensor slices
+#   if pandas dfs fed --> .values to retain rectangular shape and avoid ragged tensors
+#   if 2 separate df slices (X/y) fed --> no .values and reshaping needed
 
+# turn the variables into arrays; convert to:
+# (X= batch_size(examples), Y=timesteps, Z=features)
 
-# tensor created from separate variablesp assed as tuple
-train_data_single = tf.data.Dataset.from_tensor_slices((X_train_single, y_train_single))
-train_data_single = train_data_single.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE, drop_remainder=True).repeat()
+# training dataframe
+X_train_multi = np.array(X_train_multi)
+X_train_multi = np.reshape(X_train_multi, (X_train_multi.shape[0], 1, X_train_multi.shape[1]))
+train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi, y_train_multi))
+# generation of batches
+train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE, drop_remainder=False).repeat()
 
-val_data_single = tf.data.Dataset.from_tensor_slices((X_val_single, y_val_single))
-val_data_single = val_data_single.batch(BATCH_SIZE, drop_remainder=True).repeat()
+# validation dataframe
+X_val_multi = np.array(X_val_multi)
+X_val_multi = np.reshape(X_val_multi, (X_val_multi.shape[0], 1, X_val_multi.shape[1]))
+val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi, y_val_multi))
+# generation of batches
+val_data_multi = val_data_multi.batch(BATCH_SIZE, drop_remainder=False).repeat()
 #%%
 single_step_model = tf.keras.models.Sequential()
 single_step_model.add(tf.keras.layers.LSTM(32,

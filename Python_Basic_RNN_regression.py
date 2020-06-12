@@ -6,7 +6,9 @@ Created on Mon Jun  8 14:18:48 2020
 """
 
 '''
-            RNN with Layer State Refeed
+            RNN with Two Layers to predict a single numerical value
+        does not reuse its own states
+        uses multivariate data with time windows
 '''
 
 #import required packages
