@@ -386,16 +386,16 @@ train_ds_norm = tf.keras.utils.normalize(train_dataset)
 val_ds_norm = tf.keras.utils.normalize(dataset[TRAIN_SPLIT:])
 
 # train dataset is already shortened and normalized
-y_train_multi = train_ds_norm.pop('amount_mean_lag7')
-X_train_multi = train_ds_norm[:TRAIN_SPLIT]
+y_train_raw = train_ds_norm.pop('amount_mean_lag7')
+X_train_raw = train_ds_norm[:TRAIN_SPLIT]
 # referring to previous dataset; second slice becomes validation data until end of the data
-y_val_multi = val_ds_norm.pop('amount_mean_lag7')
-X_val_multi = val_ds_norm
+y_val_raw = val_ds_norm.pop('amount_mean_lag7')
+X_val_raw = val_ds_norm
 
-print("Shape y_training:", y_train_multi.shape)
-print("Shape X_training:", X_train_multi.shape)
-print("Shape y_validation:", y_val_multi.shape)
-print("Shape X_validation:", X_val_multi.shape)
+print("Shape y_training:", y_train_raw.shape)
+print("Shape X_training:", X_train_raw.shape)
+print("Shape y_validation:", y_val_raw.shape)
+print("Shape X_validation:", X_val_raw.shape)
 
 # buffer_size can be equivalent to the entire length of the df; that way all of it is being shuffled
 BUFFER_SIZE = len(train_dataset)
@@ -415,53 +415,70 @@ timestep = 7
 # (X= batch_size(examples), Y=timesteps, Z=features)
 
 # training dataframe
-X_train_multi = np.array(X_train_multi)
-X_train_multi = np.reshape(X_train_multi, (X_train_multi.shape[0], 1, X_train_multi.shape[1]))
+X_train_raw = np.array(X_train_raw)
+y_train_raw = np.array(y_train_raw)
+X_train_multi = np.reshape(X_train_raw, (X_train_raw.shape[0], 1, X_train_raw.shape[1]))
 train_data_multi = tf.data.Dataset.from_tensor_slices((X_train_multi, y_train_multi))
 # generation of batches
 train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE, drop_remainder=False).repeat()
 
 # validation dataframe
-X_val_multi = np.array(X_val_multi)
-X_val_multi = np.reshape(X_val_multi, (X_val_multi.shape[0], 1, X_val_multi.shape[1]))
+X_val_raw = np.array(X_val_raw)
+y_val_raw = np.array(y_val_raw)
+X_val_multi = np.reshape(X_val_raw, (X_val_raw.shape[0], 1, X_val_raw.shape[1]))
 val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi, y_val_multi))
 # generation of batches
 val_data_multi = val_data_multi.batch(BATCH_SIZE, drop_remainder=False).repeat()
 #%%
-single_step_model = tf.keras.models.Sequential()
-single_step_model.add(tf.keras.layers.LSTM(32,
-                                           input_shape=X_train_single.shape[-2:]))
-single_step_model.add(tf.keras.layers.Dense(1))
+'''
+                    Build the model
+    return final internal states and use them as initial weight again
+    shape of the state needs to exactly match the unit size of the layer
+'''
+encoder_vocab = 1000
+decoder_vocab = 2000
 
-single_step_model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
-                          loss='mse',
-                          metrics=['mae'])
+encoder_input = layers.Input(shape=(None, ))
+encoder_embedded = layers.Embedding(input_dim=encoder_vocab, output_dim=64)(encoder_input)
 
+# Return states in addition to output
+output, state_h, state_c = layers.LSTM(
+    64, return_state=True, name='encoder')(encoder_embedded)
+encoder_state = [state_h, state_c]
 
-for x, y in val_data_single.take(1):
-  print(single_step_model.predict(x).shape)
+decoder_input = layers.Input(shape=(None, ))
+decoder_embedded = layers.Embedding(input_dim=decoder_vocab, output_dim=64)(decoder_input)
 
-EPOCHS = 150
-EVALUATION_INTERVAL = 200
+# Pass the 2 states to a new LSTM layer, as initial state
+decoder_output = layers.LSTM(
+    64, name='decoder')(decoder_embedded, initial_state=encoder_state)
+output = layers.Dense(10)(decoder_output)
 
-single_step_history = single_step_model.fit(train_data_single, epochs=EPOCHS,
-                                            steps_per_epoch=EVALUATION_INTERVAL,
-                                            validation_data=val_data_single,
-                                            validation_steps=50)
+model = tf.keras.Model([encoder_input, decoder_input], output)
+model.summary()
 
+model.compile(loss='mse',
+              optimizer=tf.keras.optimizers.RMSprop(0.001),
+              metrics=['mae'])
+
+model.fit(train_data_multi, epochs=250,
+          steps_per_epoch=125,
+          # evaluation steps need to consume all samples without remainder
+          validation_data=val_data_multi,
+          validation_steps=125)
+
+#%%
 def plot_train_history(history, title):
     loss = history.history[['mae', 'mse']]
     val_loss = history.history['val_loss']
-
     epochs = range(len(loss))
 
-    plt.figure()
 
+    plt.figure()
     plt.plot(epochs, loss, 'b', label='Training loss')
     plt.plot(epochs, val_loss, 'r', label='Validation loss')
     plt.title(title)
     plt.legend()
-
     plt.show()
 
 plot_train_history(single_step_history,
