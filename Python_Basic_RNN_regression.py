@@ -433,7 +433,7 @@ def df_encoder(rng = 4, plots=False):
 #%%
 print("Tensorflow regression:")
 print("TF-version:", tf.__version__)
-bank_df = df_encoder(rng=4)
+bank_df = df_encoder(rng=2, plots=False)
 dataset = bank_df.copy()
 print(dataset.head())
 # sns.pairplot(bank_df[['amount', 'amount_mean_lag7', 'amount_std_lag7']])

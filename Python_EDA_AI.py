@@ -61,6 +61,7 @@ from tensorflow.keras.layers import Dense, Flatten, Conv2D
 
 # imported custom function
 # generates a CSV for daily/weekly/monthly account throughput; expenses and income
+# RUN FIRST OR FAIL
 from Python_spending_report_csv_function import spending_report
 # contains the connection script
 from Python_SQL_connection import execute_read_query, create_connection, close_connection
@@ -73,13 +74,13 @@ from Python_CSV_export_function import csv_export
 #%%
 # set up flask first as environment variable and start with the command console
     #CONNECTION TO FLASK/SQL
-app = Flask(__name__)
+# app = Flask(__name__)
 
 ## put address here
 # function can be bound to the script by adding a new URL
 # e.g. route('/start') would then start the entire function that follows
 # same can be split up
-@app.route('/encode')
+# @app.route('/encode')
 
 def df_encoder(rng = 4):
 
@@ -257,6 +258,7 @@ def df_encoder(rng = 4):
     '''
     After successfully loading the data, columns that are of no importance have been removed and missing values replaced
     Then the dataframe is ready to be encoded to get rid of all non-numerical data
+    avoid truncating numbers in pandas
     '''
     try:
         bank_df['unique_mem_id'] = bank_df['unique_mem_id'].astype('str', errors = 'ignore')
@@ -282,7 +284,7 @@ def df_encoder(rng = 4):
         else:
             bank_df = bank_df.drop(columns = 'transaction_date', axis = 1)
             print("Column transaction_date dropped")
-
+        # work with this date column
         if bank_df['optimized_transaction_date'].isnull().sum() == 0:
             bank_df['optimized_transaction_date'] = bank_df['optimized_transaction_date'].apply(lambda x: dt.timestamp(x))
         else:
@@ -463,15 +465,15 @@ def df_encoder(rng = 4):
                             'unique_bank_transaction_id'], axis = 1)
 
     # seaborn plots
-    ax_desc = bank_df['description'].astype('int64', errors='ignore')
-    ax_amount = bank_df['amount'].astype('int64',errors='ignore')
-    sns.pairplot(bank_df)
-    sns.boxplot(x=ax_desc, y=ax_amount)
-    sns.heatmap(bank_df)
+    # ax_desc = bank_df['description'].astype('int64', errors='ignore')
+    # ax_amount = bank_df['amount'].astype('int64',errors='ignore')
+    # sns.pairplot(bank_df)
+    # sns.boxplot(x=ax_desc, y=ax_amount)
+    # sns.heatmap(bank_df)
 
     return bank_df
     #%%
-@app.route('/split')
+# @app.route('/split')
 def split_data():
     ###################SPLITTING UP THE DATA###########################
     #drop target variable in feature df
@@ -686,7 +688,7 @@ SGDReg
     plt.show()
     return rfecv_features, rfecv_num_features
 #%%
-@app.route('/pipeline_logreg')
+# @app.route('/pipeline_logreg')
 def pipeline_logreg():
 
     """
@@ -733,15 +735,15 @@ def pipeline_logreg():
     #replace with gradient boosted at this point or regressor
     pipe = Pipeline([
         ('feature_selection', SelectKBest(score_func = chi2)),
-        ('reg', LogisticRegression(random_state = 12))])
+        ('reg', LogisticRegression(random_state = 15))])
 
     #Create a parameter grid
     #parameter grids provide the values for the models to try
     #PARAMETERS NEED TO HAVE THE SAME LENGTH
     params = {
         'feature_selection__k':[5, 6, 7, 8, 9],
-        'reg__max_iter':[800, 1000, 1500, 2000],
-        'reg__C':[10, 1, 0.1, 0.01, 0.001],
+        'reg__max_iter':[800, 1000],
+        'reg__C':[10, 1, 0.1]
         }
 
     #Initialize the grid search object
@@ -1137,7 +1139,7 @@ def amount_pred():
 
             budget_dict[key].append(msg_3)
 #%%
-@app.route('/pipeline_trans_reg')
+# @app.route('/pipeline_trans_reg')
 def pipeline_trans_reg():
 
     '''
@@ -1238,7 +1240,8 @@ Test 4/22/2020: val_accuracy: 1.0 -> overfitted
 #           Test set Validation: {MLP.score(X_test, y_val)}")
 #     return 'Multi-layered perceptron object ready'
 #%%
-@app.route('/pipeline_mlp')
+# SKLEARN NEURAL NETWORK
+# @app.route('/pipeline_mlp')
 def pipeline_mlp():
 
     '''
