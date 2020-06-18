@@ -78,7 +78,7 @@ def df_encoder(rng = 4, plots=False):
     # dateframe to gather MA bank data from one randomly chosen user
     # test user 1= 4
     # test user 2= 8
-    rng = 4
+
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n = 1, random_state = rng):
             print(i)
@@ -430,7 +430,7 @@ def df_encoder(rng = 4, plots=False):
         sns.heatmap(df)
 
     return df
-#%%
+w#%%
 print("Tensorflow regression:")
 print("TF-version:", tf.__version__)
 bank_df = df_encoder(rng=2, plots=False)
