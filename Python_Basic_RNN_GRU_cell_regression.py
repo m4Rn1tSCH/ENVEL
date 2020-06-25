@@ -16,7 +16,6 @@ tf.compat.v1.enable_eager_execution()
 from tensorflow import feature_column, data
 from tensorflow.keras import Model, layers, regularizers
 
-
 #IMPORTED CUSTOM FUNCTION
 #generates a CSV for daily/weekly/monthly account throughput; expenses and income
 from Python_spending_report_csv_function import spending_report
@@ -370,7 +369,7 @@ def df_encoder(rng = 4, plots=False):
 #%%
 '''
             Multivariate Regression
--multivariate regression with Long Short-Term Memory cells
+-multivariate regression with single Gradient Reduction Unit
 '''
 print("Tensorflow regression:")
 print("TF-version:", tf.__version__)
@@ -438,7 +437,7 @@ val_data_multi = val_data_multi.batch(BATCH_SIZE, drop_remainder=True).repeat()
 # # generation of batches
 # val_data_multi = val_data_multi.batch(BATCH_SIZE, drop_remainder=False).repeat()
 
-model = keras.Sequential()
+model = tf.keras.Sequential()
 model.add(layers.Embedding(input_dim=1000, output_dim=64))
 
 # The output of GRU will be a 3D tensor of shape (batch_size, timesteps, 256)
@@ -450,3 +449,14 @@ model.add(layers.SimpleRNN(128))
 model.add(layers.Dense(10))
 
 model.summary()
+
+#%%
+model.compile(loss='mse',
+              optimizer=tf.keras.optimizers.RMSprop(0.001),
+              metrics=['mae'])
+
+model.fit(train_data_multi, epochs=5,
+          steps_per_epoch=125,
+          # evaluation steps need to consume all samples without remainder
+          validation_data=val_data_multi,
+          validation_steps=125)
