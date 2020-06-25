@@ -419,7 +419,7 @@ train_data_multi = train_data_multi.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZ
 # validation dataframe
 val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_raw.values, y_val_raw.values))
 val_data_multi = val_data_multi.batch(BATCH_SIZE, drop_remainder=True).repeat()
-
+#%%
 
 # training dataframe
 # X_train_raw = np.array(X_train_raw)
@@ -445,12 +445,13 @@ model.add(layers.GRU(256, return_sequences=True))
 
 # The output of SimpleRNN will be a 2D tensor of shape (batch_size, 128)
 model.add(layers.SimpleRNN(128))
-
-model.add(layers.Dense(10))
+model.add(layers.Dropout(rate=0.2, seed=True))
+model.add(layers.Dense(1))
 
 model.summary()
 
 #%%
+# compile model and optimize with mean absolute error
 model.compile(loss='mse',
               optimizer=tf.keras.optimizers.RMSprop(0.001),
               metrics=['mae'])
