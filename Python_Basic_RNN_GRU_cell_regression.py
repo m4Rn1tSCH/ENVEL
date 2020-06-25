@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri May 29 11:51:58 2020
+Created on Thu Jun 25 11:22:43 2020
 
 @author: bill-
 """
@@ -437,65 +437,16 @@ val_data_multi = val_data_multi.batch(BATCH_SIZE, drop_remainder=True).repeat()
 # val_data_multi = tf.data.Dataset.from_tensor_slices((X_val_multi, y_val_multi))
 # # generation of batches
 # val_data_multi = val_data_multi.batch(BATCH_SIZE, drop_remainder=False).repeat()
-#%%
-'''
-                    Build the model
-    return final internal states and use them as initial weight again
-    shape of the state needs to exactly match the unit size of the layer
-'''
-encoder_vocab = 1000
-decoder_vocab = 2000
-output_size = 1
 
-encoder_input = layers.Input(shape=(None, ))
-encoder_embedded = layers.Embedding(input_dim=encoder_vocab, output_dim=64)(encoder_input)
+model = keras.Sequential()
+model.add(layers.Embedding(input_dim=1000, output_dim=64))
 
-# Return states in addition to output
-output, state_h, state_c = layers.LSTM(64,
-                                       return_state=True,
-                                       name='encoder')(encoder_embedded)
-encoder_state = [state_h, state_c]
+# The output of GRU will be a 3D tensor of shape (batch_size, timesteps, 256)
+model.add(layers.GRU(256, return_sequences=True))
 
-decoder_input = layers.Input(shape=(None, ))
-decoder_embedded = layers.Embedding(input_dim=decoder_vocab, output_dim=64)(decoder_input)
+# The output of SimpleRNN will be a 2D tensor of shape (batch_size, 128)
+model.add(layers.SimpleRNN(128))
 
-# Pass the 2 states to a new LSTM layer, as initial state
-decoder_output = layers.LSTM(64,
-                             name='decoder')(decoder_embedded, initial_state=encoder_state)
-output = layers.Dense(output_size)(decoder_output)
+model.add(layers.Dense(10))
 
-model = tf.keras.Model([encoder_input, decoder_input], output)
 model.summary()
-#%%
-model.compile(loss='mse',
-              optimizer=tf.keras.optimizers.RMSprop(0.001),
-              metrics=['mae'])
-
-model.fit(train_data_multi, epochs=5,
-          steps_per_epoch=125,
-          # evaluation steps need to consume all samples without remainder
-          validation_data=val_data_multi,
-          validation_steps=125)
-
-#%%
-def plot_train_history(history, title):
-    loss = history.history[['mae', 'mse']]
-    val_loss = history.history['val_loss']
-    epochs = range(len(loss))
-
-
-    plt.figure()
-    plt.plot(epochs, loss, 'b', label='Training loss')
-    plt.plot(epochs, val_loss, 'r', label='Validation loss')
-    plt.title(title)
-    plt.legend()
-    plt.show()
-
-plot_train_history(single_step_history,
-                   'Single Step Training and validation loss')
-
-for x, y in val_data_single.take(3):
-  plot = show_plot([x[0][:, 1].numpy(), y[0].numpy(),
-                    single_step_model.predict(x)[0]], 12,
-                   'Single Step Prediction')
-  plot.show()
