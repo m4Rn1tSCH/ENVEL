@@ -550,10 +550,10 @@ def split_data():
     fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (15, 10), dpi = 600)
     #styles for title: normal; italic; oblique
     ax[0].scatter(X_train_pca[:, 0], X_train_pca[:, 1], c = train_clusters.labels_)
-    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style = 'oblique')
+    ax[0].set_title('Plotted Principal Components of TRAIN DATA', style='oblique')
     ax[0].legend(f'{int(kmeans.n_clusters)} clusters')
     ax[1].scatter(X_test_pca[:, 0], X_test_pca[:, 1], c = test_clusters.labels_)
-    ax[1].set_title('Plotted Principal Components of TEST DATA', style = 'oblique')
+    ax[1].set_title('Plotted Principal Components of TEST DATA', style='oblique')
     ax[1].legend(f'{int(kmeans.n_clusters)} clusters')
     #principal components of bank panel has better results than card panel with clearer borders
 
