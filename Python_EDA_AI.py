@@ -472,6 +472,8 @@ def df_encoder(rng = 4):
     # sns.heatmap(bank_df)
 
     return bank_df
+
+bank_df = df_encoder(rng=4)
     #%%
 # @app.route('/split')
 def split_data():
@@ -561,8 +563,14 @@ def split_data():
     #np.corrcoef(np.array(isCredit_num), amounts)
 
     return [X_train, X_train_scaled, X_train_minmax, X_train_pca, X_test, X_test_scaled, X_test_minmax, X_test_pca, y_train, y_test]
+
+X_train, X_train_scaled, X_train_minmax, X_train_pca, X_test, X_test_scaled, X_test_minmax, X_test_pca, y_train, y_test = split_data()
 #%%
-@app.route('/pipeline_rfe')
+"""
+PIPELINES
+"""
+
+#@app.route('/pipeline_rfe')
 def pipeline_rfe():
 
     """
@@ -597,7 +605,7 @@ def pipeline_rfe():
     #log_reg_param = rfe.set_params(C = 0.01, max_iter = 200, tol = 0.001)
     return X_train_rfe, X_test_rfe
 #%%
-@app.route('/pipeline_rfe_cv')
+#@app.route('/pipeline_rfe_cv')
 def pipeline_rfe_cv():
 
 
