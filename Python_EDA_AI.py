@@ -82,7 +82,7 @@ from Python_CSV_export_function import csv_export
 # same can be split up
 # @app.route('/encode')
 
-def df_encoder(rng = 4):
+def df_encoder(rng = 4, plots=False):
 
 
     '''
@@ -182,48 +182,6 @@ def df_encoder(rng = 4):
     # for c_var in cat_var:
     #     for q_var in quant_var:
     #         df.boxplot(column=q_var, by=c_var)
-    #         plt.xticks([])
-
-    '''
-    Plotting of various relations
-    The Counter object keeps track of permutations in a dictionary which can then be read and
-    used as labels
-    '''
-    # Pie chart States - works
-    state_ct = Counter(list(bank_df['state']))
-    # The * operator can be used in conjunction with zip() to unzip the list.
-    labels, values = zip(*state_ct.items())
-    # Pie chart, where the slices will be ordered and plotted counter-clockwise:
-    fig1, ax = plt.subplots(figsize = (20, 12))
-    ax.pie(values, labels = labels, autopct = '%1.1f%%',
-            shadow = True, startangle = 90)
-    # Equal aspect ratio ensures that pie is drawn as a circle.
-    ax.axis('equal')
-    #ax.title('Transaction locations of user {bank_df[unique_mem_id][0]}')
-    ax.legend(loc = 'center right')
-    plt.show()
-
-    # Pie chart transaction type -works
-    trans_ct = Counter(list(bank_df['transaction_category_name']))
-    # The * operator can be used in conjunction with zip() to unzip the list.
-    labels_2, values_2 = zip(*trans_ct.items())
-    #Pie chart, where the slices will be ordered and plotted counter-clockwise:
-    fig1, ax = plt.subplots(figsize = (20, 12))
-    ax.pie(values_2, labels = labels_2, autopct = '%1.1f%%',
-            shadow = True, startangle = 90)
-    # Equal aspect ratio ensures that pie is drawn as a circle.
-    ax.axis('equal')
-    #ax.title('Transaction categories of user {bank_df[unique_mem_id][0]}')
-    ax.legend(loc = 'center right')
-    plt.show()
-
-    # BUGGED
-    # Boxplot template
-    # cat_var = ["unique_mem_id", "primary_merchant_name"]
-    # quant_var = ["amount"]
-    # for c_var in cat_var:
-    #     for q_var in quant_var:
-    #         bank_df.boxplot(column=q_var, by=c_var)
     #         plt.xticks([])
 
     '''
@@ -464,12 +422,46 @@ def df_encoder(rng = 4):
                             'unique_bank_account_id',
                             'unique_bank_transaction_id'], axis = 1)
 
-    # seaborn plots
-    # ax_desc = bank_df['description'].astype('int64', errors='ignore')
-    # ax_amount = bank_df['amount'].astype('int64',errors='ignore')
-    # sns.pairplot(bank_df)
-    # sns.boxplot(x=ax_desc, y=ax_amount)
-    # sns.heatmap(bank_df)
+    if plots:
+        '''
+        Plotting of various relations
+        The Counter object keeps track of permutations in a dictionary
+        which can then be read and used as labels
+        '''
+        # Pie chart States - works
+        state_ct = Counter(list(bank_df['state']))
+        # The * operator can be used in conjunction with zip() to unzip the list.
+        labels, values = zip(*state_ct.items())
+        # Pie chart, where the slices will be ordered and plotted counter-clockwise:
+        fig1, ax = plt.subplots(figsize = (20, 12))
+        ax.pie(values, labels = labels, autopct = '%1.1f%%',
+                shadow = True, startangle = 90)
+        # Equal aspect ratio ensures that pie is drawn as a circle.
+        ax.axis('equal')
+        #ax.title('Transaction locations of user {bank_df[unique_mem_id][0]}')
+        ax.legend(loc = 'center right')
+        plt.show()
+
+        # Pie chart transaction type -works
+        trans_ct = Counter(list(bank_df['transaction_category_name']))
+        # The * operator can be used in conjunction with zip() to unzip the list.
+        labels_2, values_2 = zip(*trans_ct.items())
+        #Pie chart, where the slices will be ordered and plotted counter-clockwise:
+        fig1, ax = plt.subplots(figsize = (20, 12))
+        ax.pie(values_2, labels = labels_2, autopct = '%1.1f%%',
+                shadow = True, startangle = 90)
+        # Equal aspect ratio ensures that pie is drawn as a circle.
+        ax.axis('equal')
+        #ax.title('Transaction categories of user {bank_df[unique_mem_id][0]}')
+        ax.legend(loc = 'center right')
+        plt.show()
+
+        # seaborn plots
+        ax_desc = bank_df['description'].astype('int64', errors='ignore')
+        ax_amount = bank_df['amount'].astype('int64',errors='ignore')
+        sns.pairplot(bank_df)
+        sns.boxplot(x=ax_desc, y=ax_amount)
+        sns.heatmap(bank_df)
 
     return bank_df
 
