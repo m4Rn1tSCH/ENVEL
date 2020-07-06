@@ -332,7 +332,7 @@ def pipeline_logreg():
 
     # Fit it to the data and print the best value combination
     print(f"Pipeline logreg; {dt.today()}")
-    print(grid_search_lr.fit(X_train, y_train).best_params_)
+    print(grid_search_lr.fit(X_train_minmax, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search_lr.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search_lr.best_score_}")
 
@@ -400,10 +400,24 @@ X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
                              test_size=0.2,
                              label='city')
-
+# SVC PIPELINE
 model = pipeline_svc()
 
 # fit test set to the PI object
 perm = PermutationImportance(model, random_state=1).fit(X_test, y_test)
 eli5.show_weights(perm, feature_names = X_test.columns.tolist())
+#%%
+# KNN PIPELINE
+model2 = pipeline_knn()
 
+# fit test set to the PI object
+perm = PermutationImportance(model, random_state=1).fit(X_test, y_test)
+eli5.show_weights(perm, feature_names = X_test.columns.tolist())
+#%%
+# SVC PIPELINE
+model3 = pipeline_logreg()
+
+# fit test set to the PI object
+perm = PermutationImportance(model3, random_state=1).fit(X_test_minmax, y_test)
+eli5.ipython.format_as_image
+eli5.show_weights(perm, feature_names = X_test.columns.tolist())
