@@ -23,6 +23,7 @@ from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.svm import SVR, SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
 
 from Python_SQL_connection import execute_read_query, create_connection
 import PostgreSQL_credentials as acc
@@ -249,7 +250,7 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
         sns.heatmap(bank_df)
 
     return bank_df
-#%%
+
 def split_data(df, test_size=0.2, label='amount_mean_lag7'):
     '''
     Parameters
@@ -299,7 +300,7 @@ def split_data(df, test_size=0.2, label='amount_mean_lag7'):
     X_test_minmax = min_max_scaler.transform(X_test)
 
     return [X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax, y_train, y_test]
-#%%
+
 def pipeline_logreg():
 
     '''
@@ -337,7 +338,7 @@ def pipeline_logreg():
     print(f"Best accuracy with parameters: {grid_search_lr.best_score_}")
 
     return grid_search_lr
-#%%
+
 def pipeline_knn():
 
     '''
@@ -365,7 +366,7 @@ def pipeline_knn():
     print("Overall score: %.4f" %(grid_search_knn.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search_knn.best_score_}")
     return grid_search_knn
-#%%
+
 def pipeline_svc():
 
     '''
@@ -392,6 +393,45 @@ def pipeline_svc():
     print("Overall score: %.4f" %(grid_search_svc.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search_svc.best_score_}")
     return grid_search_svc
+
+def pipeline_mlp():
+
+    '''
+    Pipeline 8 - SelectKBest and Multi-Layer Perceptron
+    # # # # # # # # # #
+    Pipeline 7; 2020-05-06 10:20:51 CITY (sgd + adaptive learning rate)
+    {'clf__alpha': 0.0001, 'clf__max_iter': 2000, 'feature_selection__k': 5}
+    Overall score: 0.2808
+    Best accuracy with parameters: 0.26102555833266144
+    '''
+    # Create pipeline with feature selector and classifier
+    # replace with classifier or regressor
+    # learning_rate = 'adaptive'; when solver='sgd'
+    pipe = Pipeline([
+        ('feature_selection', SelectKBest(score_func = chi2)),
+        ('clf', MLPClassifier(activation='relu',
+                              solver='lbfgs',
+                              learning_rate='constant'))])
+
+    # Create a parameter grid
+    # Parameter explanation
+    #    C: penalty parameter
+    #    gamma: [standard 'auto' = 1/n_feat], kernel coefficient
+    #
+    params = {
+        'feature_selection__k':[4, 5, 6, 7],
+        'clf__max_iter':[1500, 2000],
+        'clf__alpha':[0.0001, 0.001]}
+
+    # Initialize the grid search object
+    grid_search_mlp = GridSearchCV(pipe, param_grid = params)
+
+    # Fit it to the data and print the best value combination
+    print(f"Pipeline 7; {dt.today()}")
+    print(grid_search_mlp.fit(X_train_minmax, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search_mlp.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search_mlp.best_score_}")
+    return grid_search_mlp
 # %%
 # workflow
 df = df_encoder(rng=9, include_lag_features=True)
@@ -419,5 +459,11 @@ model3 = pipeline_logreg()
 
 # fit test set to the PI object
 perm = PermutationImportance(model3, random_state=1).fit(X_test_minmax, y_test)
-eli5.ipython.format_as_image
+eli5.show_weights(perm, feature_names = X_test.columns.tolist())
+#%%
+# MLP PIPELINE
+model3 = pipeline_mlp()
+
+# fit test set to the PI object
+perm = PermutationImportance(model3, random_state=1).fit(X_test_minmax, y_test)
 eli5.show_weights(perm, feature_names = X_test.columns.tolist())
