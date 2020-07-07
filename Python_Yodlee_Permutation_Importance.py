@@ -24,6 +24,7 @@ from sklearn.svm import SVR, SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
+from xgboost import XGBClassifier
 
 from Python_SQL_connection import execute_read_query, create_connection
 import PostgreSQL_credentials as acc
@@ -474,6 +475,7 @@ X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
                              test_size=0.2,
                              label='city')
+#%%
 # SVC PIPELINE
 model = pipeline_svc()
 
@@ -500,5 +502,18 @@ model4 = pipeline_mlp()
 
 # fit test set to the PI object
 perm = PermutationImportance(model4, random_state=1).fit(X_test_minmax, y_test)
+eli5.show_weights(perm, feature_names = X_test.columns.tolist())
+#%%
+xgbreg = XGBClassifier()
+# Add silent=True to avoid printing out updates with each cycle
+xgbreg.fit(X_train, y_train, verbose=False)
+
+# make predictions
+y_pred = xgbreg.predict(X_test)
+
+from sklearn.metrics import mean_absolute_error
+print("Mean Absolute Error : " + str(mean_absolute_error(y_pred, y_test)))
+
+perm = PermutationImportance(xgbreg, random_state=1).fit(X_test, y_test)
 eli5.show_weights(perm, feature_names = X_test.columns.tolist())
 #%%
