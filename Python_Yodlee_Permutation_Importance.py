@@ -432,6 +432,40 @@ def pipeline_mlp():
     print("Overall score: %.4f" %(grid_search_mlp.score(X_test, y_test)))
     print(f"Best accuracy with parameters: {grid_search_mlp.best_score_}")
     return grid_search_mlp
+
+def pipeline_rfc():
+
+    '''
+    Pipeline - SelectKBest and Random Forest Classifier
+    '''
+    # Create pipeline with feature selector and classifier
+    # replace with gradient boosted at this point or regessor
+    pipe = Pipeline([
+        ('feature_selection', SelectKBest(score_func = f_classif)),
+        ('clf', RandomForestClassifier(n_jobs = -1,
+                                      verbose=2,
+                                      min_samples_split = 4))
+        ])
+
+    # Create a parameter grid
+    # parameter grids provide the values for the models to try
+    # PARAMETERS NEED TO HAVE THE SAME LENGTH
+    params = {
+        'feature_selection__k':[5, 6, 7, 8, 9],
+        'clf__n_estimators':[75, 100, 150, 200],
+        'clf__max_depth':[4, 8, 10, 15],
+        }
+
+    # Initialize the grid search object
+    grid_search_rfc = GridSearchCV(pipe, param_grid = params)
+
+    # Fit it to the data and print the best value combination
+    print(f"Pipeline rfc; {dt.today()}")
+    print(grid_search_rfc.fit(X_train, y_train).best_params_)
+    print("Overall score: %.4f" %(grid_search_rfc.score(X_test, y_test)))
+    print(f"Best accuracy with parameters: {grid_search_rfc.best_score_}")
+
+    return grid_search_rfc
 # %%
 # workflow
 df = df_encoder(rng=9, include_lag_features=True)
@@ -462,8 +496,9 @@ perm = PermutationImportance(model3, random_state=1).fit(X_test_minmax, y_test)
 eli5.show_weights(perm, feature_names = X_test.columns.tolist())
 #%%
 # MLP PIPELINE
-model3 = pipeline_mlp()
+model4 = pipeline_mlp()
 
 # fit test set to the PI object
-perm = PermutationImportance(model3, random_state=1).fit(X_test_minmax, y_test)
+perm = PermutationImportance(model4, random_state=1).fit(X_test_minmax, y_test)
 eli5.show_weights(perm, feature_names = X_test.columns.tolist())
+#%%
