@@ -16,15 +16,18 @@ import seaborn as sns
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import eli5
 from eli5.sklearn import PermutationImportance
+import eli5.lightgbm
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest , chi2, f_classif
 from sklearn.model_selection import GridSearchCV, train_test_split
-
+from sklearn.metrics import mean_absolute_error
 from sklearn.svm import SVR, SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
+
 from xgboost import XGBClassifier
+from lightgbm import LGBMClassifier
 
 from Python_SQL_connection import execute_read_query, create_connection
 import PostgreSQL_credentials as acc
@@ -40,7 +43,7 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     include_lag_features : include lag feature 'amount' to database with 3, 7, and 30 day rolls. Default is True
     Returns
     -------
-    bank_df.
+    df.
     '''
 
     connection = create_connection(db_name=acc.YDB_name,
@@ -60,10 +63,9 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     # test user 2= 8
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n=1, random_state=rng):
-            print(i)
             filter_query = f"SELECT * FROM bank_record WHERE unique_mem_id = '{i}'"
             transaction_query = execute_read_query(connection, filter_query)
-            bank_df = pd.DataFrame(transaction_query,
+            df = pd.DataFrame(transaction_query,
                                    columns=['unique_mem_id', 'unique_bank_account_id', 'unique_bank_transaction_id',
                                    'amount', 'currency', 'description', 'transaction_date', 'post_date', 'transaction_base_type',
                                    'transaction_category_name', 'primary_merchant_name', 'secondary_merchant_name', 'city',
@@ -71,9 +73,9 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
                                    'optimized_transaction_date', 'yodlee_transaction_status', 'mcc_raw', 'mcc_inferred',
                                    'swipe_date', 'panel_file_created_date', 'update_type', 'is_outlier', 'change_source',
                                    'account_type', 'account_source_type', 'account_score', 'user_score', 'lag', 'is_duplicate'])
-            print(f"User {i} has {len(bank_df)} transactions on record.")
+            print(f"User {i} has {len(df)} transactions on record.")
             #all these columns are empty or almost empty and contain no viable information
-            bank_df = bank_df.drop(columns=['secondary_merchant_name', 'swipe_date', 'update_type', 'is_outlier', 'is_duplicate',
+            df = df.drop(columns=['secondary_merchant_name', 'swipe_date', 'update_type', 'is_outlier', 'is_duplicate',
                                             'change_source', 'lag', 'mcc_inferred', 'mcc_raw', 'factual_id', 'factual_category',
                                             'zip_code', 'yodlee_transaction_status'], axis=1)
     except OperationalError as e:
@@ -87,7 +89,7 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     '''
     if plots:
         # Pie chart States
-        state_ct = Counter(list(bank_df['state']))
+        state_ct = Counter(list(df['state']))
         # The * operator can be used in conjunction with zip() to unzip the list.
         labels, values = zip(*state_ct.items())
         # Pie chart, where the slices will be ordered and plotted counter-clockwise:
@@ -96,12 +98,12 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
               shadow=True, startangle=90)
         # Equal aspect ratio ensures that pie is drawn as a circle.
         ax.axis('equal')
-        #ax.title('Transaction locations of user {bank_df[unique_mem_id][0]}')
+        #ax.title('Transaction locations of user {df[unique_mem_id][0]}')
         ax.legend(loc='center right')
         plt.show()
 
         # Pie chart transaction type
-        trans_ct = Counter(list(bank_df['transaction_category_name']))
+        trans_ct = Counter(list(df['transaction_category_name']))
         # The * operator can be used in conjunction with zip() to unzip the list.
         labels_2, values_2 = zip(*trans_ct.items())
         #Pie chart, where the slices will be ordered and plotted counter-clockwise:
@@ -110,7 +112,7 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
               shadow=True, startangle=90)
         # Equal aspect ratio ensures that pie is drawn as a circle.
         ax.axis('equal')
-        #ax.title('Transaction categories of user {bank_df[unique_mem_id][0]}')
+        #ax.title('Transaction categories of user {df[unique_mem_id][0]}')
         ax.legend(loc='center right')
         plt.show()
 
@@ -123,20 +125,20 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     # convert all date col from date to datetime objects
     # date objects will block Select K Best if not converted
     # first conversion from date to datetime objects; then conversion to unix
-    bank_df['post_date'] = pd.to_datetime(bank_df['post_date'])
-    bank_df['transaction_date'] = pd.to_datetime(bank_df['transaction_date'])
-    bank_df['optimized_transaction_date'] = pd.to_datetime(
-        bank_df['optimized_transaction_date'])
-    bank_df['file_created_date'] = pd.to_datetime(bank_df['file_created_date'])
-    bank_df['panel_file_created_date'] = pd.to_datetime(
-        bank_df['panel_file_created_date'])
+    df['post_date'] = pd.to_datetime(df['post_date'])
+    df['transaction_date'] = pd.to_datetime(df['transaction_date'])
+    df['optimized_transaction_date'] = pd.to_datetime(
+        df['optimized_transaction_date'])
+    df['file_created_date'] = pd.to_datetime(df['file_created_date'])
+    df['panel_file_created_date'] = pd.to_datetime(
+        df['panel_file_created_date'])
 
     # set optimized transaction_date as index for later
-    bank_df.set_index('optimized_transaction_date', drop=False, inplace=True)
+    df.set_index('optimized_transaction_date', drop=False, inplace=True)
 
     # generate the spending report with the above randomly picked user ID
     if spending_report:
-      create_spending_report(df=bank_df.copy())
+      create_spending_report(df=df.copy())
 
     '''
     After successfully loading the data, columns that are of no importance have been removed and missing values replaced
@@ -144,14 +146,14 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     '''
     try:
         # Include below if need unique ID's later:
-        # bank_df['unique_mem_id'] = bank_df['unique_mem_id'].astype(
+        # df['unique_mem_id'] = df['unique_mem_id'].astype(
         #     'str', errors='ignore')
-        # bank_df['unique_bank_account_id'] = bank_df['unique_bank_account_id'].astype(
+        # df['unique_bank_account_id'] = df['unique_bank_account_id'].astype(
         #     'str', errors='ignore')
-        # bank_df['unique_bank_transaction_id'] = bank_df['unique_bank_transaction_id'].astype(
+        # df['unique_bank_transaction_id'] = df['unique_bank_transaction_id'].astype(
         #     'str', errors='ignore')
-        bank_df['amount'] = bank_df['amount'].astype('float64')
-        bank_df['transaction_base_type'] = bank_df['transaction_base_type'].replace(
+        df['amount'] = df['amount'].astype('float64')
+        df['transaction_base_type'] = df['transaction_base_type'].replace(
             to_replace=["debit", "credit"], value=[1, 0])
     except (TypeError, OSError, ValueError) as e:
         print(f"Problem with conversion: {e}")
@@ -161,10 +163,10 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
                      'optimized_transaction_date', 'file_created_date', 'panel_file_created_date']
     try:
         for feature in date_features:
-            if bank_df[feature].isnull().sum() == 0:
-                bank_df[feature] = bank_df[feature].apply(lambda x: dt.timestamp(x))
+            if df[feature].isnull().sum() == 0:
+                df[feature] = df[feature].apply(lambda x: dt.timestamp(x))
             else:
-                bank_df = bank_df.drop(columns=feature, axis=1)
+                df = df.drop(columns=feature, axis=1)
                 print(f"Column {feature} dropped")
 
     except (TypeError, OSError, ValueError) as e:
@@ -178,19 +180,19 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     UNKNOWN_TOKEN = '<unknown>'
     embedding_maps = {}
     for feature in encoding_features:
-        unique_list = bank_df[feature].unique().astype('str').tolist()
+        unique_list = df[feature].unique().astype('str').tolist()
         unique_list.append(UNKNOWN_TOKEN)
         le = LabelEncoder()
         le.fit_transform(unique_list)
         embedding_maps[feature] = dict(zip(le.classes_, le.transform(le.classes_)))
 
         # APPLICATION TO OUR DATASET
-        bank_df[feature] = bank_df[feature].apply(lambda x: x if x in embedding_maps[feature] else UNKNOWN_TOKEN)
-        bank_df[feature] = bank_df[feature].map(lambda x: le.transform([x])[0] if type(x) == str else x)
+        df[feature] = df[feature].apply(lambda x: x if x in embedding_maps[feature] else UNKNOWN_TOKEN)
+        df[feature] = df[feature].map(lambda x: le.transform([x])[0] if type(x) == str else x)
 
     # dropping currency if there is only one
-    if len(bank_df['currency'].value_counts()) == 1:
-        bank_df = bank_df.drop(columns=['currency'], axis=1)
+    if len(df['currency'].value_counts()) == 1:
+        df = df.drop(columns=['currency'], axis=1)
 
     '''
     IMPORTANT
@@ -202,8 +204,8 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
         #FEATURE ENGINEERING
         #typical engineered features based on lagging metrics
         #mean + stdev of past 3d/7d/30d/ + rolling volume
-        date_index = bank_df.index.values
-        bank_df.reset_index(drop=True, inplace=True)
+        date_index = df.index.values
+        df.reset_index(drop=True, inplace=True)
         #pick lag features to iterate through and calculate features
         lag_features = ["amount"]
         #set up time frames; how many days/months back/forth
@@ -211,48 +213,48 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
         t2 = 7
         t3 = 30
         #rolling values for all columns ready to be processed
-        bank_df_rolled_3d = bank_df[lag_features].rolling(window=t1, min_periods=0)
-        bank_df_rolled_7d = bank_df[lag_features].rolling(window=t2, min_periods=0)
-        bank_df_rolled_30d = bank_df[lag_features].rolling(window=t3, min_periods=0)
+        df_rolled_3d = df[lag_features].rolling(window=t1, min_periods=0)
+        df_rolled_7d = df[lag_features].rolling(window=t2, min_periods=0)
+        df_rolled_30d = df[lag_features].rolling(window=t3, min_periods=0)
 
         #calculate the mean with a shifting time window
-        bank_df_mean_3d = bank_df_rolled_3d.mean().shift(periods=1).reset_index().astype(np.float32)
-        bank_df_mean_7d = bank_df_rolled_7d.mean().shift(periods=1).reset_index().astype(np.float32)
-        bank_df_mean_30d = bank_df_rolled_30d.mean().shift(periods=1).reset_index().astype(np.float32)
+        df_mean_3d = df_rolled_3d.mean().shift(periods=1).reset_index().astype(np.float32)
+        df_mean_7d = df_rolled_7d.mean().shift(periods=1).reset_index().astype(np.float32)
+        df_mean_30d = df_rolled_30d.mean().shift(periods=1).reset_index().astype(np.float32)
 
         #calculate the std dev with a shifting time window
-        bank_df_std_3d = bank_df_rolled_3d.std().shift(periods=1).reset_index().astype(np.float32)
-        bank_df_std_7d = bank_df_rolled_7d.std().shift(periods=1).reset_index().astype(np.float32)
-        bank_df_std_30d = bank_df_rolled_30d.std().shift(periods=1).reset_index().astype(np.float32)
+        df_std_3d = df_rolled_3d.std().shift(periods=1).reset_index().astype(np.float32)
+        df_std_7d = df_rolled_7d.std().shift(periods=1).reset_index().astype(np.float32)
+        df_std_30d = df_rolled_30d.std().shift(periods=1).reset_index().astype(np.float32)
 
         for feature in lag_features:
-            bank_df[f"{feature}_mean_lag{t1}"] = bank_df_mean_3d[feature]
-            bank_df[f"{feature}_mean_lag{t2}"] = bank_df_mean_7d[feature]
-            bank_df[f"{feature}_mean_lag{t3}"] = bank_df_mean_30d[feature]
-            bank_df[f"{feature}_std_lag{t1}"] = bank_df_std_3d[feature]
-            bank_df[f"{feature}_std_lag{t2}"] = bank_df_std_7d[feature]
-            bank_df[f"{feature}_std_lag{t3}"] = bank_df_std_30d[feature]
+            df[f"{feature}_mean_lag{t1}"] = df_mean_3d[feature]
+            df[f"{feature}_mean_lag{t2}"] = df_mean_7d[feature]
+            df[f"{feature}_mean_lag{t3}"] = df_mean_30d[feature]
+            df[f"{feature}_std_lag{t1}"] = df_std_3d[feature]
+            df[f"{feature}_std_lag{t2}"] = df_std_7d[feature]
+            df[f"{feature}_std_lag{t3}"] = df_std_30d[feature]
 
-        bank_df.set_index(date_index, drop=False, inplace=True)
+        df.set_index(date_index, drop=False, inplace=True)
 
     #drop all features left with empty (NaN) values
-    bank_df = bank_df.dropna()
+    df = df.dropna()
     #drop user IDs to avoid overfitting with useless information
-    bank_df = bank_df.drop(['unique_mem_id',
+    df = df.drop(['unique_mem_id',
                             'unique_bank_account_id',
                             'unique_bank_transaction_id'], axis=1)
 
     if plots:
         # seaborn plots
-        ax_desc = bank_df['description'].astype('int64', errors='ignore')
-        ax_amount = bank_df['amount'].astype('int64',errors='ignore')
-        sns.pairplot(bank_df)
+        ax_desc = df['description'].astype('int64', errors='ignore')
+        ax_amount = df['amount'].astype('int64',errors='ignore')
+        sns.pairplot(df)
         sns.boxplot(x=ax_desc, y=ax_amount)
-        sns.heatmap(bank_df)
+        sns.heatmap(df)
 
-    return bank_df
+    return df
 
-def split_data(df, test_size=0.2, label='amount_mean_lag7'):
+def split_data(df, test_size=0.2, label='city'):
     '''
     Parameters
     ----------
@@ -511,9 +513,37 @@ xgbreg.fit(X_train, y_train, verbose=False)
 # make predictions
 y_pred = xgbreg.predict(X_test)
 
-from sklearn.metrics import mean_absolute_error
+
 print("Mean Absolute Error : " + str(mean_absolute_error(y_pred, y_test)))
 
 perm = PermutationImportance(xgbreg, random_state=1).fit(X_test, y_test)
 eli5.show_weights(perm, feature_names = X_test.columns.tolist())
 #%%
+# set up parameters
+ # LightGBM parameters found by Bayesian optimization
+lgb_clf = LGBMClassifier(nthread=4,
+                         n_jobs=-1,
+                         n_estimators=10000,
+                         learning_rate=0.02,
+                         num_leaves=34,
+                         colsample_bytree=0.9497036,
+                         subsample=0.8715623,
+                         max_depth=8,
+                         reg_alpha=0.041545473,
+                         reg_lambda=0.0735294,
+                         min_split_gain=0.0222415,
+                         min_child_weight=39.3259775,
+                         silent=-1,
+                         verbose=2)
+
+lgb_clf.fit(X_train, y_train,
+        eval_metric= 'logloss',
+        verbose=200)
+
+
+y_pred = lgb_clf.predict(X_test)
+
+print("Mean Absolute Error : " + str(mean_absolute_error(y_pred, y_test)))
+eli5.explain_weights(lgb_model)
+perm = PermutationImportance(lgb_clf, random_state=1).fit(X_test, y_test)
+eli5.show_weights(perm, feature_names = X_test.columns.tolist())
