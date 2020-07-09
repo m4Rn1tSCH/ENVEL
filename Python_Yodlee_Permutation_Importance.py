@@ -35,6 +35,7 @@ import PostgreSQL_credentials as acc
 from Python_spending_report_csv_function import spending_report as create_spending_report
 
 def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=True):
+
     '''
     Parameters
     ----------

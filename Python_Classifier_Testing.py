@@ -36,6 +36,7 @@ import PostgreSQL_credentials as acc
 from Python_spending_report_csv_function import spending_report as create_spending_report
 
 def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=True):
+
     '''
     Parameters
     ----------
@@ -60,9 +61,6 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     query_df = pd.DataFrame(transaction_query,
                             columns=['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
 
-    # dateframe to gather bank data from one randomly chosen user
-    # test user 1= 4
-    # test user 2= 8
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n=1, random_state=rng):
             filter_query = f"SELECT * FROM bank_record WHERE unique_mem_id = '{i}'"
@@ -257,6 +255,8 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     return df
 
 def split_data(df, test_size=0.2, label='city'):
+
+
     '''
     Parameters
     ----------
