@@ -27,6 +27,7 @@ from sklearn.svm import SVR, SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
@@ -254,7 +255,7 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
 
     return df
 
-def split_data(df, test_size=0.2, label='city'):
+def split_data(df, features, test_size=0.2, label='city'):
 
 
     '''
@@ -262,13 +263,15 @@ def split_data(df, test_size=0.2, label='city'):
     ----------
     df : dataframe to split into label, features and train, test sets
     test_size : num from 0 - 1, the size of test set relative to train set. Default is 0.2
-    label : column on dataframe to use as label. Default is 'amount_mean_lag7'
+    label : column on dataframe to use as label. Default is 'city'
+    features : str, list; pick the features of the data frame.
     Returns
     -------
     [X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax, y_train, y_test]
     '''
     # drop target variable in feature df
-    model_features = df.drop(labels=label, axis=1)
+    #model_features = df.drop(labels=label, axis=1)
+    model_features = df[features]
     model_label = df[label]
 
     if label == 'amount_mean_lag7':
@@ -457,11 +460,84 @@ def pipeline_rfc():
     print(f"Best accuracy with parameters: {grid_search_rfc.best_score_}")
 
     return grid_search_rfc
-# %%
+
+#%%
+# feature lists
+svc_feat_merch = ['description', 'transaction_category_name', 'city',
+                  'transaction_origin']
+# dropped: panel_file_created_date
+rfc_feat_merch = ['description', 'transaction_category_name', 'city', 'amount',
+                  'state', 'transaction_origin']
+# dropped: panel_file_created_date, user_score, account_score
+xgb_feat_merch = ['description', 'transaction_category_name', 'amount', 'state',
+                  'city', 'transaction_base_type', 'transaction_origin',
+                  'amount_mean_lag7']
+knn_feat_city = ['description', 'primary_merchant_name', 'amount',
+                 'transaction_category_name', 'state']
+svc_feat_city = ['description', 'primary_merchant_name', 'amount',
+                 'transaction_category_name', 'state']
+# dropped: panel_file_created_date
+lgbm_feat_city = ['state', 'description', 'transaction_origin', 'amount',
+                  'primary_merchant_name', 'transaction_category_name',
+                  'transaction_date', 'amount_mean_lag30', 'amount_std_lag7',
+                  'amount_mean_lag3', 'amount_std_lag30', 'amount_std_lag3']
+#%%
 # workflow
 df = df_encoder(rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
+                             features=svc_feat_merch,
+                             test_size=0.2,
+                             label='primary_merchant_name')
+pipeline_svc()
+#%%
+# workflow
+df = df_encoder(rng=9, include_lag_features=True)
+# df_nolag = df_encoder(rng=9, include_lag_features=False)
+X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
+y_train, y_test = split_data(df=df,
+                             features=rfc_feat_merch,
+                             test_size=0.2,
+                             label='primary_merchant_name')
+pipeline_rfc()
+#%%
+# workflow
+df = df_encoder(rng=9, include_lag_features=True)
+# df_nolag = df_encoder(rng=9, include_lag_features=False)
+X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
+y_train, y_test = split_data(df=df,
+                             features=xgb_feat_merch,
+                             test_size=0.2,
+                             label='primary_merchant_name')
+pipeline_xgb()
+#%%
+# workflow
+df = df_encoder(rng=9, include_lag_features=True)
+# df_nolag = df_encoder(rng=9, include_lag_features=False)
+X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
+y_train, y_test = split_data(df=df,
+                             features=knn_feat_city,
                              test_size=0.2,
                              label='city')
+pipeline_knn()
+#%%
+# workflow
+df = df_encoder(rng=9, include_lag_features=True)
+# df_nolag = df_encoder(rng=9, include_lag_features=False)
+X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
+y_train, y_test = split_data(df=df,
+                             features=svc_feat_city,
+                             test_size=0.2,
+                             label='city')
+pipeline_rfc()
+#%%
+# workflow
+df = df_encoder(rng=9, include_lag_features=True)
+# df_nolag = df_encoder(rng=9, include_lag_features=False)
+X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
+y_train, y_test = split_data(df=df,
+                             features=lgbm_feat_city,
+                             test_size=0.2,
+                             label='city')
+pipeline_lgbm()
