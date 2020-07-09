@@ -461,6 +461,44 @@ def pipeline_rfc():
 
     return grid_search_rfc
 
+def pipeline_lgbm():
+
+    # LightGBM parameters found by Bayesian optimization
+    lgb_clf = LGBMClassifier(nthread=4,
+                             n_jobs=-1,
+                             n_estimators=10000,
+                             learning_rate=0.02,
+                             num_leaves=34,
+                             colsample_bytree=0.9497036,
+                             subsample=0.8715623,
+                             max_depth=8,
+                             reg_alpha=0.041545473,
+                             reg_lambda=0.0735294,
+                             min_split_gain=0.0222415,
+                             min_child_weight=39.3259775,
+                             silent=-1
+                             )
+
+    lgb_clf.fit(X_train, y_train,
+            eval_metric= 'logloss',
+               verbose=200)
+    y_pred = lgb_clf.predict(X_test)
+    print("Mean Absolute Error : " + str(mean_absolute_error(y_pred, y_test)))
+
+    return lgb_clf
+
+def pipeline_xgb():
+
+
+    xgbclf = XGBClassifier(verbose=0)
+    # Add silent=True to avoid printing out updates with each cycle
+    xgbclf.fit(X_train, y_train, verbose=False)
+
+    # make predictions
+    y_pred = xgbclf.predict(X_test)
+    print("Mean Absolute Error : " + str(mean_absolute_error(y_pred, y_test)))
+
+    return xgbclf
 #%%
 # feature lists
 svc_feat_merch = ['description', 'transaction_category_name', 'city',
@@ -483,6 +521,7 @@ lgbm_feat_city = ['state', 'description', 'transaction_origin', 'amount',
                   'amount_mean_lag3', 'amount_std_lag30', 'amount_std_lag3']
 #%%
 # workflow
+# no improvement
 df = df_encoder(rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
@@ -493,6 +532,7 @@ y_train, y_test = split_data(df=df,
 pipeline_svc()
 #%%
 # workflow
+# OLD: 90.3%; NEW: 90.4%
 df = df_encoder(rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
@@ -503,6 +543,7 @@ y_train, y_test = split_data(df=df,
 pipeline_rfc()
 #%%
 # workflow
+# OLD: 6.54; NEW: 5.23
 df = df_encoder(rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
@@ -523,6 +564,7 @@ y_train, y_test = split_data(df=df,
 pipeline_knn()
 #%%
 # workflow
+# OLD: 84.9%; NEW: 87.9%
 df = df_encoder(rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
@@ -533,6 +575,7 @@ y_train, y_test = split_data(df=df,
 pipeline_rfc()
 #%%
 # workflow
+# OLD: 2.54; NEW: 7.7
 df = df_encoder(rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
