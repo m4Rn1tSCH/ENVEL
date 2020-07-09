@@ -203,9 +203,9 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     NaNs need to be dropped to make scaling and selection of features working
     '''
     if include_lag_features:
-        #FEATURE ENGINEERING
-        #typical engineered features based on lagging metrics
-        #mean + stdev of past 3d/7d/30d/ + rolling volume
+        # FEATURE ENGINEERING
+        # typical engineered features based on lagging metrics
+        # mean + stdev of past 3d/7d/30d/ + rolling volume
         date_index = df.index.values
         df.reset_index(drop=True, inplace=True)
         #pick lag features to iterate through and calculate features
@@ -214,17 +214,17 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
         t1 = 3
         t2 = 7
         t3 = 30
-        #rolling values for all columns ready to be processed
+        # rolling values for all columns ready to be processed
         df_rolled_3d = df[lag_features].rolling(window=t1, min_periods=0)
         df_rolled_7d = df[lag_features].rolling(window=t2, min_periods=0)
         df_rolled_30d = df[lag_features].rolling(window=t3, min_periods=0)
 
-        #calculate the mean with a shifting time window
+        # calculate the mean with a shifting time window
         df_mean_3d = df_rolled_3d.mean().shift(periods=1).reset_index().astype(np.float32)
         df_mean_7d = df_rolled_7d.mean().shift(periods=1).reset_index().astype(np.float32)
         df_mean_30d = df_rolled_30d.mean().shift(periods=1).reset_index().astype(np.float32)
 
-        #calculate the std dev with a shifting time window
+        # calculate the std dev with a shifting time window
         df_std_3d = df_rolled_3d.std().shift(periods=1).reset_index().astype(np.float32)
         df_std_7d = df_rolled_7d.std().shift(periods=1).reset_index().astype(np.float32)
         df_std_30d = df_rolled_30d.std().shift(periods=1).reset_index().astype(np.float32)
@@ -239,9 +239,9 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
 
         df.set_index(date_index, drop=False, inplace=True)
 
-    #drop all features left with empty (NaN) values
+    # drop all features left with empty (NaN) values
     df = df.dropna()
-    #drop user IDs to avoid overfitting with useless information
+    # drop user IDs to avoid overfitting with useless information
     df = df.drop(['unique_mem_id',
                             'unique_bank_account_id',
                             'unique_bank_transaction_id'], axis=1)
@@ -267,7 +267,7 @@ def split_data(df, test_size=0.2, label='city'):
     -------
     [X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax, y_train, y_test]
     '''
-    #drop target variable in feature df
+    # drop target variable in feature df
     model_features = df.drop(labels=label, axis=1)
     model_label = df[label]
 
@@ -374,7 +374,6 @@ def pipeline_svc():
     # Parameter explanation
     #    C: penalty parameter
     #    gamma: [standard 'auto' = 1/n_feat], kernel coefficient
-    #
     params = {
         'feature_selection__k':[4, 5, 6, 7, 8, 9],
         'clf__C':[0.01, 0.1, 1, 10],
@@ -413,7 +412,6 @@ def pipeline_mlp():
     # Parameter explanation
     #    C: penalty parameter
     #    gamma: [standard 'auto' = 1/n_feat], kernel coefficient
-    #
     params = {
         'feature_selection__k':[4, 5, 6, 7],
         'clf__max_iter':[1500, 2000],
