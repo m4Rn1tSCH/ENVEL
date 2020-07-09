@@ -25,6 +25,7 @@ from sklearn.svm import SVR, SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
