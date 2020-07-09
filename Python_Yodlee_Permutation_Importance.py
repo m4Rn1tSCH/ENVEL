@@ -317,9 +317,6 @@ def pipeline_logreg():
         ('feature_selection', SelectKBest(score_func = chi2)),
         ('reg', LogisticRegression(random_state = 15))])
 
-    # Create a parameter grid
-    # parameter grids provide the values for the models to try
-    # PARAMETERS NEED TO HAVE THE SAME LENGTH
     params = {
         'feature_selection__k':[5, 6, 7, 8, 9],
         'reg__max_iter':[800, 1000],
@@ -329,10 +326,6 @@ def pipeline_logreg():
     # Initialize the grid search object
     grid_search_lr = GridSearchCV(pipe, param_grid = params)
 
-    # best combination of feature selector and the regressor
-    # grid_search.best_params_
-    # best score
-    # grid_search.best_score_
 
     # Fit it to the data and print the best value combination
     print(f"Pipeline logreg; {dt.today()}")
@@ -353,12 +346,10 @@ def pipeline_knn():
         ('feature_selection', SelectKBest(score_func = f_classif)),
         ('clf', KNeighborsClassifier())])
 
-    # Create a parameter grid
-    # parameter grids provide the values for the models to try
-    # PARAMETERS NEED TO HAVE THE SAME LENGTH
     params = {
-        'feature_selection__k':[1, 2, 3, 4, 5, 6, 7],
-        'clf__n_neighbors':[2, 3, 4, 5, 6, 7, 8]}
+        'feature_selection__k':[1, 2, 3, 4, 5, 6, 7, 8],
+        'clf__n_neighbors':[2, 3, 4, 5, 6, 7, 8, 9],
+        'clf__weights':['uniform', 'distance']}
 
     # Initialize the grid search object
     grid_search_knn = GridSearchCV(pipe, param_grid = params)
@@ -450,9 +441,6 @@ def pipeline_rfc():
                                       min_samples_split = 4))
         ])
 
-    # Create a parameter grid
-    # parameter grids provide the values for the models to try
-    # PARAMETERS NEED TO HAVE THE SAME LENGTH
     params = {
         'feature_selection__k':[5, 6, 7, 8, 9],
         'clf__n_estimators':[75, 100, 150, 200],
@@ -472,7 +460,7 @@ def pipeline_rfc():
 # %%
 # workflow
 df = df_encoder(rng=9, include_lag_features=True)
-df_nolag = df_encoder(rng=9, include_lag_features=False)
+# df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
                              test_size=0.2,
@@ -489,7 +477,7 @@ eli5.show_weights(perm, feature_names = X_test.columns.tolist())
 model2 = pipeline_knn()
 
 # fit test set to the PI object
-perm = PermutationImportance(model, random_state=1).fit(X_test, y_test)
+perm = PermutationImportance(model2, random_state=1).fit(X_test, y_test)
 eli5.show_weights(perm, feature_names = X_test.columns.tolist())
 #%%
 # SVC PIPELINE
