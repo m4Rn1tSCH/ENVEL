@@ -13,20 +13,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 import seaborn as sns
 
-from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
-
-from sklearn.pipeline import Pipeline
-from sklearn.feature_selection import SelectKBest , chi2, f_classif
-from sklearn.model_selection import GridSearchCV, train_test_split
-from sklearn.metrics import mean_absolute_error
-from sklearn.svm import SVC
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.neural_network import MLPClassifier
-from sklearn.ensemble import RandomForestClassifier
-
-from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
+from sklearn.preprocessing import LabelEncoder
 
 from Python_SQL_connection import execute_read_query, create_connection
 import PostgreSQL_credentials as acc
