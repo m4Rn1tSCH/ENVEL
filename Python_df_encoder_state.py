@@ -19,7 +19,7 @@ from Python_SQL_connection import execute_read_query, create_connection
 import PostgreSQL_credentials as acc
 from Python_spending_report_csv_function import spending_report as create_spending_report
 
-def df_encoder(state, rng=4, spending_report=False, plots=False, include_lag_features=True):
+def df_encoder_state(state, rng=4, spending_report=False, plots=False, include_lag_features=True):
 
     '''
     Parameters
@@ -246,5 +246,5 @@ def df_encoder(state, rng=4, spending_report=False, plots=False, include_lag_fea
     return df
 
 # pass with letter ticks!
-df = df_encoder(rng=9, state = 'NH')
+#df = df_encoder(rng=9, state = 'VT')
 

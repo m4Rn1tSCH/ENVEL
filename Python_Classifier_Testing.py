@@ -32,6 +32,7 @@ from lightgbm import LGBMClassifier
 from Python_SQL_connection import execute_read_query, create_connection
 import PostgreSQL_credentials as acc
 from Python_spending_report_csv_function import spending_report as create_spending_report
+from Python_df_encoder_state import df_encoder_state
 
 def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=True):
 
@@ -507,9 +508,9 @@ lgbm_feat_city = ['state', 'description', 'transaction_origin', 'amount',
                   'transaction_date', 'amount_mean_lag30', 'amount_std_lag7',
                   'amount_mean_lag3', 'amount_std_lag30', 'amount_std_lag3']
 
-
+#%%
 # no improvement
-df = df_encoder(rng=9, include_lag_features=True)
+df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
@@ -518,9 +519,9 @@ y_train, y_test = split_data(df=df,
                              label='primary_merchant_name')
 pipeline_svc()
 
-
+#%%
 # OLD: 90.3%; NEW: 90.4%
-df = df_encoder(rng=9, include_lag_features=True)
+df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
@@ -529,9 +530,9 @@ y_train, y_test = split_data(df=df,
                              label='primary_merchant_name')
 pipeline_rfc()
 
-
+#%%
 # OLD: 6.54; NEW: 5.23
-df = df_encoder(rng=9, include_lag_features=True)
+df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
@@ -540,8 +541,8 @@ y_train, y_test = split_data(df=df,
                              label='primary_merchant_name')
 pipeline_xgb()
 
-
-df = df_encoder(rng=9, include_lag_features=True)
+#%%
+df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
@@ -550,9 +551,9 @@ y_train, y_test = split_data(df=df,
                              label='city')
 pipeline_knn()
 
-
+#%%
 # OLD: 84.9%; NEW: 87.9%
-df = df_encoder(rng=9, include_lag_features=True)
+df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
@@ -561,9 +562,9 @@ y_train, y_test = split_data(df=df,
                              label='city')
 pipeline_rfc()
 
-
+#%%
 # OLD: 2.54; NEW: 7.7
-df = df_encoder(rng=9, include_lag_features=True)
+df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
