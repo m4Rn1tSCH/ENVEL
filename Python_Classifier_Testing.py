@@ -531,6 +531,7 @@ y_train, y_test = split_data(df=df,
 pipeline_rfc()
 
 #%%
+# attempted; takes ages (2h+
 # OLD: 6.54; NEW: 5.23
 df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
