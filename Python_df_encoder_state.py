@@ -117,7 +117,6 @@ def df_encoder(state, rng=4, spending_report=False, plots=False, include_lag_fea
               shadow=True, startangle=90)
         # Equal aspect ratio ensures that pie is drawn as a circle.
         ax.axis('equal')
-        #ax.title('Transaction categories of user {df[unique_mem_id][0]}')
         ax.legend(loc='center right')
         plt.show()
 
