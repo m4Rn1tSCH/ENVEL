@@ -6,7 +6,6 @@ Created on Thu Jul  9 10:29:02 2020
 @author: bill
 """
 
-from sklearn.preprocessing import LabelEncoder
 from psycopg2 import OperationalError
 import pandas as pd
 import numpy as np
@@ -16,14 +15,12 @@ from collections import Counter
 import seaborn as sns
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
-#import eli5
-#from eli5.sklearn import PermutationImportance
-#import eli5.lightgbm
+
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest , chi2, f_classif
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.metrics import mean_absolute_error
-from sklearn.svm import SVR, SVC
+from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
@@ -75,7 +72,7 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
                                    'swipe_date', 'panel_file_created_date', 'update_type', 'is_outlier', 'change_source',
                                    'account_type', 'account_source_type', 'account_score', 'user_score', 'lag', 'is_duplicate'])
             print(f"User {i} has {len(df)} transactions on record.")
-            #all these columns are empty or almost empty and contain no viable information
+            # all these columns are empty or almost empty and contain no viable information
             df = df.drop(columns=['secondary_merchant_name', 'swipe_date', 'update_type', 'is_outlier', 'is_duplicate',
                                             'change_source', 'lag', 'mcc_inferred', 'mcc_raw', 'factual_id', 'factual_category',
                                             'zip_code', 'yodlee_transaction_status'], axis=1)
@@ -242,8 +239,8 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     df = df.dropna()
     # drop user IDs to avoid overfitting with useless information
     df = df.drop(['unique_mem_id',
-                            'unique_bank_account_id',
-                            'unique_bank_transaction_id'], axis=1)
+                  'unique_bank_account_id',
+                  'unique_bank_transaction_id'], axis=1)
 
     if plots:
         # seaborn plots
@@ -262,9 +259,9 @@ def split_data(df, features, test_size=0.2, label='city'):
     Parameters
     ----------
     df : dataframe to split into label, features and train, test sets
+    features : str, list; pick the features of the data frame.
     test_size : num from 0 - 1, the size of test set relative to train set. Default is 0.2
     label : column on dataframe to use as label. Default is 'city'
-    features : str, list; pick the features of the data frame.
     Returns
     -------
     [X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax, y_train, y_test]
@@ -290,21 +287,17 @@ def split_data(df, features, test_size=0.2, label='city'):
                                                         shuffle=True,
                                                         test_size=test_size)
 
-    #create a validation set from the training set
     print(f"Shapes X_train:{X_train.shape}, X_test: {X_test.shape}, y_train: {y_train.shape}, y_test: {y_test.shape}")
 
     #STD SCALING
     #standard scaler works only with maximum 2 dimensions
     scaler = StandardScaler(copy=True, with_mean=True, with_std=True).fit(X_train)
     X_train_scaled = scaler.transform(X_train)
-    #transform test data with the object learned from the training data
     X_test_scaled = scaler.transform(X_test)
 
-    #MINMAX SCALING
-    #works with Select K Best
+
     min_max_scaler = MinMaxScaler()
     X_train_minmax = min_max_scaler.fit_transform(X_train)
-    #transform test data with the object learned from the training data
     X_test_minmax = min_max_scaler.transform(X_test)
 
     return [X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax, y_train, y_test]
@@ -316,8 +309,7 @@ def pipeline_logreg():
     chi2 for regression tasks
     '''
 
-    # Create pipeline with feature selector and regressor
-    # replace with gradient boosted at this point or regressor
+
     pipe = Pipeline([
         ('feature_selection', SelectKBest(score_func = chi2)),
         ('reg', LogisticRegression(random_state = 15))])
@@ -328,11 +320,11 @@ def pipeline_logreg():
         'reg__C':[10, 1, 0.1]
         }
 
-    # Initialize the grid search object
+
     grid_search_lr = GridSearchCV(pipe, param_grid = params)
 
 
-    # Fit it to the data and print the best value combination
+
     print(f"Pipeline logreg; {dt.today()}")
     print(grid_search_lr.fit(X_train_minmax, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search_lr.score(X_test, y_test)))
@@ -356,10 +348,10 @@ def pipeline_knn():
         'clf__n_neighbors':[2, 3, 4, 5, 6, 7, 8, 9],
         'clf__weights':['uniform', 'distance']}
 
-    # Initialize the grid search object
+
     grid_search_knn = GridSearchCV(pipe, param_grid = params)
 
-    # Fit it to the data and print the best value combination
+
     print(f"Pipeline knn; {dt.today()}")
     print(grid_search_knn.fit(X_train, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search_knn.score(X_test, y_test)))
@@ -382,10 +374,10 @@ def pipeline_svc():
         'clf__C':[0.01, 0.1, 1, 10],
         'clf__gamma':[0.1, 0.01, 0.001]}
 
-    # Initialize the grid search object
+
     grid_search_svc = GridSearchCV(pipe, param_grid = params)
 
-    # Fit it to the data and print the best value combination
+
     print(f"Pipeline svc; {dt.today()}")
     print(grid_search_svc.fit(X_train, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search_svc.score(X_test, y_test)))
@@ -402,8 +394,7 @@ def pipeline_mlp():
     Overall score: 0.2808
     Best accuracy with parameters: 0.26102555833266144
     '''
-    # Create pipeline with feature selector and classifier
-    # replace with classifier or regressor
+
     # learning_rate = 'adaptive'; when solver='sgd'
     pipe = Pipeline([
         ('feature_selection', SelectKBest(score_func = chi2)),
@@ -420,10 +411,10 @@ def pipeline_mlp():
         'clf__max_iter':[1500, 2000],
         'clf__alpha':[0.0001, 0.001]}
 
-    # Initialize the grid search object
+
     grid_search_mlp = GridSearchCV(pipe, param_grid = params)
 
-    # Fit it to the data and print the best value combination
+
     print(f"Pipeline 7; {dt.today()}")
     print(grid_search_mlp.fit(X_train_minmax, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search_mlp.score(X_test, y_test)))
@@ -435,8 +426,7 @@ def pipeline_rfc():
     '''
     Pipeline - SelectKBest and Random Forest Classifier
     '''
-    # Create pipeline with feature selector and classifier
-    # replace with gradient boosted at this point or regessor
+
     pipe = Pipeline([
         ('feature_selection', SelectKBest(score_func = f_classif)),
         ('clf', RandomForestClassifier(n_jobs = -1,
@@ -450,10 +440,8 @@ def pipeline_rfc():
         'clf__max_depth':[4, 8, 10, 15],
         }
 
-    # Initialize the grid search object
     grid_search_rfc = GridSearchCV(pipe, param_grid = params)
 
-    # Fit it to the data and print the best value combination
     print(f"Pipeline rfc; {dt.today()}")
     print(grid_search_rfc.fit(X_train, y_train).best_params_)
     print("Overall score: %.4f" %(grid_search_rfc.score(X_test, y_test)))
@@ -463,7 +451,6 @@ def pipeline_rfc():
 
 def pipeline_lgbm():
 
-    # LightGBM parameters found by Bayesian optimization
     lgb_clf = LGBMClassifier(nthread=4,
                              n_jobs=-1,
                              n_estimators=10000,
@@ -499,7 +486,7 @@ def pipeline_xgb():
     print("Mean Absolute Error : " + str(mean_absolute_error(y_pred, y_test)))
 
     return xgbclf
-#%%
+
 # feature lists
 svc_feat_merch = ['description', 'transaction_category_name', 'city',
                   'transaction_origin']
@@ -519,8 +506,8 @@ lgbm_feat_city = ['state', 'description', 'transaction_origin', 'amount',
                   'primary_merchant_name', 'transaction_category_name',
                   'transaction_date', 'amount_mean_lag30', 'amount_std_lag7',
                   'amount_mean_lag3', 'amount_std_lag30', 'amount_std_lag3']
-#%%
-# workflow
+
+
 # no improvement
 df = df_encoder(rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
@@ -530,8 +517,8 @@ y_train, y_test = split_data(df=df,
                              test_size=0.2,
                              label='primary_merchant_name')
 pipeline_svc()
-#%%
-# workflow
+
+
 # OLD: 90.3%; NEW: 90.4%
 df = df_encoder(rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
@@ -541,8 +528,8 @@ y_train, y_test = split_data(df=df,
                              test_size=0.2,
                              label='primary_merchant_name')
 pipeline_rfc()
-#%%
-# workflow
+
+
 # OLD: 6.54; NEW: 5.23
 df = df_encoder(rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
@@ -552,8 +539,8 @@ y_train, y_test = split_data(df=df,
                              test_size=0.2,
                              label='primary_merchant_name')
 pipeline_xgb()
-#%%
-# workflow
+
+
 df = df_encoder(rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
@@ -562,8 +549,8 @@ y_train, y_test = split_data(df=df,
                              test_size=0.2,
                              label='city')
 pipeline_knn()
-#%%
-# workflow
+
+
 # OLD: 84.9%; NEW: 87.9%
 df = df_encoder(rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
@@ -573,8 +560,8 @@ y_train, y_test = split_data(df=df,
                              test_size=0.2,
                              label='city')
 pipeline_rfc()
-#%%
-# workflow
+
+
 # OLD: 2.54; NEW: 7.7
 df = df_encoder(rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
