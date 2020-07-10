@@ -553,7 +553,7 @@ pipeline_knn()
 
 #%%
 # OLD: 84.9%; NEW: 87.9%
-df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
+df = df_encoder_state(state = 'ME', rng=9, include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
