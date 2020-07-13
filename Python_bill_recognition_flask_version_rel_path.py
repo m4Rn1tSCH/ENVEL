@@ -13,13 +13,8 @@ Created on Thu Nov 14 15:33:46 2019
 import pandas as pd
 import os
 import re
-#%%
-######LOADING THE TWO FILES#####
-
-
 
 def bill_recognition(transaction_input = relative_t_path, vendor_list = relative_v_path, exclude = blacklist):
-
 
 
     relative_t_path = './TransactionsD_test.csv'
@@ -27,7 +22,6 @@ def bill_recognition(transaction_input = relative_t_path, vendor_list = relative
     #exclude these merchants as repetetive payments
     blacklist = ['Uber', 'Lyft', 'Paypal', 'E-ZPass']
     bills_found = []
-
 
     # load files
     df = pd.read_csv(transaction_input, header = 0, names = ['date',
@@ -37,7 +31,6 @@ def bill_recognition(transaction_input = relative_t_path, vendor_list = relative
                                                              'shopname',
                                                              'amount'])
 
-
     #if tokenizing error arises; might be due to pandas generated columns names with an \r
     #then the discrepancy causes an error; specify separator explicitly to fix
     df1 = pd.read_excel(vendor_list, header = 0, names = ['MerchantName',\
@@ -45,7 +38,7 @@ def bill_recognition(transaction_input = relative_t_path, vendor_list = relative
 
     BillVendors_uniqueVals = df1['MerchantName'].unique()
     BillVendors = BillVendors_uniqueVals.tolist()
-    ################
+
     bills_found = []
     #statements = list of bank statement strings
     for i in range(len(df.index)):
@@ -70,43 +63,5 @@ for i in range(len(bills_found)):
         bills_found.remove(descriptions)
         print("blacklisted bill removed")
     else:
-            pass
+        pass
 #recurring bills have breen written to a list
-
-
-############################################
-###SQL-CONNECTION TO QUERY THE VENDOR FILE
-###Create engine named engine
-##engine = create_engine('sqlite:///Chinook.sqlite')
-
-##Open engine connection: con
-##con = engine.connect()
-
-##Perform query: rs
-##rs = con.execute("SELECT * from <<DB_FOLDER>>")
-
-#Save results of the query to DataFrame: df
-##df = pd.DataFrame(rs.fetchall())
-
-##Close connection
-##con.close()
-##############################################
-
-############################################
-###SQL-CONNECTION TO QUERY THE VENDOR FILE
-###Create engine named engine
-##engine = create_engine('sqlite:///Chinook.sqlite')
-
-##Open engine connection: con
-##con = engine.connect()
-
-##Perform query: rs
-##rs = con.execute("UPDATE * from <<DB_FOLDER>>")
-        ##UPDATE <DB> SET <parameter> WHERE users.name = ?
-
-#Save results of the query to DataFrame: df
-##df = pd.DataFrame(rs.fetchall())
-
-##Close connection
-##con.close()
-##############################################

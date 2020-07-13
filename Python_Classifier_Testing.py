@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 import seaborn as sns
 
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest , chi2, f_classif
@@ -510,8 +510,8 @@ lgbm_feat_city = ['state', 'description', 'transaction_origin', 'amount',
 
 #%%
 # no improvement
-df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
-# df_nolag = df_encoder(rng=9, include_lag_features=False)
+# df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
+df = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
                              features=svc_feat_merch,
