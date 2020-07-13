@@ -46,10 +46,10 @@ def df_encoder_state(state, rng=4, spending_report=False, plots=False, include_l
     #query_df = pd.DataFrame(transaction_query,
     #                        columns=['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
     us_states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-                     'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-                     'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-                     'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-                     'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY']
+                 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+                 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+                 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+                 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY']
 
     try:
         if state in us_states:
@@ -65,9 +65,11 @@ def df_encoder_state(state, rng=4, spending_report=False, plots=False, include_l
                                    'account_type', 'account_source_type', 'account_score', 'user_score', 'lag', 'is_duplicate'])
             print(f"{len(df)} transactions in {state} on record.")
             # all these columns are empty or almost empty and contain no viable information
-            df = df.drop(columns=['secondary_merchant_name', 'swipe_date', 'update_type', 'is_outlier', 'is_duplicate',
-                                            'change_source', 'lag', 'mcc_inferred', 'mcc_raw', 'factual_id', 'factual_category',
-                                            'zip_code', 'yodlee_transaction_status'], axis=1)
+            df = df.drop(columns=['secondary_merchant_name', 'swipe_date', 'update_type', 'is_outlier',
+                                  'is_duplicate', 'change_source', 'lag', 'mcc_inferred', 'mcc_raw',
+                                  'factual_id', 'factual_category', 'zip_code', 'yodlee_transaction_status',
+                                  'file_created_date', 'panel_file_created_date', 'account_source_type',
+                                  'account_type', 'account_score', 'user_score'], axis=1)
         else:
             print("Passed state is not valid.")
     except OperationalError as e:
@@ -115,14 +117,10 @@ def df_encoder_state(state, rng=4, spending_report=False, plots=False, include_l
     '''
     # convert all date col from date to datetime objects
     # date objects will block Select K Best if not converted
-    # first conversion from date to datetime objects; then conversion to unix
     df['post_date'] = pd.to_datetime(df['post_date'])
     df['transaction_date'] = pd.to_datetime(df['transaction_date'])
     df['optimized_transaction_date'] = pd.to_datetime(
         df['optimized_transaction_date'])
-    df['file_created_date'] = pd.to_datetime(df['file_created_date'])
-    df['panel_file_created_date'] = pd.to_datetime(
-        df['panel_file_created_date'])
 
     # set optimized transaction_date as index for later
     df.set_index('optimized_transaction_date', drop=False, inplace=True)
@@ -149,9 +147,9 @@ def df_encoder_state(state, rng=4, spending_report=False, plots=False, include_l
     except (TypeError, OSError, ValueError) as e:
         print(f"Problem with conversion: {e}")
 
-    # attempt to convert date objects to unix timestamps as numeric value (fl64) if they have no missing values; otherwise they are being dropped
-    date_features = ['post_date', 'transaction_date',
-                     'optimized_transaction_date', 'file_created_date', 'panel_file_created_date']
+    # attempt to convert date objects to unix timestamps as numeric value (fl64)
+    # if they have no missing values; otherwise they are being dropped
+    date_features = ['post_date', 'transaction_date', 'optimized_transaction_date']
     try:
         for feature in date_features:
             if df[feature].isnull().sum() == 0:
@@ -167,7 +165,8 @@ def df_encoder_state(state, rng=4, spending_report=False, plots=False, include_l
     The columns PRIMARY_MERCHANT_NAME; CITY, STATE, DESCRIPTION, TRANSACTION_CATEGORY_NAME, CURRENCY
     are encoded manually and cleared of empty values
     '''
-    encoding_features = ['primary_merchant_name', 'city', 'state', 'description', 'transaction_category_name', 'transaction_origin', 'currency']
+    encoding_features = ['primary_merchant_name', 'city', 'state', 'description',
+                         'transaction_category_name', 'transaction_origin', 'currency']
     UNKNOWN_TOKEN = '<unknown>'
     embedding_maps = {}
     for feature in encoding_features:

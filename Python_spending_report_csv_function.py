@@ -68,7 +68,7 @@ def spending_report(df):
 
     #report for users about their spending patterns, given in various intervals
     try:
-        print(f"The total turnover on your account has been ${total_throughput}")
+        print(f"The total turnover on the account has been ${total_throughput}")
         #print("................................................................")
         spending_metrics_monthly = pd.DataFrame(data = {'Average Monthly Spending':avg_monthly_throughput,
                                                         'Monthly Turnover':net_monthly_throughput,
