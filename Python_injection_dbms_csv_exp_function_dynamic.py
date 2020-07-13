@@ -19,12 +19,7 @@ import csv
 
 #as a self function to use as method
 def injector(self):
-    #test_path = r'C:\Users\bill-\OneDrive - Education First\Documents\Docs Bill\FILES_ENVEL\2020-01-28 envel.ai Working Class Sample.xlsx'
-    #relative path to test the file sitting directly in the folder with the script
-    #test_path_2 = './2020-01-28 envel.ai Working Class Sample.xlsx'
 
-    #df_card = pd.read_excel(os.path.abspath(test_path), sheet_name = "Card Panel")
-    #card_members = df_card['unique_mem_id'].unique()
     #%%
     '''
     POSTGRESQL COLUMNS - CLASSIFICATION OF TRANSACTIONS
