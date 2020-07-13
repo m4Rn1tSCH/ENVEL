@@ -1,7 +1,7 @@
 #Packages
 import os
 import pandas as pd
-#from collections import Counter
+from collections import Counter
 
 
 link = r"C:\Users\bill-\Desktop\*.csv"
