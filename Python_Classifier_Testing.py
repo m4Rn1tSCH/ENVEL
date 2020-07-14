@@ -123,14 +123,11 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     '''
     # convert all date col from date to datetime objects
     # date objects will block Select K Best if not converted
-    # first conversion from date to datetime objects; then conversion to unix
+
     df['post_date'] = pd.to_datetime(df['post_date'])
     df['transaction_date'] = pd.to_datetime(df['transaction_date'])
     df['optimized_transaction_date'] = pd.to_datetime(
         df['optimized_transaction_date'])
-    df['file_created_date'] = pd.to_datetime(df['file_created_date'])
-    df['panel_file_created_date'] = pd.to_datetime(
-        df['panel_file_created_date'])
 
     # set optimized transaction_date as index for later
     df.set_index('optimized_transaction_date', drop=False, inplace=True)
@@ -175,7 +172,8 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     The columns PRIMARY_MERCHANT_NAME; CITY, STATE, DESCRIPTION, TRANSACTION_CATEGORY_NAME, CURRENCY
     are encoded manually and cleared of empty values
     '''
-    encoding_features = ['primary_merchant_name', 'city', 'state', 'description', 'transaction_category_name', 'transaction_origin', 'currency']
+    encoding_features = ['primary_merchant_name', 'city', 'state', 'description',
+                         'transaction_category_name', 'transaction_origin', 'currency']
     UNKNOWN_TOKEN = '<unknown>'
     embedding_maps = {}
     for feature in encoding_features:
