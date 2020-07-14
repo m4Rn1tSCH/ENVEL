@@ -74,9 +74,11 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
                                    'account_type', 'account_source_type', 'account_score', 'user_score', 'lag', 'is_duplicate'])
             print(f"User {i} has {len(df)} transactions on record.")
             # all these columns are empty or almost empty and contain no viable information
-            df = df.drop(columns=['secondary_merchant_name', 'swipe_date', 'update_type', 'is_outlier', 'is_duplicate',
-                                            'change_source', 'lag', 'mcc_inferred', 'mcc_raw', 'factual_id', 'factual_category',
-                                            'zip_code', 'yodlee_transaction_status'], axis=1)
+            df = df.drop(columns=['secondary_merchant_name', 'swipe_date', 'update_type', 'is_outlier',
+                                  'is_duplicate', 'change_source', 'lag', 'mcc_inferred', 'mcc_raw',
+                                  'factual_id', 'factual_category', 'zip_code', 'yodlee_transaction_status',
+                                  'file_created_date', 'panel_file_created_date', 'account_source_type',
+                                  'account_type', 'account_score', 'user_score'], axis=1)
     except OperationalError as e:
         print(f"The error '{e}' occurred")
         connection.rollback
