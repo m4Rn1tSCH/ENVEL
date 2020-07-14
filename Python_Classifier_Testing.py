@@ -113,7 +113,7 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
               shadow=True, startangle=90)
         # Equal aspect ratio ensures that pie is drawn as a circle.
         ax.axis('equal')
-        ax.title('Transaction categories')
+        ax.title("Transaction categories")
         ax.legend(loc='center right')
         plt.show()
 
@@ -512,8 +512,8 @@ lgbm_feat_city = ['state', 'description', 'transaction_origin', 'amount',
 
 #%%
 # no improvement
-# df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
-df = df_encoder(rng=9, include_lag_features=False)
+df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
+# df = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
                              features=svc_feat_merch,
