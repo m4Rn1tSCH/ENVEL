@@ -245,5 +245,5 @@ def df_encoder_state(state, spending_report=False, plots=False, include_lag_feat
     return df
 
 # pass with letter ticks!
-#df = df_encoder(rng=9, state = 'VT')
+df = df_encoder_state(state = 'VT')
 
