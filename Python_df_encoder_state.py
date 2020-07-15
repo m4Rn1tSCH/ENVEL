@@ -125,10 +125,21 @@ def df_encoder_state(state, spending_report=False, plots=False, include_lag_feat
     # set optimized transaction_date as index for later
     df.set_index('optimized_transaction_date', drop=False, inplace=True)
 
-    # generate the spending report with the above randomly picked user ID
     if spending_report:
       create_spending_report(df=df.copy())
 
+    # convert date objects to unix timestamps
+    date_features = ['post_date', 'transaction_date', 'optimized_transaction_date']
+    try:
+        for feature in date_features:
+            if df[feature].isnull().sum() == 0:
+                df[feature] = df[feature].apply(lambda x: dt.timestamp(x))
+            else:
+                df = df.drop(columns=feature, axis=1)
+                print(f"Column {feature} dropped")
+
+    except (TypeError, OSError, ValueError) as e:
+        print(f"Problem with conversion: {e}")
     '''
     After successfully loading the data, columns that are of no importance have been removed and missing values replaced
     Then the dataframe is ready to be encoded to get rid of all non-numerical data
@@ -144,20 +155,6 @@ def df_encoder_state(state, spending_report=False, plots=False, include_lag_feat
         df['amount'] = df['amount'].astype('float64')
         df['transaction_base_type'] = df['transaction_base_type'].replace(
             to_replace=["debit", "credit"], value=[1, 0])
-    except (TypeError, OSError, ValueError) as e:
-        print(f"Problem with conversion: {e}")
-
-    # attempt to convert date objects to unix timestamps as numeric value (fl64)
-    # if they have no missing values; otherwise they are being dropped
-    date_features = ['post_date', 'transaction_date', 'optimized_transaction_date']
-    try:
-        for feature in date_features:
-            if df[feature].isnull().sum() == 0:
-                df[feature] = df[feature].apply(lambda x: dt.timestamp(x))
-            else:
-                df = df.drop(columns=feature, axis=1)
-                print(f"Column {feature} dropped")
-
     except (TypeError, OSError, ValueError) as e:
         print(f"Problem with conversion: {e}")
 
@@ -245,5 +242,5 @@ def df_encoder_state(state, spending_report=False, plots=False, include_lag_feat
     return df
 
 # pass with letter ticks!
-df = df_encoder_state(state = 'VT')
+#df = df_encoder_state(state = 'VT')
 
