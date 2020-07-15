@@ -32,11 +32,9 @@ X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, \
 
 pipeline_xgb()
 
-df.iloc[0, :]
-df.items()
-for i in range(0, len(df)):
-    for index, row in enumerate(df.iloc[i, :]):
-        print(index, row)
-#%%
+# store trained model as pickle
+
+
 for index, row in df.iterrows():
-    print(row[1])
+    print(row[feat_merch])
+    # prediction with loaded model per row
