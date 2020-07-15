@@ -38,3 +38,5 @@ pipeline_xgb()
 for index, row in df.iterrows():
     print(row[feat_merch])
     # prediction with loaded model per row
+    y_pred = xgb_clf.predict(row[feat_merch])
+    # insert query into dataframe (PROBLEM FOR-LOOP in SQL)
