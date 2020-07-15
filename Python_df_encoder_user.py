@@ -14,7 +14,8 @@ import os
 import matplotlib.pyplot as plt
 from collections import Counter
 import seaborn as sns
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
+from sklearn.model_selection import train_test_split
 # imported custom function
 # generates a CSV for daily/weekly/monthly account throughput; expenses and income
 # RUN FIRST OR FAIL
@@ -71,9 +72,12 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
                                    'account_type', 'account_source_type', 'account_score', 'user_score', 'lag', 'is_duplicate'])
             print(f"User {i} has {len(df)} transactions on record.")
             #all these columns are empty or almost empty and contain no viable information
-            df = df.drop(columns=['secondary_merchant_name', 'swipe_date', 'update_type', 'is_outlier', 'is_duplicate',
-                                            'change_source', 'lag', 'mcc_inferred', 'mcc_raw', 'factual_id', 'factual_category',
-                                            'zip_code', 'yodlee_transaction_status'], axis=1)
+            df = df.drop(columns=['secondary_merchant_name', 'swipe_date', 'update_type',
+                                  'is_outlier', 'is_duplicate', 'change_source', 'lag',
+                                  'mcc_inferred', 'mcc_raw', 'factual_id', 'factual_category',
+                                  'zip_code', 'yodlee_transaction_status', 'file_created_date',
+                                  'panel_file_created_date', 'account_source_type',
+                                  'account_type', 'account_score', 'user_score'], axis=1)
     except OperationalError as e:
         print(f"The error '{e}' occurred")
         connection.rollback
@@ -250,7 +254,7 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
 
     return df
 
-def split_data(df, features, test_size=0.2, label='amount_mean_lag7'):
+def split_data(df, features, test_size=0.2, label='city'):
     '''
     Parameters
     ----------
@@ -266,14 +270,18 @@ def split_data(df, features, test_size=0.2, label='amount_mean_lag7'):
     model_features = df[features]
     model_label = df[label]
 
-    if label == 'amount_mean_lag7':
-        # To round of amount and lessen data complexity
-        if model_label.dtype == 'float32':
-            model_label = model_label.astype('int32')
-        elif model_label.dtype == 'float64':
-            model_label = model_label.astype('int64')
-        else:
-            print("model label has unsuitable data type!")
+    try:
+        if label == 'amount_mean_lag7':
+            # To round the amount and lessen data complexity
+            if model_label.dtype == 'float32':
+                model_label = model_label.astype('int32')
+            elif model_label.dtype == 'float64':
+                model_label = model_label.astype('int64')
+            else:
+                print("model label has unsuitable data type!")
+    except:
+        print("No lag features have been calculated")
+        pass
 
     # splitting data into train and test values
     X_train, X_test, y_train, y_test = train_test_split(model_features,
