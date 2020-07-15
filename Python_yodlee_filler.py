@@ -17,7 +17,7 @@ and neural network
 # pull state data + encode
 from Python_df_encoder_state import df_encoder_state as enc
 
-df = enc(state='ME',
+df = enc(state='NH',
          spending_report=False,
          plots=False,
          include_lag_features=False)
