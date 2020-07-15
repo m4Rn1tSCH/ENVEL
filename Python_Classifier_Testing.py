@@ -527,7 +527,7 @@ pipeline_svc()
 
 #%%
 # OLD: 90.3%; NEW: 90.4%
-df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
+df = df_encoder_state(state = 'VT', include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
@@ -539,7 +539,7 @@ pipeline_rfc()
 #%%
 # attempted; takes ages (2h+
 # OLD: 6.54; NEW: 5.23
-df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
+df = df_encoder_state(state = 'NH', include_lag_features=False)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
@@ -549,7 +549,7 @@ y_train, y_test = split_data(df=df,
 pipeline_xgb()
 
 #%%
-df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
+df = df_encoder_state(state = 'VT', include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
@@ -560,7 +560,7 @@ pipeline_knn()
 
 #%%
 # OLD: 84.9%; NEW: 87.9%
-df = df_encoder_state(state = 'ME', rng=9, include_lag_features=True)
+df = df_encoder_state(state = 'ME', include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
@@ -571,7 +571,7 @@ pipeline_rfc()
 
 #%%
 # OLD: 2.54; NEW: 7.7
-df = df_encoder_state(state = 'VT', rng=9, include_lag_features=True)
+df = df_encoder_state(state = 'VT', include_lag_features=True)
 # df_nolag = df_encoder(rng=9, include_lag_features=False)
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
 y_train, y_test = split_data(df=df,
