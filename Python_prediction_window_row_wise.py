@@ -16,11 +16,12 @@ from xgboost import XGBClassifier
 from sklearn.metrics import mean_absolute_error
 from Python_store_pickle import store_pickle
 from Python_open_pickle import open_pickle
+from Python_SQL_connection import insert_val
 
 # use these columns as features
 # dropped amount_mean_lag7 to avoid errors
 feat_merch = ['description', 'transaction_category_name', 'amount', 'state',
-                  'city', 'transaction_base_type', 'transaction_origin']
+              'city', 'transaction_base_type', 'transaction_origin']
 
 df = df_encoder(rng=14,
                 spending_report=False,
@@ -32,7 +33,7 @@ X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, \
                                                 features = feat_merch,
                                                 test_size=0.2,
                                                 label='primary_merchant_name')
-
+# X_train and y_train used to train pipeline
 xgb_clf_object = pipeline_xgb()
 
 # store trained model as pickle

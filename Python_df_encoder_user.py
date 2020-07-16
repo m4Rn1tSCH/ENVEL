@@ -129,9 +129,6 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     df['transaction_date'] = pd.to_datetime(df['transaction_date'])
     df['optimized_transaction_date'] = pd.to_datetime(
         df['optimized_transaction_date'])
-    df['file_created_date'] = pd.to_datetime(df['file_created_date'])
-    df['panel_file_created_date'] = pd.to_datetime(
-        df['panel_file_created_date'])
 
     # set optimized transaction_date as index for later
     df.set_index('optimized_transaction_date', drop=False, inplace=True)
@@ -139,6 +136,19 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     # generate the spending report with the above randomly picked user ID
     if spending_report:
       create_spending_report(df=df.copy())
+
+    # attempt to convert date objects to unix timestamps as numeric value (fl64) if they have no missing values; otherwise they are being dropped
+    date_features = ['post_date', 'transaction_date', 'optimized_transaction_date']
+    try:
+        for feature in date_features:
+            if df[feature].isnull().sum() == 0:
+                df[feature] = df[feature].apply(lambda x: dt.timestamp(x))
+            else:
+                df = df.drop(columns=feature, axis=1)
+                print(f"Column {feature} dropped")
+
+    except (TypeError, OSError, ValueError) as e:
+        print(f"Problem with conversion: {e}")
 
     '''
     After successfully loading the data, columns that are of no importance have been removed and missing values replaced
@@ -155,20 +165,6 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
         df['amount'] = df['amount'].astype('float64')
         df['transaction_base_type'] = df['transaction_base_type'].replace(
             to_replace=["debit", "credit"], value=[1, 0])
-    except (TypeError, OSError, ValueError) as e:
-        print(f"Problem with conversion: {e}")
-
-    # attempt to convert date objects to unix timestamps as numeric value (fl64) if they have no missing values; otherwise they are being dropped
-    date_features = ['post_date', 'transaction_date',
-                     'optimized_transaction_date', 'file_created_date', 'panel_file_created_date']
-    try:
-        for feature in date_features:
-            if df[feature].isnull().sum() == 0:
-                df[feature] = df[feature].apply(lambda x: dt.timestamp(x))
-            else:
-                df = df.drop(columns=feature, axis=1)
-                print(f"Column {feature} dropped")
-
     except (TypeError, OSError, ValueError) as e:
         print(f"Problem with conversion: {e}")
 

@@ -490,93 +490,93 @@ def pipeline_xgb():
     return xgbclf
 
 # feature lists
-svc_feat_merch = ['description', 'transaction_category_name', 'city',
-                  'transaction_origin']
-# dropped: panel_file_created_date
-rfc_feat_merch = ['description', 'transaction_category_name', 'city', 'amount',
-                  'state', 'transaction_origin']
-# dropped: panel_file_created_date, user_score, account_score
-xgb_feat_merch = ['description', 'transaction_category_name', 'amount', 'state',
-                  'city', 'transaction_base_type', 'transaction_origin',
-                  'amount_mean_lag7']
-knn_feat_city = ['description', 'primary_merchant_name', 'amount',
-                 'transaction_category_name', 'state']
-svc_feat_city = ['description', 'primary_merchant_name', 'amount',
-                 'transaction_category_name', 'state']
-# dropped: panel_file_created_date
-lgbm_feat_city = ['state', 'description', 'transaction_origin', 'amount',
-                  'primary_merchant_name', 'transaction_category_name',
-                  'transaction_date', 'amount_mean_lag30', 'amount_std_lag7',
-                  'amount_mean_lag3', 'amount_std_lag30', 'amount_std_lag3']
+# svc_feat_merch = ['description', 'transaction_category_name', 'city',
+#                   'transaction_origin']
+# # dropped: panel_file_created_date
+# rfc_feat_merch = ['description', 'transaction_category_name', 'city', 'amount',
+#                   'state', 'transaction_origin']
+# # dropped: panel_file_created_date, user_score, account_score
+# xgb_feat_merch = ['description', 'transaction_category_name', 'amount', 'state',
+#                   'city', 'transaction_base_type', 'transaction_origin',
+#                   'amount_mean_lag7']
+# knn_feat_city = ['description', 'primary_merchant_name', 'amount',
+#                  'transaction_category_name', 'state']
+# svc_feat_city = ['description', 'primary_merchant_name', 'amount',
+#                  'transaction_category_name', 'state']
+# # dropped: panel_file_created_date
+# lgbm_feat_city = ['state', 'description', 'transaction_origin', 'amount',
+#                   'primary_merchant_name', 'transaction_category_name',
+#                   'transaction_date', 'amount_mean_lag30', 'amount_std_lag7',
+#                   'amount_mean_lag3', 'amount_std_lag30', 'amount_std_lag3']
 
-#%%
-# no improvement
-us_states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-             'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-             'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-             'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-             'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY']
-for i in us_states:
-    df = df_encoder_state(state = i, include_lag_features=False)
-# df = df_encoder(rng=9, include_lag_features=False)
-X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
-y_train, y_test = split_data(df=df,
-                             features=svc_feat_merch,
-                             test_size=0.2,
-                             label='primary_merchant_name')
-pipeline_svc()
+# #%%
+# # no improvement
+# us_states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+#              'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+#              'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+#              'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+#              'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY']
+# for i in us_states:
+#     df = df_encoder_state(state = i, include_lag_features=False)
+# # df = df_encoder(rng=9, include_lag_features=False)
+# X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
+# y_train, y_test = split_data(df=df,
+#                              features=svc_feat_merch,
+#                              test_size=0.2,
+#                              label='primary_merchant_name')
+# pipeline_svc()
 
-#%%
-# OLD: 90.3%; NEW: 90.4%
-df = df_encoder_state(state = 'VT', include_lag_features=True)
-# df_nolag = df_encoder(rng=9, include_lag_features=False)
-X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
-y_train, y_test = split_data(df=df,
-                             features=rfc_feat_merch,
-                             test_size=0.2,
-                             label='primary_merchant_name')
-pipeline_rfc()
+# #%%
+# # OLD: 90.3%; NEW: 90.4%
+# df = df_encoder_state(state = 'VT', include_lag_features=True)
+# # df_nolag = df_encoder(rng=9, include_lag_features=False)
+# X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
+# y_train, y_test = split_data(df=df,
+#                              features=rfc_feat_merch,
+#                              test_size=0.2,
+#                              label='primary_merchant_name')
+# pipeline_rfc()
 
-#%%
-# attempted; takes ages (2h+
-# OLD: 6.54; NEW: 5.23
-df = df_encoder_state(state = 'NH', include_lag_features=False)
-# df_nolag = df_encoder(rng=9, include_lag_features=False)
-X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
-y_train, y_test = split_data(df=df,
-                             features=xgb_feat_merch,
-                             test_size=0.2,
-                             label='primary_merchant_name')
-pipeline_xgb()
+# #%%
+# # attempted; takes ages (2h+
+# # OLD: 6.54; NEW: 5.23
+# df = df_encoder_state(state = 'NH', include_lag_features=False)
+# # df_nolag = df_encoder(rng=9, include_lag_features=False)
+# X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
+# y_train, y_test = split_data(df=df,
+#                              features=xgb_feat_merch,
+#                              test_size=0.2,
+#                              label='primary_merchant_name')
+# pipeline_xgb()
 
-#%%
-df = df_encoder_state(state = 'VT', include_lag_features=True)
-# df_nolag = df_encoder(rng=9, include_lag_features=False)
-X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
-y_train, y_test = split_data(df=df,
-                             features=knn_feat_city,
-                             test_size=0.2,
-                             label='city')
-pipeline_knn()
+# #%%
+# df = df_encoder_state(state = 'VT', include_lag_features=True)
+# # df_nolag = df_encoder(rng=9, include_lag_features=False)
+# X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
+# y_train, y_test = split_data(df=df,
+#                              features=knn_feat_city,
+#                              test_size=0.2,
+#                              label='city')
+# pipeline_knn()
 
-#%%
-# OLD: 84.9%; NEW: 87.9%
-df = df_encoder_state(state = 'ME', include_lag_features=True)
-# df_nolag = df_encoder(rng=9, include_lag_features=False)
-X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
-y_train, y_test = split_data(df=df,
-                             features=svc_feat_city,
-                             test_size=0.2,
-                             label='city')
-pipeline_rfc()
+# #%%
+# # OLD: 84.9%; NEW: 87.9%
+# df = df_encoder_state(state = 'ME', include_lag_features=True)
+# # df_nolag = df_encoder(rng=9, include_lag_features=False)
+# X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
+# y_train, y_test = split_data(df=df,
+#                              features=svc_feat_city,
+#                              test_size=0.2,
+#                              label='city')
+# pipeline_rfc()
 
-#%%
-# OLD: 2.54; NEW: 7.7
-df = df_encoder_state(state = 'VT', include_lag_features=True)
-# df_nolag = df_encoder(rng=9, include_lag_features=False)
-X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
-y_train, y_test = split_data(df=df,
-                             features=lgbm_feat_city,
-                             test_size=0.2,
-                             label='city')
-pipeline_lgbm()
+# #%%
+# # OLD: 2.54; NEW: 7.7
+# df = df_encoder_state(state = 'VT', include_lag_features=True)
+# # df_nolag = df_encoder(rng=9, include_lag_features=False)
+# X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, X_test_minmax,\
+# y_train, y_test = split_data(df=df,
+#                              features=lgbm_feat_city,
+#                              test_size=0.2,
+#                              label='city')
+# pipeline_lgbm()
