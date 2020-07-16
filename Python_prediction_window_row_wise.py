@@ -14,7 +14,10 @@ from Python_df_encoder_user import split_data
 from Python_Classifier_Testing import pipeline_xgb
 from xgboost import XGBClassifier
 from sklearn.metrics import mean_absolute_error
+from Python_store_pickle import store_pickle
+from Python_open_pickle import open_pickle
 
+# use these columns as features
 # dropped amount_mean_lag7 to avoid errors
 feat_merch = ['description', 'transaction_category_name', 'amount', 'state',
                   'city', 'transaction_base_type', 'transaction_origin']
@@ -30,13 +33,14 @@ X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, \
                                                 test_size=0.2,
                                                 label='primary_merchant_name')
 
-pipeline_xgb()
+xgb_clf_object = pipeline_xgb()
 
 # store trained model as pickle
+store_pickle(model=xgb_clf_object)
 
-
+# iterate through rows; apply the xgb model to each set of feat
 for index, row in df.iterrows():
     print(row[feat_merch])
-    # prediction with loaded model per row
-    y_pred = xgb_clf.predict(row[feat_merch])
+    # prediction with model object per row
+    y_pred = xgb_clf_object.predict(row[feat_merch])
     # insert query into dataframe (PROBLEM FOR-LOOP in SQL)

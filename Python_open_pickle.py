@@ -15,7 +15,7 @@ def open_pickle(model_file):
 
     model file can be opened either with FILE NAME
     open_pickle(model_file="gridsearch_model.sav")
-    INTERNAL PARAMETER
+    Argument:
     open_pickle(model_file=model_file)
     """
 
