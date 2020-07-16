@@ -20,10 +20,6 @@ def open_pickle(model_file):
     """
 
     with open(model_file, mode='rb') as m_f:
-        grid_search = pickle.load(m_f)
-        result = grid_search.score(X_test, y_test)
-        print("Employed Estimator:", grid_search.get_params)
-        print("--------------------")
-        print("BEST PARAMETER COMBINATION:", grid_search.best_params_)
-        print("Training Accuracy Result: %.4f" %(result))
-        return 'grid_search parameters loaded'
+        model_object = pickle.load(m_f)
+        print ("trained model successfully loaded")
+        return model_object

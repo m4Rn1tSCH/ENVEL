@@ -34,14 +34,22 @@ X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, \
                                                 test_size=0.2,
                                                 label='primary_merchant_name')
 # X_train and y_train used to train pipeline
-xgb_clf_object = pipeline_xgb()
+xgb_clf_object = pipeline_xgb(x=X_train,
+                              y=y_train,
+                              test_features=X_test,
+                              test_target=y_test,
+                              verb=False)
 
 # store trained model as pickle
 store_pickle(model=xgb_clf_object)
+trained_model = open_pickle(model_file="gridsearch_model.sav")
 
+
+df[trained_model.get_booster().feature_names]
 # iterate through rows; apply the xgb model to each set of feat
 for index, row in df.iterrows():
-    print(row[feat_merch])
+    #print(row[feat_merch])
     # prediction with model object per row
-    y_pred = xgb_clf_object.predict(row[feat_merch])
+    y_pred = xgb_clf_object.predict(row)
     # insert query into dataframe (PROBLEM FOR-LOOP in SQL)
+    print(y_pred)

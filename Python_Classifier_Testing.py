@@ -476,16 +476,16 @@ def pipeline_lgbm():
 
     return lgb_clf
 
-def pipeline_xgb():
+def pipeline_xgb(x, y, test_features, test_target, verb=False):
 
 
     xgbclf = XGBClassifier(verbose=0)
     # Add silent=True to avoid printing out updates with each cycle
-    xgbclf.fit(X_train, y_train, verbose=False)
+    xgbclf.fit(x, y, verbose=verb)
 
     # make predictions
-    y_pred = xgbclf.predict(X_test)
-    print("Mean Absolute Error : " + str(mean_absolute_error(y_pred, y_test)))
+    y_pred = xgbclf.predict(test_features)
+    print("Mean Absolute Error : " + str(mean_absolute_error(y_pred, test_target)))
 
     return xgbclf
 
