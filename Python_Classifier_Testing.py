@@ -138,6 +138,20 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     if spending_report:
       create_spending_report(df=df.copy())
 
+    # convert date objects to unix timestamps as numeric value (fl64)
+    date_features = ['post_date', 'transaction_date',
+                     'optimized_transaction_date']
+    try:
+        for feature in date_features:
+            if df[feature].isnull().sum() == 0:
+                df[feature] = df[feature].apply(lambda x: dt.timestamp(x))
+            else:
+                df = df.drop(columns=feature, axis=1)
+                print(f"Column {feature} dropped")
+
+    except (TypeError, OSError, ValueError) as e:
+        print(f"Problem with conversion: {e}")
+
     '''
     After successfully loading the data, columns that are of no importance have been removed and missing values replaced
     Then the dataframe is ready to be encoded to get rid of all non-numerical data
@@ -156,19 +170,6 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     except (TypeError, OSError, ValueError) as e:
         print(f"Problem with conversion: {e}")
 
-    # attempt to convert date objects to unix timestamps as numeric value (fl64) if they have no missing values; otherwise they are being dropped
-    date_features = ['post_date', 'transaction_date',
-                     'optimized_transaction_date', 'file_created_date', 'panel_file_created_date']
-    try:
-        for feature in date_features:
-            if df[feature].isnull().sum() == 0:
-                df[feature] = df[feature].apply(lambda x: dt.timestamp(x))
-            else:
-                df = df.drop(columns=feature, axis=1)
-                print(f"Column {feature} dropped")
-
-    except (TypeError, OSError, ValueError) as e:
-        print(f"Problem with conversion: {e}")
 
     '''
     The columns PRIMARY_MERCHANT_NAME; CITY, STATE, DESCRIPTION, TRANSACTION_CATEGORY_NAME, CURRENCY
