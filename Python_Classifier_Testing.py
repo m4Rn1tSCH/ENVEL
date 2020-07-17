@@ -476,12 +476,12 @@ def pipeline_lgbm():
 
     return lgb_clf
 
-def pipeline_xgb(x, y, test_features, test_target, verb=False):
+def pipeline_xgb(x, y, test_features, test_target, silent=True):
 
 
-    xgbclf = XGBClassifier(verbose=0)
+    xgbclf = XGBClassifier()
     # Add silent=True to avoid printing out updates with each cycle
-    xgbclf.fit(x, y, verbose=verb)
+    xgbclf.fit(x, y, silent=True)
 
     # make predictions
     y_pred = xgbclf.predict(test_features)
