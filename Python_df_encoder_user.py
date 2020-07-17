@@ -21,11 +21,9 @@ from sklearn.model_selection import train_test_split
 # RUN FIRST OR FAIL
 from Python_spending_report_csv_function import spending_report
 # contains the connection script
-from Python_SQL_connection import execute_read_query, create_connection, close_connection
+from Python_SQL_connection import insert_val, execute_read_query, create_connection
 # contains all credentials
 import PostgreSQL_credentials as acc
-# csv export with optional append-mode
-from Python_CSV_export_function import csv_export
 
 
 def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=True):

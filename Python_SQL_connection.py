@@ -102,9 +102,6 @@ def delete_val():
     delete_comment = "DELETE FROM comments WHERE id = 2"
     execute_query(connection, delete_comment)
     return 'values deleted'
-
-    #add this part at the end to make the module executable as script
-    #takes arguments here (self)
 #%%
 '''
 IMPORTANT: This closes all connections even those that are in use by applications!
