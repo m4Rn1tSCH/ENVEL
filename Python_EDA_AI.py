@@ -45,12 +45,9 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import r2_score, mean_squared_error, accuracy_score, classification_report, f1_score, roc_auc_score, confusion_matrix
 from sklearn.pipeline import Pipeline
 
-
 import keras
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation
-
-
 
 import tensorflow as tf
 tf.compat.v1.disable_eager_execution()
@@ -59,18 +56,15 @@ from tensorflow.keras import Model
 from tensorflow.keras.layers import Dense, Flatten, Conv2D
 
 
-# imported custom function
-# generates a CSV for daily/weekly/monthly account throughput; expenses and income
+# report daily/weekly/monthly account throughput; expenses and income
 # RUN FIRST OR FAIL
 from Python_spending_report_csv_function import spending_report
 # contains the connection script
 from Python_SQL_connection import execute_read_query, create_connection, close_connection
 # contains all credentials
 import PostgreSQL_credentials as acc
-# csv export with optional append-mode
-from Python_CSV_export_function import csv_export
 
-#%%
+
 def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=True):
     '''
     Parameters
@@ -388,7 +382,6 @@ X_train, X_train_scaled, X_train_minmax, X_train_pca, X_test, X_test_scaled, X_t
 PIPELINES
 """
 
-#@app.route('/pipeline_rfe')
 def pipeline_rfe():
 
     """
@@ -423,7 +416,6 @@ def pipeline_rfe():
     #log_reg_param = rfe.set_params(C = 0.01, max_iter = 200, tol = 0.001)
     return X_train_rfe, X_test_rfe
 #%%
-#@app.route('/pipeline_rfe_cv')
 def pipeline_rfe_cv():
 
 
@@ -432,8 +424,9 @@ def pipeline_rfe_cv():
         IMPORTANT
         Accuracy: for classification problems
         Mean Squared Error(MSE); Root Mean Squared Error(RSME); R2 Score: for regression
-TEST RESULTS
-SGDReg
+
+    TEST RESULTS
+    SGDReg
     Completeness Score
     Completeness metric of a cluster labeling given a ground truth.
 
@@ -514,7 +507,6 @@ SGDReg
     plt.show()
     return rfecv_features, rfecv_num_features
 #%%
-# @app.route('/pipeline_logreg')
 def pipeline_logreg():
 
     """
@@ -588,7 +580,6 @@ def pipeline_logreg():
 
     return grid_search_lr
 #%%
-@app.route('/pipeline_sgd_reg')
 def pipeline_sgd_reg():
 
     '''
@@ -625,7 +616,6 @@ def pipeline_sgd_reg():
 
     return grid_search_sgd
 #%%
-@app.route('/pipeline_rfr')
 def pipeline_rfr():
 
     '''
@@ -691,7 +681,6 @@ def pipeline_rfr():
 
     return grid_search_rfr
 #%%
-@app.route('/pipeline_svr')
 def pipeline_svr():
 
     '''
@@ -767,7 +756,6 @@ def pipeline_svr():
 # print("Overall score: %.4f" %(grid_search.score(X_test, y_test)))
 # print(f"Best accuracy with parameters: {grid_search.best_score_}")
 #%%
-@app.route('/pipeline_knn')
 def pipeline_knn():
 
     '''
@@ -827,7 +815,6 @@ def pipeline_knn():
     print(f"Best accuracy with parameters: {grid_search_knn.best_score_}")
     return grid_search_knn
 #%%
-@app.route('/pipeline_svc')
 def pipeline_svc():
 
     '''
@@ -965,7 +952,6 @@ def amount_pred():
 
             budget_dict[key].append(msg_3)
 #%%
-# @app.route('/pipeline_trans_reg')
 def pipeline_trans_reg():
 
     '''
@@ -1035,7 +1021,7 @@ Test 4/22/2020: val_accuracy: 1.0 -> overfitted
 #           {RFR.score(X_test, y_pred)}")
 #%%
 # SKLEARN NEURAL NETWORK
-# @app.route('/pipeline_mlp')
+
 def pipeline_mlp():
 
     '''
@@ -1075,7 +1061,6 @@ def pipeline_mlp():
     print(f"Best accuracy with parameters: {grid_search_mlp.best_score_}")
     return grid_search_mlp
 #%%
-@app.route('/pipeline_mlpreg')
 def pipeline_mlpreg():
 
     '''

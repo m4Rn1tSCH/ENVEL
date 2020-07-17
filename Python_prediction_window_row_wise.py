@@ -26,6 +26,7 @@ df = df_encoder(rng=14,
                 plots=False,
                 include_lag_features=False)
 
+
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, \
     X_test_minmax, y_train, y_test = split_data(df= df,
                                                 features = feat_merch,
@@ -42,7 +43,7 @@ xgb_clf_object = pipeline_xgb(x=X_array,
                               y=y_array,
                               test_features=Xt_array,
                               test_target=yt_array,
-                              verb=False)
+                              verb=True)
 
 #df[trained_model.get_booster().feature_names]
 
@@ -56,9 +57,48 @@ for index, row in df[feat_merch].iterrows():
 
     # insert query into dataframe (PROBLEM FOR-LOOP in SQL)
     print(y_pred)
+#%%
+'''
+Catching the predictions and converting them back to merchants
+Should the prediction turn out to be wrong ask for input by the user
+Label needs to be primary_merchant_name
+'''
+def merch_pred():
+    merch_list = []
+    for merchant, value in embedding_map_merchants.items():
+        for prediction in grid_search.predict(X_test):
+            if prediction == value:
+                #print(f"Transaction at {merchant}")
+                merch_list.append(merchant)
+            # else:
+            #     print("This merchant could not be recognized by us.\nCan you tell us where you are shopping right now? :)")
+            #     merch_list.append("Wrong prediction")
+    return merch_list
 
+#%%
 # store trained model as pickle
 store_pickle(model=xgb_clf_object)
 
 # open the model; located in the current folder
 trained_model = open_pickle(model_file="gridsearch_model.sav")
+#%%
+# BUGGED
+# generate dict with merchants
+def feature_dict(feature):
+    
+    data = df_encoder(rng=14,
+                spending_report=False,
+                plots=False,
+                include_lag_features=False)
+    # take feature and convert it to a dictionary
+    feature = 'primary_merchant_name'
+    unique_list = data[feature].unique().astype('str').tolist()
+    UNKNOWN_TOKEN = "<unknown>"
+    unique_list.append(UNKNOWN_TOKEN)
+    LabelEncoder().fit_transform(unique_list)
+    
+    # dict with original unique permutations as keys and transformed as values
+    val_dict = {}
+    val_dict = dict(zip(LabelEncoder().fit_transform(unique_list), LabelEncoder().inverse_transform())
+    yield val_dict
+

@@ -465,8 +465,7 @@ def pipeline_lgbm():
                              reg_lambda=0.0735294,
                              min_split_gain=0.0222415,
                              min_child_weight=39.3259775,
-                             silent=-1
-                             )
+                             silent=-1)
 
     lgb_clf.fit(X_train, y_train,
             eval_metric= 'logloss',
@@ -476,12 +475,11 @@ def pipeline_lgbm():
 
     return lgb_clf
 
-def pipeline_xgb(x, y, test_features, test_target, silent=True):
+def pipeline_xgb(x, y, test_features, test_target, verb=True):
 
 
     xgbclf = XGBClassifier()
-    # Add silent=True to avoid printing out updates with each cycle
-    xgbclf.fit(x, y, silent=True)
+    xgbclf.fit(x, y, verbose=verb)
 
     # make predictions
     y_pred = xgbclf.predict(test_features)
