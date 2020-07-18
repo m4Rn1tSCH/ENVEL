@@ -9,7 +9,7 @@ Created on Tue Mar 17 10:01:06 2020
 Purpose of this script is to interact with a csv file/database and produce a dictionary
 with unique IDs and corresponding income and expenses in separate dictionaries
 -determine income and expenses based on given categories
--add it either to the INCOME DF or the EXPENSE DF and export it later
+-add it to the corresponding dataframe and export it later
 -find out daily, weekly and monthly throughput of accounts and their excess cash
 -develop a logic for daily limits and spending patterns
 '''
@@ -17,7 +17,6 @@ with unique IDs and corresponding income and expenses in separate dictionaries
 import pandas as pd
 import numpy as np
 from datetime import datetime as dt
-from flask import Flask
 import os
 import csv
 import matplotlib.pyplot as plt

@@ -9,7 +9,7 @@ Created on Tue Mar 17 10:01:06 2020
 Purpose of this script is to interact with a csv file/database and produce a dictionary
 with unique IDs and corresponding income and expenses in separate dictionaries
 -determine income and expenses based on given categories
--add it either to the corresponding dataframe and export it later
+-add it to the corresponding dataframe and export it later
 -find out daily, weekly and monthly throughput of accounts and their excess cash
 
 This version is static and only recognizes user id that were preset; it is not scalable for bigger datasets!
