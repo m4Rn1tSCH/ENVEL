@@ -20,7 +20,7 @@ from Python_SQL_connection import execute_read_query, create_connection
 import PostgreSQL_credentials as acc
 from Python_spending_report_csv_function import spending_report as create_spending_report
 
-def pull_df(rng=4, spending_report=False, plots=False, include_lag_features=True):
+def pull_df(rng=4, spending_report=False, plots=False):
 
     '''
     Parameters
@@ -125,7 +125,74 @@ def pull_df(rng=4, spending_report=False, plots=False, include_lag_features=True
     return df
 #%%
 df = pull_df(rng=9,
-               spending_report=False,
-               plots=False,
-               include_lag_features=False)
+             spending_report=True,
+             plots=False)
 
+'''
+columns help for reporting like weekly or monthly expenses and
+improve prediction of re-occurring transactions
+'''
+for col in list(df):
+    if df[col].dtype == 'datetime64[ns]':
+        df[f"{col}_month"] = df[col].dt.month
+        df[f"{col}_week"] = df[col].dt.week
+        df[f"{col}_weekday"] = df[col].dt.weekday
+
+    '''
+    POSTGRESQL COLUMNS - CLASSIFICATION OF TRANSACTIONS
+    Following lists contains the categories to classify transactions either as expense or income
+    names taken directly from the Yodlee dataset; can be appended at will
+    '''
+    #append these unique to DFs measuring expenses or income with their respective categories
+    # card_inc = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts']
+    # card_exp = ['Groceries', 'Automotive/Fuel', 'Home Improvement', 'Travel',
+    #             'Restaurants', 'Healthcare/Medical', 'Credit Card Payments',
+    #             'Electronics/General Merchandise', 'Entertainment/Recreation',
+    #             'Postage/Shipping', 'Other Expenses', 'Personal/Family',
+    #             'Service Charges/Fees', 'Services/Supplies', 'Utilities',
+    #             'Office Expenses', 'Cable/Satellite/Telecom',
+    #             'Subscriptions/Renewals', 'Insurance']
+    bank_inc = ['Deposits', 'Salary/Regular Income', 'Transfers',
+                'Investment/Retirement Income', 'Rewards', 'Other Income',
+                'Refunds/Adjustments', 'Interest Income', 'Gifts', 'Expense Reimbursement']
+    bank_exp = ['Service Charges/Fees',
+                'Credit Card Payments', 'Utilities', 'Healthcare/Medical', 'Loans',
+                'Check Payment', 'Electronics/General Merchandise', 'Groceries',
+                'Automotive/Fuel', 'Restaurants', 'Personal/Family',
+                'Entertainment/Recreation', 'Services/Supplies', 'Other Expenses',
+                'ATM/Cash Withdrawals', 'Cable/Satellite/Telecom',
+                'Postage/Shipping', 'Insurance', 'Travel', 'Taxes',
+                'Home Improvement', 'Education', 'Charitable Giving',
+                'Subscriptions/Renewals', 'Rent', 'Office Expenses', 'Mortgage']
+
+    #DF_CARD
+
+    # transaction_class_card = pd.Series([], dtype = 'object')
+    # for index, i in enumerate(df_card['transaction_category_name']):
+    #     if i in card_inc:
+    #         transaction_class_card[index] = "income"
+    #     elif i in card_exp:
+    #         transaction_class_card[index] = "expense"
+    #     else:
+    #         transaction_class_card[index] = "NOT_CLASSIFIED"
+    # df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
+
+    #DF_BANK
+
+    transaction_class_bank = pd.Series([], dtype = 'object')
+    for index, i in enumerate(df['transaction_category_name']):
+        if i in bank_inc:
+            transaction_class_bank[index] = "income"
+        elif i in bank_exp:
+            transaction_class_bank[index] = "expense"
+        else:
+            transaction_class_bank[index] = "NOT_CLASSIFIED"
+    df.insert(loc = len(df.columns), column = "transaction_class", value = transaction_class_bank)
+    # pd.concat([df, transaction_class_bank], axis=1)
+    #except:
+        #print("column is already existing or another error")
+
+    income_by_user = df.iloc[np.where(df['transaction_class'] == "income")].sum()
+    expenses_by_user = df.iloc[np.where(df['transaction_class'] == "expense")].sum()
+
+df1 = df[['amount', 'transaction_class']]
