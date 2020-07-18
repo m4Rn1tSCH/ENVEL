@@ -179,20 +179,20 @@ for col in list(df):
 
     #DF_BANK
 
-    transaction_class_bank = pd.Series([], dtype = 'object')
+    transaction_class = pd.Series([], dtype = 'object')
     for index, i in enumerate(df['transaction_category_name']):
         if i in bank_inc:
-            transaction_class_bank[index] = "income"
+            transaction_class[index] = "income"
         elif i in bank_exp:
-            transaction_class_bank[index] = "expense"
+            transaction_class[index] = "expense"
         else:
-            transaction_class_bank[index] = "NOT_CLASSIFIED"
-    df.insert(loc = len(df.columns), column = "transaction_class", value = transaction_class_bank)
-    # pd.concat([df, transaction_class_bank], axis=1)
+            transaction_class[index] = "NOT_CLASSIFIED"
+
+    df = df.assign(transaction_class=transaction_class.values)
     #except:
         #print("column is already existing or another error")
 
-    income_by_user = df.iloc[np.where(df['transaction_class'] == "income")].sum()
-    expenses_by_user = df.iloc[np.where(df['transaction_class'] == "expense")].sum()
+    income_by_user = df.iloc[df['transaction_base_type' == 'income']].groupby('optimized_transaction_date_month')
 
-df1 = df[['amount', 'transaction_class']]
+    expenses_by_user = df.eq('expense').sum()
+

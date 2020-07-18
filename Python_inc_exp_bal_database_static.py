@@ -269,7 +269,7 @@ def preproccessing():
             envelope_cat_card[index] = "bill"
         else:
             envelope_cat_card[index] = "NOT_CLASSIFIED"
-    df_card.insert(loc = len(df_card.columns), column = "envelope_category", value = envelope_cat_card)
+    df = df.assign(transaction_class_card=transaction_class_card.values)
     #except:
         #print("CASH/BILL column is already existing or another error")
     ##############################
@@ -283,7 +283,7 @@ def preproccessing():
             envelope_cat_bank[index] = "bill"
         else:
             envelope_cat_bank[index] = "NOT_CLASSIFIED"
-    df_bank.insert(loc = len(df_bank.columns), column = "envelope_category", value = envelope_cat_bank)
+    df = df.assign(transaction_class_bank=transaction_class_bank.values)
     #except:
         #print("CASH/BILL column is already existing or another error")
     #%%
