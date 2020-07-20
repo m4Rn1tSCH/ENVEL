@@ -54,7 +54,7 @@ def categorization(df):
                 tr_class[index] = "non_essential"
             else:
                 tr_class[index] = "unknown"
-        df.insert(loc = len(df.columns), column = "t_essentiality", value = tr_class)
+        df = df.assign(tr_class=tr_class.values)
     except:
         print("column is already existing or error")
 
