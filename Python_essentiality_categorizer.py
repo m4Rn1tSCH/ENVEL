@@ -12,7 +12,6 @@ that either marks transactions as essential or non-essential
 #load needed packages
 import pandas as pd
 
-
 def categorization(df):
 
 
@@ -22,39 +21,39 @@ def categorization(df):
     names taken directly from the Yodlee dataset; can be appended at will
     '''
     #essential/ non-essential transactions
-    card_ess = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts']
-    card_non_ess = ['Groceries', 'Automotive/Fuel', 'Home Improvement', 'Travel',
-                'Restaurants', 'Healthcare/Medical', 'Credit Card Payments',
-                'Electronics/General Merchandise', 'Entertainment/Recreation',
-                'Postage/Shipping', 'Other Expenses', 'Personal/Family',
-                'Service Charges/Fees', 'Services/Supplies', 'Utilities',
-                'Office Expenses', 'Cable/Satellite/Telecom',
-                'Subscriptions/Renewals', 'Insurance']
+    # card_ess = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts']
+    # card_non_ess = ['Groceries', 'Automotive/Fuel', 'Home Improvement', 'Travel',
+    #             'Restaurants', 'Healthcare/Medical', 'Credit Card Payments',
+    #             'Electronics/General Merchandise', 'Entertainment/Recreation',
+    #             'Postage/Shipping', 'Other Expenses', 'Personal/Family',
+    #             'Service Charges/Fees', 'Services/Supplies', 'Utilities',
+    #             'Office Expenses', 'Cable/Satellite/Telecom',
+    #             'Subscriptions/Renewals', 'Insurance']
 
-    bank_ess = ['Deposits', 'Salary/Regular Income', 'Transfers',
-                'Investment/Retirement Income', 'Rewards', 'Other Income',
-                'Refunds/Adjustments', 'Interest Income', 'Gifts', 'Expense Reimbursement']
-    bank_non_ess = ['Service Charges/Fees',
-                'Credit Card Payments', 'Utilities', 'Healthcare/Medical', 'Loans',
-                'Check Payment', 'Electronics/General Merchandise', 'Groceries',
-                'Automotive/Fuel', 'Restaurants', 'Personal/Family',
-                'Entertainment/Recreation', 'Services/Supplies', 'Other Expenses',
-                'ATM/Cash Withdrawals', 'Cable/Satellite/Telecom',
-                'Postage/Shipping', 'Insurance', 'Travel', 'Taxes',
-                'Home Improvement', 'Education', 'Charitable Giving',
-                'Subscriptions/Renewals', 'Rent', 'Office Expenses', 'Mortgage']
+        bank_ess = ['Deposits', 'Salary/Regular Income', 'Transfers',
+                    'Investment/Retirement Income', 'Rewards', 'Other Income',
+                    'Refunds/Adjustments', 'Interest Income', 'Gifts', 'Expense Reimbursement']
+        bank_non_ess = ['Service Charges/Fees',
+                    'Credit Card Payments', 'Utilities', 'Healthcare/Medical', 'Loans',
+                    'Check Payment', 'Electronics/General Merchandise', 'Groceries',
+                    'Automotive/Fuel', 'Restaurants', 'Personal/Family',
+                    'Entertainment/Recreation', 'Services/Supplies', 'Other Expenses',
+                    'ATM/Cash Withdrawals', 'Cable/Satellite/Telecom',
+                    'Postage/Shipping', 'Insurance', 'Travel', 'Taxes',
+                    'Home Improvement', 'Education', 'Charitable Giving',
+                    'Subscriptions/Renewals', 'Rent', 'Office Expenses', 'Mortgage']
 
     # Iterate through rows and mark transactions
     try:
         tr_class = pd.Series([], dtype = 'object')
         for index, i in enumerate(df['transaction_category_name']):
-            if i in card_ess or bank_ess:
+            if i in bank_ess:
                 tr_class[index] = "essential"
-            elif i in card_non_ess or bank_non_ess:
+            elif i in bank_non_ess:
                 tr_class[index] = "non_essential"
             else:
                 tr_class[index] = "unknown"
-        df = df.assign(tr_class=tr_class.values)
+        df = df.assign(essentiality=tr_class.values)
     except:
         print("column is already existing or error")
 
