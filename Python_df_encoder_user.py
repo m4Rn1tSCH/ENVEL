@@ -52,9 +52,7 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     query_df = pd.DataFrame(transaction_query,
                             columns=['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
 
-    # dateframe to gather bank data from one randomly chosen user
-    # test user 1= 4
-    # test user 2= 8
+
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n=1, random_state=rng):
             print(i)

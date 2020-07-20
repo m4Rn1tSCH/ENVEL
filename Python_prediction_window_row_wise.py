@@ -14,7 +14,7 @@ from Python_df_encoder_user import split_data
 from Python_classifier_testing import pipeline_xgb
 from Python_store_pickle import store_pickle
 from Python_open_pickle import open_pickle
-
+from Python_pull_data import pull_df
 
 # use these columns as features
 # dropped amount_mean_lag7 to avoid errors
@@ -63,26 +63,36 @@ xgb_clf_object = pipeline_xgb(x=X_array,
 #df[trained_model.get_booster().feature_names]
 
 # generator statement; generated once and exhausted
-dec = [embedding_maps[k] for k in sorted(embedding_maps.keys()) if k in y_pred]
+dec = [embedding_maps[k] for k in sorted(embedding_maps.keys())]
 # merch_val = [v for v in embedding_maps.values()]
 # test = {key:value for key, value in embedding_maps.items()}
 
 # iterate through rows; apply the xgb model to each set of feat
 # df needs to boast the same columns as the training data
 # BUG - still prints whole dict
-for index, row in df[feat_merch].iterrows():
-    # prediction with model object per row
-    y_pred = xgb_clf_object.predict(row)
+new_encodings_list = []
+predictions = []
+try:
+    for index, row in df[feat_merch].iterrows():
+        # prediction with model object per row
+        y_pred = xgb_clf_object.predict(row)
+        predictions.append(y_pred)
+        print(list(embedding_maps.keys())[list(embedding_maps.values()).index(y_pred)])
+except:
+    print("Encoding not found: ", y_pred, "appending to error list")
+    new_encodings_list.append(y_pred)
+    pass
 
-    merch_list = []
-    for i in dec:
-        if y_pred == value:
-            # print(index, value)
-            merch_list.append(value)
-        # y_pred = trained_model.predict(row)
+    # for (i,company, value) for i in y_pred and for comapny, value in embedding_maps.items():
+    #     if i == value:
+    #         print("Prediction: ", i, "Company: ", company)
+
+    # for company, value in embedding_maps.items():
+    #     if value == y_pred:
+    #         print("Index: ", index, "Prediction: ", y_pred, "", company)
+
 
     # insert query into dataframe (PROBLEM FOR-LOOP in SQL)
-    print("Index: ", index, "Prediction: ", y_pred, "", i)
 #%%
 '''
 Catching the predictions and converting them back to merchants
