@@ -12,7 +12,7 @@ that either marks transactions as essential or non-essential
 #load needed packages
 import pandas as pd
 
-def categorization(df):
+def essentiality_categorization(df):
 
 
     '''
@@ -30,18 +30,18 @@ def categorization(df):
     #             'Office Expenses', 'Cable/Satellite/Telecom',
     #             'Subscriptions/Renewals', 'Insurance']
 
-        bank_ess = ['Deposits', 'Salary/Regular Income', 'Transfers',
-                    'Investment/Retirement Income', 'Rewards', 'Other Income',
-                    'Refunds/Adjustments', 'Interest Income', 'Gifts', 'Expense Reimbursement']
-        bank_non_ess = ['Service Charges/Fees',
-                    'Credit Card Payments', 'Utilities', 'Healthcare/Medical', 'Loans',
-                    'Check Payment', 'Electronics/General Merchandise', 'Groceries',
-                    'Automotive/Fuel', 'Restaurants', 'Personal/Family',
-                    'Entertainment/Recreation', 'Services/Supplies', 'Other Expenses',
-                    'ATM/Cash Withdrawals', 'Cable/Satellite/Telecom',
-                    'Postage/Shipping', 'Insurance', 'Travel', 'Taxes',
-                    'Home Improvement', 'Education', 'Charitable Giving',
-                    'Subscriptions/Renewals', 'Rent', 'Office Expenses', 'Mortgage']
+    bank_ess = ['Deposits', 'Salary', 'Regular Income', 'Transfers',
+                'Investment/Retirement Income', 'Rewards', 'Other Income',
+                'Refunds/Adjustments', 'Interest Income', 'Gifts', 'Expense Reimbursement']
+    bank_non_ess = ['Service Charges/Fees',
+                'Credit Card Payments', 'Utilities', 'Healthcare/Medical', 'Loans',
+                'Check Payment', 'Electronics/General Merchandise', 'Groceries',
+                'Automotive/Fuel', 'Restaurants', 'Personal/Family',
+                'Entertainment/Recreation', 'Services/Supplies', 'Other Expenses',
+                'ATM/Cash Withdrawals', 'Cable/Satellite/Telecom',
+                'Postage/Shipping', 'Insurance', 'Travel', 'Taxes',
+                'Home Improvement', 'Education', 'Charitable Giving',
+                'Subscriptions/Renewals', 'Rent', 'Office Expenses', 'Mortgage']
 
     # Iterate through rows and mark transactions
     try:
