@@ -41,8 +41,6 @@ for feature in encoding_features:
     le.fit_transform(unique_list)
     embedding_maps[feature] = dict(zip(le.classes_, le.transform(le.classes_)))
 
-for key, value in embedding_maps.items():
-    print(key, value)
 
 X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, \
     X_test_minmax, y_train, y_test = split_data(df= df,
@@ -66,19 +64,25 @@ xgb_clf_object = pipeline_xgb(x=X_array,
 
 # generator statement; generated once and exhausted
 dec = [embedding_maps[k] for k in sorted(embedding_maps.keys()) if k in y_pred]
-merch_val = [v for v in embedding_maps.values()]
+# merch_val = [v for v in embedding_maps.values()]
+# test = {key:value for key, value in embedding_maps.items()}
 
-test = {key:value for key, value in embedding_maps.items()}
 # iterate through rows; apply the xgb model to each set of feat
 # df needs to boast the same columns as the training data
+# BUG - still prints whole dict
 for index, row in df[feat_merch].iterrows():
     # prediction with model object per row
     y_pred = xgb_clf_object.predict(row)
 
-    # y_pred = trained_model.predict(row)
+    merch_list = []
+    for i in dec:
+        if y_pred == value:
+            # print(index, value)
+            merch_list.append(value)
+        # y_pred = trained_model.predict(row)
 
     # insert query into dataframe (PROBLEM FOR-LOOP in SQL)
-    print("Index: ", index, "Prediction: ", y_pred, "", dec)
+    print("Index: ", index, "Prediction: ", y_pred, "", i)
 #%%
 '''
 Catching the predictions and converting them back to merchants
@@ -95,8 +99,8 @@ def merch_pred():
 merch_list = []
 for i in dec:
     if y_pred == value:
-        #print(f"Transaction at {merchant}")
-            merch_list.append(merchant)
+        print(value)
+        merch_list.append(value)
 
     return merch_list
 
