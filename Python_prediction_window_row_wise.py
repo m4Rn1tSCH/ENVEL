@@ -60,10 +60,12 @@ xgb_clf_object = pipeline_xgb(x=X_array,
                               test_target=yt_array,
                               verb=True)
 
+# array object
 y_pred = xgb_clf_object.predict(Xt_array)
-for i in y_pred:
-    print(i)
-    print(list(embedding_maps.keys())[list(embedding_maps.values()).index(i)])
+#inverse transformation to merchant strings
+decoded_merchants = dict(zip(le.classes_, le.inverse_transform(y_pred)))
+
+
 # generator statement; generated once and exhausted
 #dec = [embedding_maps[k] for k in sorted(embedding_maps.keys())]
 # merch_val = [v for v in embedding_maps.values()]
