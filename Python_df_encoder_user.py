@@ -250,9 +250,10 @@ def split_data(df, features, test_size=0.2, label='city'):
     '''
     Parameters
     ----------
-    df : dataframe to split into label, features and train, test sets
-    test_size : num from 0 - 1, the size of test set relative to train set. Default is 0.2
-    label : column on dataframe to use as label. Default is 'amount_mean_lag7'
+    df: dataframe to split into label, features and train, test sets
+    features: list. specify features to use for prediction
+    test_size: num from 0 - 1, the size of test set relative to train set. Default is 0.2
+    label: column on dataframe to use as label. Default is 'amount_mean_lag7'
 
     Returns
     -------
