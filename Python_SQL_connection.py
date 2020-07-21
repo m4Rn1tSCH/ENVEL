@@ -63,38 +63,64 @@ def execute_read_query(connection, query):
 #transaction_query = execute_read_query(connection, select_users)
 #%%
     #insert a value into the DB
-def insert_val():
-    create_users = """
-    INSERT INTO
-      users (name, age, gender, nationality)
-    VALUES
-      ('James', 25, 'male', 'USA'),
-      ('Leila', 32, 'female', 'France'),
-      ('Brigitte', 35, 'female', 'England'),
-      ('Mike', 40, 'male', 'Denmark'),
-      ('Elizabeth', 21, 'female', 'Canada');
-    """
+def insert_val(query_string):
+
+    '''
+    sql_query: PostgreSQL query command. Engulf query in triple letter strings
+                """example query here"""
+    returns
+    ------
+    edit_msg
+    '''
+# SQL query example
+    # create_users = """
+    # INSERT INTO
+    #   users (name, age, gender, nationality)
+    # VALUES
+    #   ('James', 25, 'male', 'USA'),
+    #   ('Leila', 32, 'female', 'France'),
+    #   ('Brigitte', 35, 'female', 'England'),
+    #   ('Mike', 40, 'male', 'Denmark'),
+    #   ('Elizabeth', 21, 'female', 'Canada');
+    # """
+
+    sql_query = query_string
+    execute_query(connection, sql_query)
     return 'edit_msg'
-    ############################### alternative version
-    execute_query(connection, create_users)
 
-    users = [
-        ("James", 25, "male", "USA"),
-        ("Leila", 32, "female", "France"),
-        ("Brigitte", 35, "female", "England"),
-        ("Mike", 40, "male", "Denmark"),
-        ("Elizabeth", 21, "female", "Canada"),
-    ]
 
-    user_records = ", ".join(["%s"] * len(users))
 
+# alternative version
+
+def insert_val_alt(insertion_val, columns):
+
+    '''
+    insertion_val: tuple. Pass information inside a tuple with value in letter strings
+                    (only for PostgreSQL); separated by commas
+    columns: list. no letterstrings to pass the columns that are to be amended
+    returns
+    ------
+    edit_msg
+    '''
+# Tuple example
+    # tuples = [
+    #     ("James", 25, "male", "USA"),
+    #     ("Leila", 32, "female", "France"),
+    #     ("Brigitte", 35, "female", "England"),
+    #     ("Mike", 40, "male", "Denmark"),
+    #     ("Elizabeth", 21, "female", "Canada"),
+    #     ]
+
+    tuple_values = insertion_val
+
+    tuple_records = ", ".join(["%s"] * len(tuple_values))
     insert_query = (
-        f"INSERT INTO users (name, age, gender, nationality) VALUES {user_records}"
-    )
+        f"INSERT INTO users (name, age, gender, nationality) VALUES {tuple_records};"
+        )
 
     connection.autocommit = True
     cursor = connection.cursor()
-    cursor.execute(insert_query, users)
+    cursor.execute(insert_query, tuple_values)
     return 'edit_msg'
 #%%
 def delete_val():

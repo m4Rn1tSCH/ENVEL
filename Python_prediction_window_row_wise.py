@@ -15,6 +15,7 @@ from Python_classifier_testing import pipeline_xgb
 from Python_store_pickle import store_pickle
 from Python_open_pickle import open_pickle
 from Python_pull_data import pull_df
+from Python_SQL_connection import insert_val, insert_val_alt
 
 # use these columns as features
 # dropped amount_mean_lag7 to avoid errors
@@ -65,86 +66,21 @@ y_pred = xgb_clf_object.predict(Xt_array)
 #inverse transformation to merchant strings
 decoded_merchants = dict(zip(le.classes_, le.inverse_transform(y_pred)))
 
-
-# generator statement; generated once and exhausted
-#dec = [embedding_maps[k] for k in sorted(embedding_maps.keys())]
-# merch_val = [v for v in embedding_maps.values()]
-# test = {key:value for key, value in embedding_maps.items()}
-
-# iterate through rows; apply the xgb model to each set of feat
-# df needs to boast the same columns as the training data
-# BUG - still prints whole dict
+# insert query into dataframe (PROBLEM FOR-LOOP in SQL)
+my_sql_string = """test
+                """
 
 
-#try:
-    #for company, value in embedding_maps.items():
-        # for index, row in df[feat_merch].iterrows():
-        #     # prediction with model object per row
-        #     y_pred = xgb_clf_object.predict(row)
+# insert values into Yodlee DB
+# version 1
+#insert_val(query_string) = my_sql_string
 
+# version 2
+#insert_val_alt(insertion_val = ,
+#               columns = )
 
-            # print(list(embedding_maps.keys())[list(embedding_maps.values()).index(y_pred)])
-
-        # for (i,company, value) for i in y_pred and for comapny, value in embedding_maps.items():
-        #     if i == value:
-        #         print("Prediction: ", i, "Company: ", company)
-
-            # if value in y_pred:
-            #     print("Index: ", index, "Prediction: ", y_pred, "Company: ", company)
-
-# except:
-#     print("Encoding not found: ", y_pred, "appending to error list")
-#     new_encodings_list.append(y_pred)
-#     pass
-
-
-
-    # insert query into dataframe (PROBLEM FOR-LOOP in SQL)
-#%%
-'''
-Catching the predictions and converting them back to merchants
-Should the prediction turn out to be wrong ask for input by the user
-Label needs to be primary_merchant_name
-'''
-# def merch_pred():
-
-
-#     dec = [embedding_maps[k] for k in sorted(embedding_maps.keys())]
-#     merch_val = [v for v in embedding_maps.values()]
-
-#     test = {key:value for key, value in embedding_maps.items()}
-# merch_list = []
-# for i in dec:
-#     if y_pred == value:
-#         print(value)
-#         merch_list.append(value)
-
-#     return merch_list
-
-#%%
 # store trained model as pickle
 store_pickle(model=xgb_clf_object)
 
 # open the model; located in the current folder
 trained_model = open_pickle(model_file="gridsearch_model.sav")
-#%%
-# BUGGED
-# generate dict with merchants
-# def feature_dict(feature):
-
-#     data = df_encoder(rng=14,
-#                 spending_report=False,
-#                 plots=False,
-#                 include_lag_features=False)
-#     # take feature and convert it to a dictionary
-#     feature = 'primary_merchant_name'
-#     unique_list = data[feature].unique().astype('str').tolist()
-#     UNKNOWN_TOKEN = "<unknown>"
-#     unique_list.append(UNKNOWN_TOKEN)
-#     LabelEncoder().fit_transform(unique_list)
-
-#     # dict with original unique permutations as keys and transformed as values
-#     val_dict = {}
-#     val_dict = dict(zip(LabelEncoder().fit_transform(unique_list), LabelEncoder().inverse_transform())
-#     yield val_dict
-
