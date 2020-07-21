@@ -38,7 +38,7 @@ import xgbc_class
 pipeline_xgb()
 
 import Python_store_pickle
-store_pickle(model'xgb_model')
+store_pickle(model='xgb_model')
 # insert prediction result per row in the missing field
 # for row in df df.iloc[row]
 # iteration + label encoder dict
