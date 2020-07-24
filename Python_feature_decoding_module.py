@@ -58,8 +58,7 @@ except OperationalError as e:
 # TEST DF THAT ALREADY ENCODES!!
 main_df = pull_df(rng=20,
                   spending_report=False,
-                  plots=False,
-                  include_lag_features=True)
+                  plots=False)
 ########################################
 
 for num, user in enumerate(main_df.groupby('unique_mem_id')):
