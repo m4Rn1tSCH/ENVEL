@@ -13,9 +13,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from collections import Counter
 
-from SQL_connection import execute_read_query, create_connection
+from Python_SQL_connection import execute_read_query, create_connection
 import PostgreSQL_credentials as acc
-from spending_report_csv_function import spending_report as create_spending_report
+from Python_spending_report_csv_function import spending_report as create_spending_report
 
 def pull_df(rng=4, spending_report=False, plots=False):
 
