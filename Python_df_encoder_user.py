@@ -233,8 +233,8 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     df = df.dropna()
     #drop user IDs to avoid overfitting with useless information
     df = df.drop(['unique_mem_id',
-                            'unique_bank_account_id',
-                            'unique_bank_transaction_id'], axis=1)
+					'unique_bank_account_id',
+					'unique_bank_transaction_id'], axis=1)
 
     if plots:
         # seaborn plots

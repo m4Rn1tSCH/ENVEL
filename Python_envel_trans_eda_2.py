@@ -7,51 +7,38 @@ from datetime import datetime as dt
 from SQL_connection import execute_read_query, create_connection
 import PostgreSQL_credentials as acc
 
-def users_df(section=1):
+def test_df(section=1):
     connection = create_connection(db_name=acc.YDB_name,
-                                   db_user=acc.YDB_user,
-                                   db_password=acc.YDB_password,
-                                   db_host=acc.YDB_host,
-                                   db_port=acc.YDB_port)
+                                    db_user=acc.YDB_user,
+                                    db_password=acc.YDB_password,
+                                    db_host=acc.YDB_host,
+                                    db_port=acc.YDB_port)
 
+    data = []
     fields = ['unique_mem_id', 'amount', 'transaction_base_type',
               'transaction_category_name', 'optimized_transaction_date']
 
-    data = []
-    columns = ['unique_mem_id', 'monthly_income',
-               'monthly_savings', 'monthly_savings_envel']
-    
     # number of days in month for 2019 (yodlee db year)
     days_monthly = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    # generator statement that is exhausted and then deleted
     transaction_month = [x for x in range(1, 13)]
     # transaction_categorical_name to include as bills
     bills_categories = ['Cable/Satellite/Telecom', 'Healthcare/Medical', 'Insurance',
-                       'Mortgage', 'Rent', 'Subscriptions/Renewals', 'Utilities',
-                       'Loans', 'Education']
+                        'Mortgage', 'Rent', 'Subscriptions/Renewals', 'Utilities',
+                        'Loans', 'Education']
 
     try:
-        filter_query = f"select unique_mem_id from user_demographic order by unique_mem_id asc"
-        users = execute_read_query(connection, filter_query)
+        filter_query = f"(select {', '.join(field for field in fields)} from card_record where unique_mem_id in (select unique_mem_id from user_demographic order by unique_mem_id asc limit 10000 offset {10000*(section-1)})) union all (select {', '.join(field for field in fields)} from bank_record where unique_mem_id in (select unique_mem_id from user_demographic order by unique_mem_id asc limit 10000 offset {10000*(section-1)}))"
+        transaction_query = execute_read_query(connection, filter_query)
+        main_df = pd.DataFrame(transaction_query, columns=fields)
+        print(f"{len(transaction_query)} transactions.")
     except OperationalError as e:
         print(f"The error '{e}' occurred")
         connection.rollback
-    # split up the number of total users into an 10 equal arrays
-    users_sections = np.split(np.array(users), 10)
 
-    for num, user in enumerate(users_sections[section - 1]):
-        try:
-            filter_query = f"(SELECT {', '.join(field for field in fields)} \
-                                FROM card_record WHERE unique_mem_id = '{user[0]}') \
-                                UNION (SELECT {', '.join(field for field in fields)} \
-                                       FROM bank_record WHERE unique_mem_id = '{user[0]}')"
-            transaction_query = execute_read_query(connection, filter_query)
-            df = pd.DataFrame(transaction_query, columns=fields)
-            print(f"{len(df)} transactions for user {user[0]}, {num+1}/10000 users, PROGRESS: {round(((num+1)/10000)*100, 2)}%.")
-        except OperationalError as e:
-            print(f"The error '{e}' occurred")
-            connection.rollback
+    for num, user in enumerate(main_df.groupby('unique_mem_id')):
+        print(f"user {user[0]}, {num+1}/10000 users, {round(((num+1)/10000)*100, 2)}%.")
 
+        df = pd.DataFrame(user[1], columns=fields)
         df['amount'] = df['amount'].astype('float64')
         # add date columns
         df['optimized_transaction_date'] = pd.to_datetime(
@@ -113,40 +100,47 @@ def users_df(section=1):
         # calculations for nett benefit from ai
         monthly_vault_end = monthly_vault - daily_overspent
         monthly_emergency_end = monthly_emergency + daily_underspent
-        for i, vault in enumerate(monthly_vault_end, start=1):
-            if vault > 0:
-                monthly_emergency_end[i] = monthly_emergency_end[i] + vault
         monthly_savings_envel = monthly_emergency_end + abs(monthly_vault_end)
 
-        unique_mem_id = user[0]
         for i in transaction_month:
             try:
-                data.append([unique_mem_id, monthly_income[i], monthly_savings[i], monthly_savings_envel[i]])
+                data.append([user[0], monthly_income[i], monthly_savings[i], monthly_savings_envel[i]])
             except:
-              print(f"missing values for month {i} of user {unique_mem_id}")
+              print(f"missing falues for month {i} of user {user[0]}")
 
+    columns = ['unique_mem_id', 'monthly_income', 'monthly_savings', 'monthly_savings_envel']
     trans_df = pd.DataFrame(data, columns=columns)
 
     # calculations for results using numpy (faster than pd)
-    avg_savings_pu = np.array(trans_df.groupby('unique_mem_id').mean()['monthly_savings'])
+    trans_df_grouped = trans_df.groupby('unique_mem_id')
+
+    avg_savings_pu = np.array(trans_df_grouped['monthly_savings'].mean())
+    aggr_savings_pu = np.array(trans_df_grouped['monthly_savings'].sum())
     avg_savings_pupm = avg_savings_pu.mean()
-    avg_savings_pu_envel = np.array(trans_df.groupby('unique_mem_id').mean()['monthly_savings_envel'])
+
+    avg_savings_pu_envel = np.array(trans_df_grouped['monthly_savings_envel'].mean())
+    aggr_savings_pu_envel = np.array(trans_df_grouped['monthly_savings_envel'].sum())
     avg_savings_pupm_envel = avg_savings_pu_envel.mean()
 
-    aggr_savings = np.array(trans_df['monthly_savings']).sum()
-    aggr_savings_envel = np.array(trans_df['monthly_savings_envel']).sum()
+    aggr_savings = aggr_savings_pu.sum()
+    aggr_savings_envel = aggr_savings_pu_envel.sum()
 
-    avr_inc_pu = np.array(trans_df.groupby('unique_mem_id').mean()['monthly_income'])
+    avr_inc_pu = np.array(trans_df_grouped['monthly_income'].mean())
+    avr_inc_pu_tot = avr_inc_pu.mean()
     num_living_ptp = (avg_savings_pu < avr_inc_pu).sum()
     num_living_ptp_envel = (avg_savings_pu_envel < avr_inc_pu).sum()
 
-    results = {'avg_savings_pupm': avg_savings_pupm,
-               'avg_savings_pupm_envel': avg_savings_pupm_envel,
-               'aggr_savings': aggr_savings,
-               'aggr_savings_envel': aggr_savings_envel,
-               'num_living_ptp': num_living_ptp,
-               'num_living_ptp_envel': num_living_ptp_envel}
+    num_400_problem = (aggr_savings_pu < 4800).sum()
+    num_400_problem_envel = (aggr_savings_pu_envel < 4800).sum()
+
+    results = {'avr_income_pu': avr_inc_pu_tot,
+                'avg_savings_pupm': avg_savings_pupm,
+                'avg_savings_pupm_envel': avg_savings_pupm_envel,
+                'aggr_savings': aggr_savings,
+                'aggr_savings_envel': aggr_savings_envel,
+                'num_living_ptp': num_living_ptp,
+                'num_living_ptp_envel': num_living_ptp_envel,
+                'num_400_problem': num_400_problem,
+                'num_400_problem_envel': num_400_problem_envel}
 
     return results
-
-    # return trans_df
