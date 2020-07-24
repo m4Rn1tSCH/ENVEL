@@ -168,7 +168,8 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     The columns PRIMARY_MERCHANT_NAME; CITY, STATE, DESCRIPTION, TRANSACTION_CATEGORY_NAME, CURRENCY
     are encoded manually and cleared of empty values
     '''
-    encoding_features = ['primary_merchant_name', 'city', 'state', 'description', 'transaction_category_name', 'transaction_origin', 'currency']
+    encoding_features = ['primary_merchant_name', 'city', 'state', 'description',
+                         'transaction_category_name', 'transaction_origin', 'currency']
     UNKNOWN_TOKEN = '<unknown>'
     embedding_maps = {}
     for feature in encoding_features:

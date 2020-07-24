@@ -10,11 +10,12 @@ Module to apply decoded prediction to the dataframe and fill the missing values
 """
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
-from df_encoder import df_encoder
-from split_data_w_features import split_data_feat
-from model_data.classification_models.xgbc_class import pipeline_xgb
-from pickle_io import store_pickle, open_pickle
-from SQL_connection import insert_val, insert_val_alt, create_connection, execute_read_query
+from Python_df_encoder import df_encoder
+from Python_split_data_w_features import split_data_feat
+from xgbc_class import pipeline_xgb
+from Python_store_pickle import store_pickle
+from Python_open_pickle import open_pickle
+from Python_SQL_connection import insert_val, insert_val_alt, create_connection, execute_read_query
 import PostgreSQL_credentials as acc
 
 
