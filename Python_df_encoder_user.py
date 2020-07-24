@@ -26,7 +26,7 @@ from Python_SQL_connection import insert_val, execute_read_query, create_connect
 import PostgreSQL_credentials as acc
 
 
-def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=True):
+def df_encoder_user(rng=4, spending_report=False, plots=False, include_lag_features=True):
     '''
     Parameters
     ----------
@@ -233,9 +233,9 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     #drop all features left with empty (NaN) values
     df = df.dropna()
     #drop user IDs to avoid overfitting with useless information
-    df = df.drop(['unique_mem_id',
-					'unique_bank_account_id',
-					'unique_bank_transaction_id'], axis=1)
+#     df = df.drop(['unique_mem_id',
+# 					'unique_bank_account_id',
+# 					'unique_bank_transaction_id'], axis=1)
 
     if plots:
         # seaborn plots

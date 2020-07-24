@@ -1,6 +1,7 @@
 from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score
 
-def pipeline_xgb(x, y, test_features, test_target, silent=True):
+def pipeline_xgb(x, y, test_features, test_target):
 
     '''
     x: df/ndarray. Pass training data features.
@@ -12,10 +13,10 @@ def pipeline_xgb(x, y, test_features, test_target, silent=True):
 
     xgbclf = XGBClassifier()
     # Add silent=True to avoid printing out updates with each cycle
-    xgbclf.fit(x, y, silent=True)
+    xgbclf.fit(x, y)
 
     # make predictions
     y_pred = xgbclf.predict(test_features)
-    print("Mean Absolute Error : " + str(mean_absolute_error(y_pred, test_target)))
+    print("Accuracy Score: " + str(accuracy_score(y_pred, test_target)))
 
     return xgbclf

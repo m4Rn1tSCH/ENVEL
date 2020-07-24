@@ -11,12 +11,16 @@ Module to apply decoded prediction to the dataframe and fill the missing values
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from Python_df_encoder import df_encoder
+
+from Python_df_encoder_user import df_encoder_user
+
 from Python_split_data_w_features import split_data_feat
 from xgbc_class import pipeline_xgb
 from Python_store_pickle import store_pickle
 from Python_open_pickle import open_pickle
 from Python_SQL_connection import insert_val, insert_val_alt, create_connection, execute_read_query
 import PostgreSQL_credentials as acc
+
 
 
 connection = create_connection(db_name=acc.YDB_name,
@@ -50,6 +54,13 @@ except OperationalError as e:
     print(f"The error '{e}' occurred")
     connection.rollback
 
+#################################################
+main_df = df_encoder_user(rng=22,
+                          spending_report=False,
+                          plots=False,
+                          include_lag_features=True)
+########################################
+
 for num, user in enumerate(main_df.groupby('unique_mem_id')):
     print(f"User: {user[0]}, {num+1}/10000 users, {round(((num+1)/10000)*100, 2)}%.")
 
@@ -65,6 +76,7 @@ for num, user in enumerate(main_df.groupby('unique_mem_id')):
         embedding_maps[feature] = dict(zip(le.classes_, le.transform(le.classes_)))
 
     df = df_encoder(df=main_df,
+                    feat_list=fields,
                     spending_report=False,
                     plots=False,
                     include_lag_features=False)
@@ -84,8 +96,7 @@ for num, user in enumerate(main_df.groupby('unique_mem_id')):
     xgb_clf_object = pipeline_xgb(x=X_array,
                                   y=y_array,
                                   test_features=Xt_array,
-                                  test_target=yt_array,
-                                  verb=True)
+                                  test_target=yt_array)
 
     # array object
     y_pred = xgb_clf_object.predict(Xt_array)
