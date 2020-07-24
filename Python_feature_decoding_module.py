@@ -55,7 +55,7 @@ except OperationalError as e:
     connection.rollback
 
 #################################################
-main_df = df_encoder_user(rng=22,
+main_df = df_encoder_user(rng=20,
                           spending_report=False,
                           plots=False,
                           include_lag_features=True)
