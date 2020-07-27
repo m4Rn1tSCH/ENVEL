@@ -9,11 +9,11 @@ Created on Thu Jul  2 15:07:54 2020
 import pickle
 import os
 
-#flask connection in respective pipeline folder
 def store_pickle(model):
 
     """
-    Usage of a Pickle Model -Storage of a trained Model
+    stores a pickle model file of a trained algorithm.
+    storage in current work directory.
     """
 
     model_file = "gridsearch_model.sav"
