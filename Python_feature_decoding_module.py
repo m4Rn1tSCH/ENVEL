@@ -29,8 +29,9 @@ connection = create_connection(db_name=acc.YDB_name,
                                 db_host=acc.YDB_host,
                                 db_port=acc.YDB_port)
 
-fields = ['unique_mem_id', 'description', 'primary_merchant_name', 'transaction_category_name', 'amount', 'state',
-              'city', 'transaction_base_type', 'transaction_origin', 'optimized_transaction_date']
+fields = ['unique_mem_id', 'optimized_transaction_date', 'amount', 'description',
+          'primary_merchant_name', 'transaction_category_name', 'state',
+          'city', 'transaction_base_type', 'transaction_origin']
 # use these columns as features
 # dropped amount_mean_lag7 to avoid errors
 #feat_merch = ['unique_mem_id', 'description', 'transaction_category_name', 'amount', 'state',

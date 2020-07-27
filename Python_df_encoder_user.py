@@ -47,10 +47,10 @@ def df_encoder_user(rng=4, spending_report=False, plots=False, include_lag_featu
                                    db_port=acc.YDB_port)
 
     # establish connection to get user IDs for all users in MA
-    filter_query = f"SELECT unique_mem_id, state, city, zip_code, income_class, file_created_date FROM user_demographic WHERE state = 'MA'"
+    filter_query = f"SELECT unique_mem_id, state, city, income_class FROM user_demographic WHERE state = 'MA'"
     transaction_query = execute_read_query(connection, filter_query)
     query_df = pd.DataFrame(transaction_query,
-                            columns=['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
+                            columns=['unique_mem_id', 'state', 'city', 'income_class'])
 
 
     try:

@@ -8,7 +8,6 @@ def pipeline_xgb(x, y, test_features, test_target):
     y: df/ndarray. Pass training data label that is to be predicted.
     test_features: df/ndarray. Test data features.
     test_target: df/ndarray. Test data label that is to be predicted.
-    silent: bool. Print out messages at each stage. Default is True.
     '''
 
     xgbclf = XGBClassifier()
