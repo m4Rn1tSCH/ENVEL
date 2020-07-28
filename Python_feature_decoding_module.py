@@ -8,11 +8,15 @@ Created on Wed Jul 15 14:14:32 2020
 """
 Module to apply decoded prediction to the dataframe and fill the missing values
 """
-import numpy as np
-from sklearn.preprocessing import LabelEncoder
-from Python_df_encoder import df_encoder
+# LOCAL IMPORTS
+import sys
+sys.path.append('C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/ENVEL')
 
-from Python_df_encoder_user import df_encoder_user
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+
+from Python_df_encoder import df_encoder
 
 from Python_split_data_w_features import split_data_feat
 from xgbc_class import pipeline_xgb
@@ -76,11 +80,11 @@ for num, user in enumerate(main_df.groupby('unique_mem_id')):
         le.fit_transform(unique_list)
         embedding_maps[feature] = dict(zip(le.classes_, le.transform(le.classes_)))
 
-    df = df_encoder(df=main_df,
-                    feat_list=fields,
-                    spending_report=False,
-                    plots=False,
-                    include_lag_features=False)
+    df_encoder(df=main_df,
+               feat_list=fields,
+               spending_report=False,
+               plots=False,
+               include_lag_features=False)
 
     X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, \
         X_test_minmax, y_train, y_test = split_data_feat(df=main_df,
