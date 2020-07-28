@@ -238,17 +238,13 @@ def yodlee_filler(section, plots=False, create_spending_report=False, include_la
         y_pred = xgb_clf_object.predict(Xt_array)
         # inverse transformation to merchant strings
         decoded_merchants = dict(zip(le.classes_, le.inverse_transform(y_pred)))
-
+        gen_merch = (i for i in decoded_merchants.items())
         # insert query into dataframe (PROBLEM FOR-LOOP in SQL)
-        my_sql_string = """test
-                        """
-        # insert values into Yodlee DB
-        # version 1
-        #insert_val(query_string) = my_sql_string
+        # columns as list
+        # insertion_values as tuple/list
 
-        # version 2
-        #insert_val_alt(insertion_val = ,
-        #               columns = )
+        #insert_val_alt(insertion_val = gen_merch,
+        #               columns = 'merchant_predictions')
 
         # store trained model as pickle
         store_pickle(model=xgb_clf_object)
