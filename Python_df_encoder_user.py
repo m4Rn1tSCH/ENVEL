@@ -17,12 +17,9 @@ import seaborn as sns
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.model_selection import train_test_split
 # imported custom function
-# generates a CSV for daily/weekly/monthly account throughput; expenses and income
-# RUN FIRST OR FAIL
+
 from Python_spending_report_csv_function import spending_report
-# contains the connection script
 from Python_SQL_connection import insert_val, execute_read_query, create_connection
-# contains all credentials
 import PostgreSQL_credentials as acc
 
 
