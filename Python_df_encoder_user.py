@@ -17,16 +17,13 @@ import seaborn as sns
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.model_selection import train_test_split
 # imported custom function
-# generates a CSV for daily/weekly/monthly account throughput; expenses and income
-# RUN FIRST OR FAIL
+
 from Python_spending_report_csv_function import spending_report
-# contains the connection script
 from Python_SQL_connection import insert_val, execute_read_query, create_connection
-# contains all credentials
 import PostgreSQL_credentials as acc
 
 
-def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=True):
+def df_encoder_user(rng=4, spending_report=False, plots=False, include_lag_features=True):
     '''
     Parameters
     ----------
@@ -47,10 +44,10 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
                                    db_port=acc.YDB_port)
 
     # establish connection to get user IDs for all users in MA
-    filter_query = f"SELECT unique_mem_id, state, city, zip_code, income_class, file_created_date FROM user_demographic WHERE state = 'MA'"
+    filter_query = f"SELECT unique_mem_id, state, city, income_class FROM user_demographic WHERE state = 'MA'"
     transaction_query = execute_read_query(connection, filter_query)
     query_df = pd.DataFrame(transaction_query,
-                            columns=['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
+                            columns=['unique_mem_id', 'state', 'city', 'income_class'])
 
 
     try:
@@ -233,9 +230,9 @@ def df_encoder(rng=4, spending_report=False, plots=False, include_lag_features=T
     #drop all features left with empty (NaN) values
     df = df.dropna()
     #drop user IDs to avoid overfitting with useless information
-    df = df.drop(['unique_mem_id',
-					'unique_bank_account_id',
-					'unique_bank_transaction_id'], axis=1)
+#     df = df.drop(['unique_mem_id',
+# 					'unique_bank_account_id',
+# 					'unique_bank_transaction_id'], axis=1)
 
     if plots:
         # seaborn plots

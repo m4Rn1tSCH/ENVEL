@@ -25,7 +25,7 @@ from collections import Counter
 # import PostgreSQL_credentials as acc
 from Python_spending_report_csv_function import spending_report as create_spending_report
 
-def df_encoder(df, spending_report=False, plots=False, include_lag_features=True):
+def df_encoder(df,feat_list, spending_report=False, plots=False, include_lag_features=True):
 
     '''
     Parameters
@@ -86,7 +86,7 @@ def df_encoder(df, spending_report=False, plots=False, include_lag_features=True
     # set optimized transaction_date as index for later
     df.set_index('optimized_transaction_date', drop=False, inplace=True)
 
-    # generate the spending report with the above randomly picked user ID
+    # generate the spending report with weekly/monthly expenses and income
     if spending_report:
       create_spending_report(df=df.copy())
 
@@ -144,7 +144,7 @@ def df_encoder(df, spending_report=False, plots=False, include_lag_features=True
         if len(df['currency'].value_counts()) == 1:
             df = df.drop(columns=['currency'], axis=1)
     except:
-        print("Column currency was not chosen; dropping not necessary")
+        print("Column currency was not chosen; was dropped")
         pass
     '''
     IMPORTANT

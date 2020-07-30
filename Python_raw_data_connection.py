@@ -13,9 +13,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from collections import Counter
 
-from SQL_connection import execute_read_query, create_connection
+from Python_SQL_connection import execute_read_query, create_connection
 import PostgreSQL_credentials as acc
-from spending_report_csv_function import spending_report as create_spending_report
+from Python_spending_report_csv_function import spending_report as create_spending_report
 
 def pull_df(rng=4, spending_report=False, plots=False):
 
@@ -37,10 +37,10 @@ def pull_df(rng=4, spending_report=False, plots=False):
                                    db_port=acc.YDB_port)
 
     # establish connection to get user IDs for all users in MA
-    filter_query = f"SELECT unique_mem_id, state, city, zip_code, income_class, file_created_date FROM user_demographic WHERE state = 'MA'"
+    filter_query = f"SELECT unique_mem_id, state, city, income_class FROM user_demographic WHERE state = 'MA'"
     transaction_query = execute_read_query(connection, filter_query)
     query_df = pd.DataFrame(transaction_query,
-                            columns=['unique_mem_id', 'state', 'city', 'zip_code', 'income_class', 'file_created_date'])
+                            columns=['unique_mem_id', 'state', 'city', 'income_class'])
 
     try:
         for i in pd.Series(query_df['unique_mem_id'].unique()).sample(n=1, random_state=rng):
