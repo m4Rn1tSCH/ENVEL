@@ -9,7 +9,7 @@ Created on Thu Jul 30 09:52:50 2020
 # LOCAL IMPORTS
 import sys
 # sys.path.append('C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/envel-machine-learning')
-
+import psycopg2
 from psycopg2 import OperationalError
 import numpy as np
 import pandas as pd
@@ -26,24 +26,37 @@ db_pw = "envel"
 db_host = "0.0.0.0"
 db_port = "5432"
 
-connection = create_connection(db_name=db_name,
-                                db_user=db_user,
-                                db_password=db_user,
-                                db_host=db_host,
-                                db_port=db_port)
+merch_list = ["DD", "Starbucks", "GAP", "COCA_COLA"]
+test_tuple = tuple(merch_list)
+merch_tuple = [('DD'), ('Starbucks'), ('GAP'), ('COCA_COLA')]
+single = ['val_1', 'val_2']
 
 
-merch = ['merch_1', 'merch_2', 'merch_3']
-gm = [i for i in merch]
+try:
+    connection = create_connection(db_name=db_name,
+                                    db_user=db_user,
+                                    db_password=db_user,
+                                    db_host=db_host,
+                                    db_port=db_port)
 
-tuples = [
-    ("James", 25, "male", "USA"),
-    ("Leila", 32, "female", "France"),
-    ("Brigitte", 35, "female", "England"),
-    ("Mike", 40, "male", "Denmark"),
-    ("Elizabeth", 21, "female", "Canada"),
-    ]
+    cursor = connection.cursor()
+    sql_insert_query = """
+    INSERT INTO test (test_col_2)
+    VALUES (%s);
+    """
+    for i in merch_tuple:
+    # executemany() to insert multiple rows rows
+        cursor.execute(sql_insert_query, (i, ))
+    connection.commit()
+    print(cursor.rowcount, "Record inserted successfully")
 
-insert_val_alt(table='postgres',
-               columns='test_col',
-               insertion_val=gm)
+except (Exception, psycopg2.Error) as error:
+    print("Failed inserting record {}".format(error))
+
+finally:
+    # closing database connection.
+    if (connection):
+        cursor.close()
+        connection.close()
+        print("PostgreSQL connection is closed")
+
