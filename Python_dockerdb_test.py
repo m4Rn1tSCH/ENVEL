@@ -58,5 +58,5 @@ finally:
     if (connection):
         cursor.close()
         connection.close()
-        print("Operation accomplished.\nPostgreSQL connection is closed...")
+        print("Operation accomplished.\nPostgreSQL connection is closed.")
 
