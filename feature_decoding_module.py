@@ -220,23 +220,13 @@ def db_filler(section, plots=False, spending_report=False, include_lag_features=
 
         # array object
         y_pred = clf_object.predict(Xt_array)
-        
-        # inverse transformation to merchant strings
-        #decoded_merchants = dict(zip(le.classes_, le.inverse_transform(y_pred)))
-        #gen_merch = [i for i in le.inverse_transform(y_pred)]
+        merchant_list = []
 
-        # for l in fields:
-        #     old_list = embedding_maps[l].classes_
-        #     new_list = y_test[l].unique()
-        #     na = [j for j in new_list if j not in old_list]
-        #     main_df[l] = main_df[l].replace(na,'NA')
-
-        # selected_label = 'primary_merchant_name'
-        # old_list = embedding_maps[selected_label].classes_
-        # new_list = y_test.unique()
-        # na = [j for j in new_list if j not in old_list]
-        # y_pred = y_pred.replace(na,'unseen_in_training')
-
+        for pred in y_pred:
+            try:
+                merchant_list.append(le.inverse_transform(pred))
+            except:
+                merchant_list.append("unseen in training")
 
 
         if store_model:
@@ -265,14 +255,14 @@ def db_filler(section, plots=False, spending_report=False, include_lag_features=
             """
             # merch_list = ['Tatte Bakery', 'Star Market', 'Stop n Shop', 'Auto Parts Shop',
             #               'Trader Joes', 'Insomnia Cookies']
-            values = y_pred.tolist()
+
             # tuple or list works
-            for i in values:
+            for i in merchant_list:
             # executemany() to insert multiple rows rows
                 cursor.execute(sql_insert_query, (i, ))
 
             connection.commit()
-            print(len(values), "record(s) inserted successfully.")
+            print(len(merchant_list), "record(s) inserted successfully.")
 
         except (Exception, psycopg2.Error) as error:
             print("Failed inserting record {}".format(error))
