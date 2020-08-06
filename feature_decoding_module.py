@@ -11,7 +11,7 @@ Module to apply decoded prediction to the dataframe and fill the missing values
 # LOCAL IMPORTS
 import sys
 # sys.path.append('C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/envel-machine-learning')
-
+import psycopg2
 from psycopg2 import OperationalError
 import numpy as np
 import pandas as pd
@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 from sklearn.preprocessing import LabelEncoder
 
-from ml_code.model_data.spending_report_csv_function import spending_report as create_spending_report
+from ml_code.model_data.spending_report_csv_function import spending_report as spending_report
 from ml_code.model_data.raw_data_connection import pull_df
 from ml_code.model_data.split_data_w_features import split_data_feat
 from ml_code.classification_models.xgbc_class import pipeline_xgb
@@ -27,38 +27,41 @@ from ml_code.model_data.pickle_io import store_pickle, open_pickle
 from ml_code.model_data.SQL_connection import insert_val_alt, create_connection, execute_read_query
 import ml_code.model_data.PostgreSQL_credentials as acc
 
-def yodlee_filler(section, plots=False, create_spending_report=False, include_lag_features=False, store_model=False):
+def db_filler(section, plots=False, spending_report=False, include_lag_features=False, store_model=False):
 
-    connection = create_connection(db_name=acc.YDB_name,
-                                    db_user=acc.YDB_user,
-                                    db_password=acc.YDB_password,
-                                    db_host=acc.YDB_host,
-                                    db_port=acc.YDB_port)
 
     # dropped amount_mean_lag7 to avoid errors
     # keep optimized_transaction_date as it becomes index
     fields = ['unique_mem_id', 'optimized_transaction_date', 'amount', 'description',
               'primary_merchant_name', 'transaction_category_name', 'state',
               'city', 'transaction_base_type', 'transaction_origin']
-    # use these columns as features
 
-    # pull data and encode
-    # section from 1 - 10
-    try:
-        filter_query = f"(SELECT {', '.join(field for field in fields)} FROM card_record \
-                            WHERE unique_mem_id IN \
-                            (SELECT unique_mem_id FROM user_demographic \
-                             ORDER BY unique_mem_id ASC limit 10000 offset {10000*(section-1)})) \
-                            UNION ALL (SELECT {', '.join(field for field in fields)} \
-                           FROM bank_record WHERE unique_mem_id IN \
-                           (SELECT unique_mem_id FROM user_demographic \
-                            ORDER BY unique_mem_id ASC limit 10000 offset {10000*(section-1)}))"
-        transaction_query = execute_read_query(connection, filter_query)
-        main_df = pd.DataFrame(transaction_query, columns=fields)
-        print(f"{len(transaction_query)} transactions.")
-    except OperationalError as e:
-        print(f"The error '{e}' occurred")
-        connection.rollback
+    # dont put label here
+    feat_list = ['description', 'transaction_category_name', 'amount', 'city',
+                 'state', 'transaction_base_type', 'transaction_origin']
+    # connection = create_connection(db_name=acc.YDB_name,
+    #                                 db_user=acc.YDB_user,
+    #                                 db_password=acc.YDB_password,
+    #                                 db_host=acc.YDB_host,
+    #                                 db_port=acc.YDB_port)
+
+    # # pull data and encode
+    # # section from 1 - 10
+    # try:
+    #     filter_query = f"(SELECT {', '.join(field for field in fields)} FROM card_record \
+    #                         WHERE unique_mem_id IN \
+    #                         (SELECT unique_mem_id FROM user_demographic \
+    #                          ORDER BY unique_mem_id ASC limit 10000 offset {10000*(section-1)})) \
+    #                         UNION ALL (SELECT {', '.join(field for field in fields)} \
+    #                        FROM bank_record WHERE unique_mem_id IN \
+    #                        (SELECT unique_mem_id FROM user_demographic \
+    #                         ORDER BY unique_mem_id ASC limit 10000 offset {10000*(section-1)}))"
+    #     transaction_query = execute_read_query(connection, filter_query)
+    #     main_df = pd.DataFrame(transaction_query, columns=fields)
+    #     print(f"{len(transaction_query)} transactions.")
+    # except OperationalError as e:
+    #     print(f"The error '{e}' occurred")
+    #     connection.rollback
 
     #################################################
     # TEST DF NOT ENCODED!!
@@ -69,6 +72,9 @@ def yodlee_filler(section, plots=False, create_spending_report=False, include_la
     #                   spending_report=False,
     #                   plots=False)
     # main_df = pd.concat([test_df_1, test_df_2], axis=0)
+    main_df = pull_df(rng=22,
+                      spending_report=False,
+                      plots=False)
     ########################################
 
     for num, user in enumerate(main_df.groupby('unique_mem_id')):
@@ -84,35 +90,6 @@ def yodlee_filler(section, plots=False, create_spending_report=False, include_la
         #     le = LabelEncoder()
         #     le.fit_transform(unique_list)
         #     embedding_maps[feature] = dict(zip(le.classes_, le.transform(le.classes_)))
-
-        if plots:
-            # Pie chart States
-            state_ct = Counter(list(main_df['state']))
-            # The * operator can be used in conjunction with zip() to unzip the list.
-            labels, values = zip(*state_ct.items())
-            # Pie chart, where the slices will be ordered and plotted counter-clockwise:
-            fig1, ax = plt.subplots(figsize=(20, 12))
-            ax.pie(values, labels=labels, autopct='%1.1f%%',
-                  shadow=True, startangle=90)
-            # Equal aspect ratio ensures that pie is drawn as a circle.
-            ax.axis('equal')
-            #ax.title('Transaction locations of user {main_df[unique_mem_id][0]}')
-            ax.legend(loc='center right')
-            plt.show()
-
-            # Pie chart transaction type
-            trans_ct = Counter(list(main_df['transaction_category_name']))
-            # The * operator can be used in conjunction with zip() to unzip the list.
-            labels_2, values_2 = zip(*trans_ct.items())
-            #Pie chart, where the slices will be ordered and plotted counter-clockwise:
-            fig1, ax = plt.subplots(figsize=(20, 12))
-            ax.pie(values_2, labels=labels_2, autopct='%1.1f%%',
-                  shadow=True, startangle=90)
-            # Equal aspect ratio ensures that pie is drawn as a circle.
-            ax.axis('equal')
-            #ax.title('Transaction categories of user {main_df[unique_mem_id][0]}')
-            ax.legend(loc='center right')
-            plt.show()
 
         try:
             main_df['transaction_date'] = pd.to_datetime(main_df['transaction_date'])
@@ -157,8 +134,9 @@ def yodlee_filler(section, plots=False, create_spending_report=False, include_la
         except:
             print("Column currency was not chosen; was dropped")
             pass
-
-        encoding_features = feat_list
+# TEST HERE WITH ALL FEATS ENCODED
+# this should contain the prim merch names as well??
+        encoding_features = fields
         UNKNOWN_TOKEN = '<unknown>'
         embedding_maps = {}
         for feature in encoding_features:
@@ -218,14 +196,14 @@ def yodlee_filler(section, plots=False, create_spending_report=False, include_la
         #drop all features left with empty (NaN) values
         main_df = main_df.dropna()
         #drop user IDs to avoid overfitting with useless information
-        try:
-            main_df = main_df.drop(['unique_mem_id'], axis=1)
-        except:
-            print("Unique Member ID could not be dropped.")
+        # try:
+        #     main_df = main_df.drop(['unique_mem_id'], axis=1)
+        # except:
+        #     print("Unique Member ID could not be dropped.")
 
         X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, \
             X_test_minmax, y_train, y_test = split_data_feat(df=main_df,
-                                                             features=fields,
+                                                             features=feat_list,
                                                              test_size=0.2,
                                                              label='primary_merchant_name')
 
@@ -235,28 +213,83 @@ def yodlee_filler(section, plots=False, create_spending_report=False, include_la
         Xt_array = X_test.values
         yt_array = y_test.values
         # X_train and y_train used to train pipeline
-        xgb_clf_object = pipeline_xgb(x=X_array,
-                                      y=y_array,
-                                      test_features=Xt_array,
-                                      test_target=yt_array)
+        clf_object = pipeline_xgb(x=X_array,
+                                  y=y_array,
+                                  test_features=Xt_array,
+                                  test_target=yt_array)
 
         # array object
-        y_pred = xgb_clf_object.predict(Xt_array)
+        y_pred = clf_object.predict(Xt_array)
+        
         # inverse transformation to merchant strings
-        decoded_merchants = dict(zip(le.classes_, le.inverse_transform(y_pred)))
-        gen_merch = (i for i in decoded_merchants.items())
+        #decoded_merchants = dict(zip(le.classes_, le.inverse_transform(y_pred)))
+        #gen_merch = [i for i in le.inverse_transform(y_pred)]
 
-        # columns as list
-        # insertion_values as tuple/list
-        insert_val_alt(insertion_val = gen_merch,
-                      columns = 'merchant_predictions')
+        # for l in fields:
+        #     old_list = embedding_maps[l].classes_
+        #     new_list = y_test[l].unique()
+        #     na = [j for j in new_list if j not in old_list]
+        #     main_df[l] = main_df[l].replace(na,'NA')
+
+        # selected_label = 'primary_merchant_name'
+        # old_list = embedding_maps[selected_label].classes_
+        # new_list = y_test.unique()
+        # na = [j for j in new_list if j not in old_list]
+        # y_pred = y_pred.replace(na,'unseen_in_training')
+
+
 
         if store_model:
             # store trained model as pickle
-            store_pickle(model=xgb_clf_object,
-                         file_name=f"trained_model_{user}")
+            store_pickle(model=clf_object,
+                         file_name=f"trained_model_{user[0]}")
 
-        # open the model; located in the current folder
-        #trained_model = open_pickle(model_file="gridsearch_model.sav")
 
-    return 'filling process completed'
+        db_name = "postgres"
+        db_user = "envel"
+        db_pw = "envel"
+        db_host = "0.0.0.0"
+        db_port = "5432"
+
+        try:
+            connection = create_connection(db_name=db_name,
+                                            db_user=db_user,
+                                            db_password=db_user,
+                                            db_host=db_host,
+                                            db_port=db_port)
+            print("-------------")
+            cursor = connection.cursor()
+            sql_insert_query = """
+            INSERT INTO test (test_col_2)
+            VALUES (%s);
+            """
+            # merch_list = ['Tatte Bakery', 'Star Market', 'Stop n Shop', 'Auto Parts Shop',
+            #               'Trader Joes', 'Insomnia Cookies']
+            values = y_pred.tolist()
+            # tuple or list works
+            for i in values:
+            # executemany() to insert multiple rows rows
+                cursor.execute(sql_insert_query, (i, ))
+
+            connection.commit()
+            print(len(values), "record(s) inserted successfully.")
+
+        except (Exception, psycopg2.Error) as error:
+            print("Failed inserting record {}".format(error))
+
+        finally:
+            # closing database connection.
+            if (connection):
+                cursor.close()
+                connection.close()
+                print("Operation completed.\nPostgreSQL connection is closed.")
+        print("=========================")
+
+
+    return 'filling completed'
+#%%
+db_filler(section=0,
+          plots=False,
+          spending_report=False,
+          include_lag_features=False,
+          store_model=False)
