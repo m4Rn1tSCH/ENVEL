@@ -1,7 +1,7 @@
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.model_selection import train_test_split
 
-def split_data_feat(df, features, test_size=0.2, label='city'):
+def split_data_feat(df, features, test_size=0.2, label='primary_merchant_name'):
     '''
     Parameters
     ----------
