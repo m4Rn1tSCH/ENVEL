@@ -13,9 +13,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from collections import Counter
 
-from Python_SQL_connection import execute_read_query, create_connection
-import PostgreSQL_credentials as acc
-from Python_spending_report_csv_function import spending_report as create_spending_report
+from ml_code.model_data.SQL_connection import create_connection, execute_read_query
+import ml_code.model_data.PostgreSQL_credentials as acc
+from ml_code.model_data.spending_report_csv_function import spending_report as create_spending_report
 
 def pull_df(rng=4, spending_report=False, plots=False):
 
@@ -60,7 +60,7 @@ def pull_df(rng=4, spending_report=False, plots=False):
                                   'is_duplicate', 'change_source', 'lag', 'mcc_inferred', 'mcc_raw',
                                   'factual_id', 'factual_category', 'zip_code', 'yodlee_transaction_status',
                                   'file_created_date', 'panel_file_created_date', 'account_source_type',
-                                  'account_type', 'account_score', 'user_score'], axis=1)
+                                  'account_type', 'account_score', 'user_score', 'post_date', 'transaction_date'], axis=1)
     except OperationalError as e:
         print(f"The error '{e}' occurred")
         connection.rollback
@@ -106,14 +106,14 @@ def pull_df(rng=4, spending_report=False, plots=False):
     on various days of the week/or wihtin a week or a month over the course of the year
     '''
 
-    df['post_date'] = pd.to_datetime(df['post_date'])
-    df['transaction_date'] = pd.to_datetime(df['transaction_date'])
     df['optimized_transaction_date'] = pd.to_datetime(
         df['optimized_transaction_date'])
 
     # set optimized transaction_date as index for later
     df.set_index('optimized_transaction_date', drop=False, inplace=True)
 
+    df = df.drop(['unique_bank_account_id',
+                  'unique_bank_transaction_id'], axis=1)
     # generate the spending report with the above randomly picked user ID
     if spending_report:
         create_spending_report(df=df.copy())

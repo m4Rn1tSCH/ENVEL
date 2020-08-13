@@ -7,22 +7,13 @@ Created on Mon Aug  3 20:01:20 2020
 """
 
 # LOCAL IMPORTS
-import sys
-# sys.path.append('C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/envel-machine-learning')
 import psycopg2
 from psycopg2 import OperationalError
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from datetime import datetime as dt
-from sklearn.preprocessing import LabelEncoder
-
 from ml_code.model_data.raw_data_connection import pull_df
 from ml_code.model_data.SQL_connection import create_connection, execute_read_query
-from ml_code.model_data.split_data_w_features import split_data_feat
-from ml_code.classification_models.xgbc_class import pipeline_xgb
-from ml_code.classification_models.svc_class import svc_class
-from ml_code.model_data.pickle_io import store_pickle, open_pickle
+
 
 
 db_name = "postgres"
@@ -44,7 +35,7 @@ def list_insert(values):
     Parameters.
     ------------
     values. List/array/iterable. Values to be inserted into the databank.
-    
+
     Returns.
     -----------
     'Operation complete' + disconnect
@@ -54,7 +45,7 @@ def list_insert(values):
     try:
         connection = create_connection(db_name=db_name,
                                         db_user=db_user,
-                                        db_password=db_user,
+                                        db_password=db_pw,
                                         db_host=db_host,
                                         db_port=db_port)
         print("-------------")
@@ -70,7 +61,7 @@ def list_insert(values):
             cursor.execute(sql_insert_query, (i, ))
 
         connection.commit()
-        print(len(values), "record(s) inserted successfully.")
+        print(len(values), "record(s) inserted successfully. \n ------------")
 
     except (Exception, psycopg2.Error) as error:
         print("Failed inserting record {}".format(error))
@@ -81,5 +72,5 @@ def list_insert(values):
             cursor.close()
             connection.close()
             print("Operation accomplished.\nPostgreSQL connection is closed.")
-    print("---------------")
+    print("================")
     return'done'
