@@ -13,12 +13,12 @@ import sys
 # sys.path.append('C:/Users/bill-/OneDrive/Dokumente/Docs Bill/TA_files/functions_scripts_storage/envel-machine-learning')
 import psycopg2
 from psycopg2 import OperationalError
+from psycopg2.extensions import register_adapter, AsIs
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from collections import Counter
 from sklearn.preprocessing import LabelEncoder
-
 from ml_code.model_data.spending_report_csv_function import spending_report as spending_report
 from ml_code.model_data.raw_data_connection import pull_df
 from ml_code.model_data.split_data_w_features import split_data_feat
@@ -26,6 +26,31 @@ from ml_code.classification_models.xgbc_class import pipeline_xgb
 from ml_code.model_data.pickle_io import store_pickle, open_pickle
 from ml_code.model_data.SQL_connection import insert_val_alt, create_connection, execute_read_query
 import ml_code.model_data.PostgreSQL_credentials as acc
+
+
+# extensions to convert numpy objects to recognizable SQL objects
+def adapt_numpy_float64(numpy_float64):
+    return AsIs(numpy_float64)
+
+def adapt_numpy_int64(numpy_int64):
+    return AsIs(numpy_int64)
+
+def adapt_numpy_float32(numpy_float32):
+    return AsIs(numpy_float32)
+
+def adapt_numpy_int32(numpy_int32):
+    return AsIs(numpy_int32)
+
+def adapt_numpy_array(numpy_array):
+    return AsIs(tuple(numpy_array))
+
+register_adapter(np.float64, adapt_numpy_float64)
+register_adapter(np.int64, adapt_numpy_int64)
+register_adapter(np.float32, adapt_numpy_float32)
+register_adapter(np.int32, adapt_numpy_int32)
+register_adapter(np.ndarray, adapt_numpy_array)
+
+
 
 def db_filler(section, plots=False, spending_report=False, include_lag_features=False, store_model=False):
 
@@ -80,16 +105,6 @@ def db_filler(section, plots=False, spending_report=False, include_lag_features=
     for num, user in enumerate(main_df.groupby('unique_mem_id')):
         print(f"User: {user[0]}, {num+1}/10000 users, {round(((num+1)/10000)*100, 2)}%.")
 
-        # # create the dict for encoded feature for each user (is overwritten each time)
-        # encoding_features = ['primary_merchant_name']
-        # UNKNOWN_TOKEN = '<unknown>'
-        # embedding_maps = {}
-        # for feature in encoding_features:
-        #     unique_list = main_df[feature].unique().astype('str').tolist()
-        #     unique_list.append(UNKNOWN_TOKEN)
-        #     le = LabelEncoder()
-        #     le.fit_transform(unique_list)
-        #     embedding_maps[feature] = dict(zip(le.classes_, le.transform(le.classes_)))
 
         try:
             main_df['transaction_date'] = pd.to_datetime(main_df['transaction_date'])
@@ -128,27 +143,36 @@ def db_filler(section, plots=False, spending_report=False, include_lag_features=
             print(f"Problem with conversion: {e}")
 
         # dropping currency if there is only one
-        try:
-            if len(main_df['currency'].value_counts()) == 1:
-                main_df = main_df.drop(columns=['currency'], axis=1)
-        except:
-            print("Column currency was not chosen; was dropped")
-            pass
-# TEST HERE WITH ALL FEATS ENCODED
-# this should contain the prim merch names as well??
+        # try:
+        #     if len(main_df['currency'].value_counts()) == 1:
+        #         main_df = main_df.drop(columns=['currency'], axis=1)
+        # except:
+        #     print("Column currency was not chosen; was dropped")
+        #     pass
+
+        target_label = 'primary_merchant_name'
+        UNKNOWN_TOKEN = '<unknown>'
+        label_map = {}
+        unique_list = main_df[target_label].unique().astype('str').tolist()
+        unique_list.append(UNKNOWN_TOKEN)
+        le_t = LabelEncoder()
+        le_t.fit(unique_list)
+        label_map = dict(zip(le_t.classes_, le_t.transform(le_t.classes_)))
+
         encoding_features = fields
         UNKNOWN_TOKEN = '<unknown>'
-        embedding_maps = {}
+        embedding_map = {}
         for feature in encoding_features:
             unique_list = main_df[feature].unique().astype('str').tolist()
             unique_list.append(UNKNOWN_TOKEN)
             le = LabelEncoder()
             le.fit_transform(unique_list)
-            embedding_maps[feature] = dict(zip(le.classes_, le.transform(le.classes_)))
+            embedding_map[feature] = dict(zip(le.classes_, le.transform(le.classes_)))
 
             # APPLICATION TO DATASET
-            main_df[feature] = main_df[feature].apply(lambda x: x if x in embedding_maps[feature] else UNKNOWN_TOKEN)
+            main_df[feature] = main_df[feature].apply(lambda x: x if x in embedding_map[feature] else UNKNOWN_TOKEN)
             main_df[feature] = main_df[feature].map(lambda x: le.transform([x])[0] if type(x) == str else x)
+        yield embedding_map
 
         '''
         IMPORTANT
@@ -157,9 +181,7 @@ def db_filler(section, plots=False, spending_report=False, include_lag_features=
         NaNs need to be dropped to make scaling and selection of features working
         '''
         if include_lag_features:
-            #FEATURE ENGINEERING
-            #typical engineered features based on lagging metrics
-            #mean + stdev of past 3d/7d/30d/ + rolling volume
+
             date_index = main_df.index.values
             main_df.reset_index(drop=True, inplace=True)
             #pick lag features to iterate through and calculate features
@@ -201,6 +223,7 @@ def db_filler(section, plots=False, spending_report=False, include_lag_features=
         # except:
         #     print("Unique Member ID could not be dropped.")
 
+
         X_train, X_train_scaled, X_train_minmax, X_test, X_test_scaled, \
             X_test_minmax, y_train, y_test = split_data_feat(df=main_df,
                                                              features=feat_list,
@@ -220,14 +243,16 @@ def db_filler(section, plots=False, spending_report=False, include_lag_features=
 
         # array object
         y_pred = clf_object.predict(Xt_array)
-        merchant_list = []
 
-        for pred in y_pred:
-            try:
-                merchant_list.append(le.inverse_transform(pred))
-            except:
-                merchant_list.append("unseen in training")
-
+        # adding y_pred directly works fine
+        merchants = []
+        # resulting variable is an array!
+        for i in y_pred:
+            for val, enc in embedding_map.items():
+                if enc in predictions:
+                    merchants.append(val)
+                else:
+                    merchants.append("unseen in training")
 
         if store_model:
             # store trained model as pickle
@@ -241,10 +266,14 @@ def db_filler(section, plots=False, spending_report=False, include_lag_features=
         db_host = "0.0.0.0"
         db_port = "5432"
 
+        '''
+        Always use %s placeholder for queries; psycopg2 will convert most data automatically
+        '''
+
         try:
             connection = create_connection(db_name=db_name,
                                             db_user=db_user,
-                                            db_password=db_user,
+                                            db_password=db_pw,
                                             db_host=db_host,
                                             db_port=db_port)
             print("-------------")
@@ -253,19 +282,23 @@ def db_filler(section, plots=False, spending_report=False, include_lag_features=
             INSERT INTO test (test_col_2)
             VALUES (%s);
             """
-            # merch_list = ['Tatte Bakery', 'Star Market', 'Stop n Shop', 'Auto Parts Shop',
-            #               'Trader Joes', 'Insomnia Cookies']
+            # merch_list = np.ndarray(['Tatte Bakery', 'Star Market', 'Stop n Shop', 'Auto Parts Shop',
+            #               'Trader Joes', 'Insomnia Cookies'])
 
+            # this line would take individual letters as tuples and inserts
+            # values = tuple([tuple(row) for row in merchants])
             # tuple or list works
-            for i in merchant_list:
+            values = merchants
+            for i in values:
             # executemany() to insert multiple rows rows
+            # one-element-tuple with (i, )
                 cursor.execute(sql_insert_query, (i, ))
 
             connection.commit()
-            print(len(merchant_list), "record(s) inserted successfully.")
+            print(len(values), "record(s) inserted successfully.")
 
         except (Exception, psycopg2.Error) as error:
-            print("Failed inserting record {}".format(error))
+            print("Failed inserting record; {}".format(error))
 
         finally:
             # closing database connection.
