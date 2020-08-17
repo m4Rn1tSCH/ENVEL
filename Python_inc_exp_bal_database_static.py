@@ -231,8 +231,8 @@ def preproccessing():
     '''
     POSTGRE-SQL COLUMNS - ALLOCATION TO ENVELOPES
     This section adds a classification of transaction categories to allow a proper allocation to either the cash or the bills envelope
-    Bills describes as of 3/26/2020 all kinds of payment whose occurrence is beyond one's control,
-    that comes due and for which non-compliance has evere consequences
+    Bills describe as of 3/26/2020 all kinds of payment whose occurrence are beyond one's control,
+    that come due and for which non-compliance has severe consequences
     All other kinds of payments that are of optional nature and can be avoided are classifed as cash
     '''
     cash_env_card = ['Rewards', 'Transfers', 'Refunds/Adjustments', 'Gifts',
@@ -344,16 +344,7 @@ def preproccessing():
     #%%
     df_card.set_index("optimized_transaction_date", drop = False, inplace = True)
     df_bank.set_index("optimized_transaction_date", drop = False, inplace = True)
-    #%%
-    '''
-    70850441974905670928446
-    201492116860211330700059
-    257154737161372702866152
-    364987015290224198196263
-    651451454569880463282551
-    748150568877494117414131
-    '''
-    #%%
+
     '''
     IMPROVISED SOLUTION WITHOUT ITERATION
     Filter-df by unique id of each customer with columns: member_id; amount; envelope_category; transaction_class
