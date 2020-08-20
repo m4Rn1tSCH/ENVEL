@@ -210,7 +210,7 @@ def preproccessing():
             transaction_class_card[index] = "expense"
         else:
             transaction_class_card[index] = "NOT_CLASSIFIED"
-    df_card.insert(loc = len(df_card.columns), column = "transaction_class", value = transaction_class_card)
+    df = df.assign(transaction_class_card=transaction_class_card.values)
     #except:
         #print("column is already existing or another error")
     ###################################
@@ -224,7 +224,7 @@ def preproccessing():
             transaction_class_bank[index] = "expense"
         else:
             transaction_class_bank[index] = "NOT_CLASSIFIED"
-    df_bank.insert(loc = len(df_bank.columns), column = "transaction_class", value = transaction_class_bank)
+    df = df.assign(transaction_class_bank=transaction_class_bank.values)
     #except:
         #print("column is already existing or another error")
 #%%
