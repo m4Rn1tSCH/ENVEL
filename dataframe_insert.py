@@ -10,32 +10,12 @@ from ml_code.model_data.SQL_connection import create_connection
 from ml_code.model_data.raw_data_connection import pull_df
 import psycopg2
 from psycopg2 import OperationalError
-from psycopg2.extensions import register_adapter, AsIs
-import numpy as np
-import pandas as pd
 
-df = pull_df(rng=22,
-             spending_report=False,
-             plots=False)
-
-dfs = df[['unique_mem_id', 'city', 'state']]
-    # unique_mem_id = df['unique_mem_id'].values
-    # amount = df['amount'].values
-    # currency = df['currency'].values
-    # description = df['description'].values
-    # transaction_base_type = df['transaction_base_type'].values
-    # transaction_category_name = df['transaction_category_name'].values
-    # primary_merchant_name = df['primary_merchant_name'].values
-    # city = df['city'].values
-    # state = df['state'].values
-    # transaction_origin = df['transaction_origin'].values
-    # optimized_transaction_date = df['optimized_transaction_date'].values
-
-for i in dfs.itertuples():
-    print(i.unique_mem_id,
-          i.city,
-          i.state)
-
+#TEST_DF
+# df = pull_df(rng=22,
+#              spending_report=False,
+#              plots=False)
+#########################
 
 def df_insert_query(df):
     
@@ -61,7 +41,8 @@ def df_insert_query(df):
     
     '''
     Always use %s placeholder for queries; psycopg2 will convert most data automatically
-    Enclose the tuples in sq brackets or leave without sq brackets (no performance diff)
+    For special cases or conversion problems use adapters or "AsIs"
+    Enclose the tuples in square brackets or leave without square brackets (no performance diff)
     '''
 
     try:
@@ -82,8 +63,7 @@ def df_insert_query(df):
         #               'Trader Joes', 'Insomnia Cookies'])
 
         # tuple or list works
-        
-        # values = df
+        # split up into tuples and pass as list
         for i in df.itertuples():
         # executemany() to insert multiple rows rows
         # one-element-tuple with (i, )
@@ -95,7 +75,7 @@ def df_insert_query(df):
                                                i.optimized_transaction_date]))
 
         connection.commit()
-        print(len(dfs), "record(s) inserted successfully.")
+        print(len(df), "record(s) inserted successfully.")
 
     except (Exception, psycopg2.Error) as error:
         print("Failed inserting record; {}".format(error))
@@ -109,5 +89,3 @@ def df_insert_query(df):
     print("=========================")
 
     return'insert completed'
-#%%
-df_insert_query(df=df)
